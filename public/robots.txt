@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://businessawards.co.tz/sitemap.xml
