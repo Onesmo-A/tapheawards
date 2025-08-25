@@ -1,0 +1,46 @@
+# Environment files
+.env
+.env.backup
+.env.production
+.env.example
+
+# Logs
+*.log
+/storage/logs/*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE / Editor folders and files
+/.idea/
+/.vscode/
+/.phpactor.json
+/.phpunit.cache
+/.phpunit.result.cache
+/.fleet/
+/.nova/
+/.zed/
+/auth.json
+
+# Node modules and build files
+/node_modules/
+/public/build/
+/public/hot/
+/public/storage/
+
+# Laravel storage and cache
+/storage/*.key
+/storage/pail
+/bootstrap/cache/*.php
+/vendor/
+/tests/
+/database/
+/.editorconfig/
+
+# Composer vendor folder
+/vendor/
+
+# Homestead files
+Homestead.json
+Homestead.yaml

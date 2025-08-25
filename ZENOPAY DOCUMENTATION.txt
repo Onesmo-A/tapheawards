@@ -1,0 +1,112 @@
+ZenoPay API Integration Guide – Mobile Money Tanzania
+Secure Mobile Money Payments Integration
+API Endpoint
+URL:
+https://zenoapi.com/api/payments/mobile_money_tanzania
+Method:
+POST
+Authentication
+Include your API key in the header:
+x-api-key: YOUR_API_KEY
+Note: Replace
+YOUR_API_KEY
+with the key provided by ZenoPay.
+Request Body
+Submit the following JSON payload:
+{
+"order_id": "3rer407fe-3ee8-4525-456f-ccb95de38250",
+"buyer_email": "iam@gmail.com",
+"buyer_name": "John Joh",
+"buyer_phone": "0744963858",
+"amount": 1000
+}
+Parameter Descriptions
+Parameter Type Required Description
+order_id string ✅ Unique transaction ID (e.g., UUID)
+buyer_email string ✅ Payer's valid email address
+buyer_name string ✅ Payer's full name
+buyer_phone string ✅
+Tanzanian mobile number (format:
+07XXXXXXXX
+)
+amount number ✅
+Amount in TZS (e.g.,
+1000
+= 1000 TZS)
+Sample cURL Request
+curl -X POST "https://zenoapi.com/api/payments/mobile_money_tanzania" \
+-H "Content-Type: application/json" \
+-H "x-api-key: YOUR_API_KEY" \
+-d '{
+"order_id": "3rer407fe-3ee8-4525-456f-ccb95de38250",
+"buyer_email": "iam@gmail.com",
+"buyer_name": "John Joh",
+"buyer_phone": "0744963858",
+"amount": 1000
+}'
+Successful Response
+{
+"status": "success",
+"resultcode": "000",
+"message": "Request in progress. You will receive a callback shortly",
+"order_id": "3rer407fe-3ee8-4525-456f-ccb95de38250"
+}
+Error Response
+{
+"status": "error",
+"message": "Invalid API Key or request payload"
+}
+Check Order Status
+URL:
+https://zenoapi.com/api/payments/order-status
+Method:
+GET
+Parameter:
+order_id=3rer407fe-3ee8-4525-456f-ccb95de38250
+Sample Request
+curl -X GET "https://zenoapi.com/api/payments/order-status?order_id=3rer407fe-3ee8-4525-456f-ccb95de38250" -H "x-api-key: YOUR_API_KEY"
+Sample Response
+{
+"reference": "0936183435",
+"resultcode": "000",
+"result": "SUCCESS",
+"message": "Order fetch successful",
+"data": [
+{
+"order_id": "3rer407fe-3ee8-4525-456f-ccb95de38250",
+"creation_date": "2025-05-19 08:40:33",
+"amount": "1000",
+"payment_status": "COMPLETED",
+"transid": "CEJ3I3SETSN",
+"channel": "MPESA-TZ",
+"reference": "0936183435",
+"msisdn": "255744963858"
+}
+]
+}
+Webhook Notifications
+ZenoPay can send automatic notifications to your server when payment status changes to COMPLETED.
+Webhook Setup
+Include the
+webhook_url
+parameter in your payment request to receive status updates:
+{
+"order_id": "3rer407fe-3ee8-4525-456f-ccb95de38250",
+"buyer_email": "iam@gmail.com",
+"buyer_name": "John Joh",
+"buyer_phone": "0744963858",
+"amount": 1000,
+"webhook_url": "https://your-domain.com/payment-webhook"
+}
+Webhook Authentication
+ZenoPay will send the
+x-api-key
+in the request header when calling your webhook URL. Verify this key to ensure the request is legitimate.
+Webhook Payload Example
+{"order_id":"677e43274d7cb","payment_status":"COMPLETED","reference":"1003020496","metadata":{"product_Note: Webhooks are only triggered when payment status changes to COMPLETED.
+Support
+For assistance, contact:
+Email: support@zenoapi.com
+Website: https://zenoapi.com
+ZenoPay Team
+Simplifying Digital Payments in Tanzania
