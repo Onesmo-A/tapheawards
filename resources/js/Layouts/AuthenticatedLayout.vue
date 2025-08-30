@@ -33,7 +33,7 @@ watch(() => page.props.flash, (flash) => {
 
 <template>
     <div>
-        <div class="min-h-screen bg-gray-900">
+        <div class="min-h-screen bg-gray-100">
             <!-- Mobile sidebar overlay -->
             <div v-show="sidebarOpen" class="fixed inset-0 z-30 bg-black/50 md:hidden" @click="sidebarOpen = false" />
 

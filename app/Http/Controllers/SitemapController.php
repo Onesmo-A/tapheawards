@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Spatie\Sitemap\Sitemap;
 use Spatie\Sitemap\Tags\Url;
@@ -18,15 +19,13 @@ class SitemapController extends Controller
             ->add(Url::create('/contact'))
             ->add(Url::create('/categories'))
             ->add(Url::create('/news'))
-            ->add(Url::create('/gallery'))
-            ->add(Url::create('/awards'))
-            ->add(Url::create('/awards/categories'))
-            ->add(Url::create('/awards/winners'))
-            ->add(Url::create('/awards/vote'))
-            ->add(Url::create('/event/guest-of-honor'))
-            ->add(Url::create('/event/artists'))
-            ->add(Url::create('/media/gallery'))
-            ->add(Url::create('/season-awards'));
+            ->add(Url::create('/gallery'));
+
+        // Ongeza URLs za kategoria zote kiotomatiki
+        Category::all()->each(function (Category $category) use ($sitemap) {
+            // Hakikisha unatumia route helper na slug kama unavyofanya kwenye web.php
+            $sitemap->add(Url::create(route('categories.show', $category->slug)));
+        });
 
         // Kama unataka kuongeza slug za category au season awards dynamically, unaweza ongeza hapa
 

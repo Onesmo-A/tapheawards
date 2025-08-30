@@ -17,21 +17,24 @@ import {
 
 const page = usePage();
 const hasPendingApplication = computed(() => page.props.auth.hasPendingApplication);
+const isAdmin = computed(() => page.props.auth.user?.is_admin);
 
 const menu = computed(() => {
-    return [
+    const userMenu = [
         { name: 'Dashboard', route: 'dashboard', icon: HomeIcon },
-        {
-            name: 'Application',
-            icon: DocumentTextIcon,
-            children: [
-                { name: 'Apply', route: 'user.applications.create', icon: DocumentPlusIcon, disabled: hasPendingApplication.value },
-                { name: 'Status', route: 'user.applications.index', icon: QueueListIcon, notification: hasPendingApplication.value },
-            ]
-        },
-        { name: 'Buy Tickets', route: 'tickets.index', icon: TicketIcon },
+        // Tumeviondoa vitufe kutoka kwenye collapsible menu na kuviweka moja kwa moja
+        { name: 'Anzisha Maombi', route: 'user.applications.selectCategory', icon: DocumentPlusIcon, disabled: hasPendingApplication.value },
+        { name: 'Hali ya Maombi', route: 'user.applications.index', icon: QueueListIcon, notification: hasPendingApplication.value },
+        { name: 'Buy Tickets', route: 'dashboard', icon: TicketIcon },
         { name: 'My Profile', route: 'profile.edit', icon: UserCircleIcon },
     ];
+
+    if (isAdmin.value) {
+        userMenu.push({ isSeparator: true });
+        userMenu.push({ name: 'Utawala (Admin)', route: 'admin.dashboard', icon: WrenchScrewdriverIcon });
+    }
+
+    return userMenu;
 });
 </script>
 
@@ -46,10 +49,14 @@ const menu = computed(() => {
 
         <!-- Navigation Links -->
         <nav class="flex-1 px-2 py-4 space-y-2">
-            <template v-for="item in menu" :key="item.name">
-                <!-- Ikiwa item ina 'children', tumia Collapsible Link -->
-                <SidebarCollapsibleLink v-if="item.children" :item="item" />
-                <!-- Vinginevyo, tumia Link ya kawaida -->
+            <template v-for="(item, index) in menu" :key="item.name || `sep-${index}`">
+                <!-- Separator for Admin section -->
+                <div v-if="item.isSeparator" class="py-2 px-2">
+                    <div class="border-t border-gray-700"></div>
+                </div>
+                <!-- Collapsible Link -->
+                <SidebarCollapsibleLink v-else-if="item.children" :item="item" />
+                <!-- Normal Link -->
                 <SidebarLink
                     v-else
                     :href="item.route ? route(item.route, item.params || {}) : '#'"

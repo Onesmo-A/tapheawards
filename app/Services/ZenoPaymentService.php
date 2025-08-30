@@ -2,88 +2,67 @@
 
 namespace App\Services;
 
-use App\Models\NomineeApplication;
 use App\Models\Transaction;
-use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 class ZenoPaymentService
 {
     protected string $baseUrl;
-    protected string $apiKey;
+    protected ?string $apiKey;
 
     public function __construct()
     {
-        $this->baseUrl = config('services.zenopay.base_uri');
+        $this->baseUrl = config('services.zenopay.url');
         $this->apiKey = config('services.zenopay.key');
     }
 
     /**
-     * Anzisha ombi la malipo kwenda ZenoPay.
+     * Anzisha ombi la malipo kwa kutumia Mobile Money Tanzania.
+     * Inapokea object ya Transaction pekee.
      *
-     * @param NomineeApplication $application
-     * @param User $user
-     * @param int $amount
-     * @param string $phoneNumber
-     * @param string $webhookUrl
-     * @return Transaction|null
+     * @param Transaction $transaction
+     * @return bool True kama ombi limetumwa, false kama imeshindikana.
      */
-    public function initiatePayment(NomineeApplication $application, User $user, int $amount, string $phoneNumber, string $webhookUrl): ?Transaction
+    public function initiatePayment(Transaction $transaction): bool
     {
-        // 1. Unda rekodi ya transaction kwenye mfumo wetu kwanza
-        $transaction = $application->transaction()->create([
-            'user_id' => $user->id,
-            'order_id' => (string) Str::uuid(), // Hii ni ID yetu ya ndani
-            'amount' => $amount,
-            'currency' => 'TZS',
-            'status' => 'pending',
-            'phone_number' => $phoneNumber,
-        ]);
-
-        // 2. Andaa data ya kutuma kwenda ZenoPay kulingana na documentation
-        $payload = [
-            'amount' => $amount,
-            'buyer_phone' => $phoneNumber,
-            'buyer_email' => $user->email,
-            'buyer_name' => $user->name,
-            'order_id' => $transaction->order_id,
-            'webhook_url' => $webhookUrl,
-        ];
-
-        // 3. Tuma ombi kwenda ZenoPay API
-        // Hapa hatutatumia DB::transaction, tutakamata exception kwenye Controller
-        $response = Http::withHeaders([
-            'x-api-key' => $this->apiKey,
-            'Accept' => 'application/json',
-            'Content-Type' => 'application/json',
-        ])->post($this->baseUrl . '/payments/mobile_money_tanzania', $payload);
-
-        if (!$response->successful()) {
-            // Log the error for debugging
-            Log::error('ZenoPay Initiation Failed', [
-                'status' => $response->status(),
-                'body' => $response->body(),
-                'order_id' => $transaction->order_id,
-            ]);
-            // Rudisha null kuashiria ombi la API limeshindikana
-            return null;
+        if (!$this->baseUrl || !$this->apiKey) {
+            Log::critical('ZenoPay Service Not Configured: URL or API Key is missing.');
+            return false;
         }
 
-        // Ikiwa imefanikiwa, ZenoPay itatuma STK push kwa mteja.
-        // Sisi tunarudisha transaction yetu.
-        return $transaction;
-    }
+        // Endpoint maalum kwa malipo ya simu Tanzania
+        $endpoint = $this->baseUrl . '/payments/mobile_money_tanzania';
 
-    /**
-     * Hakiki kama webhook imetoka ZenoPay kweli.
-     */
-    public function isWebhookAuthentic(Request $request): bool
-    {
-        // Njia rahisi na ya kawaida ni kulinganisha API key/secret kwenye header.
-        return hash_equals($this->apiKey, $request->header('x-api-key'));
+        // Payload kulingana na ZENOPAY DOCUMENTATION.txt
+        $payload = [
+            'order_id' => $transaction->order_id,
+            'buyer_email' => $transaction->user->email,
+            'buyer_name' => $transaction->payable->applicant_name, // Pata jina kutoka kwa application
+            'buyer_phone' => $transaction->phone_number, // Pata namba ya simu kutoka kwa transaction
+            'amount' => (int) $transaction->amount, // Hakikisha ni integer
+            'webhook_url' => route('api.webhooks.zenopay'),
+        ];
+
+        try {
+            Log::info('Initiating ZenoPay Payment', ['endpoint' => $endpoint, 'payload' => $payload]);
+
+            $response = Http::withHeaders([
+                'Content-Type' => 'application/json',
+                'x-api-key' => $this->apiKey,
+            ])->timeout(30)->post($endpoint, $payload);
+
+            if ($response->successful() && $response->json('status') === 'success') {
+                Log::info('ZenoPay Initiation Successful', ['order_id' => $transaction->order_id, 'response' => $response->json()]);
+                return true;
+            }
+
+            Log::error('ZenoPay Initiation Failed', ['order_id' => $transaction->order_id, 'status' => $response->status(), 'response' => $response->body()]);
+            return false;
+
+        } catch (\Exception $e) {
+            Log::error('ZenoPay HTTP Request Exception', ['order_id' => $transaction->order_id, 'error' => $e->getMessage()]);
+            return false;
+        }
     }
 }

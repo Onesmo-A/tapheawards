@@ -23,26 +23,29 @@ const handleVote = async () => {
 </script>
 
 <template>
-  <div>
-    <button
-      @click="handleVote"
-      class="w-full text-white font-bold py-3 px-4 rounded-lg shadow-primary-glow hover:scale-105 transition-all duration-300 disabled:bg-gray-600 disabled:text-gray-400 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:scale-100"
-      :disabled="isLoading || hasVoted"
-    >
-      <span v-if="isLoading">Inapokea kura...</span>
-      <span v-else-if="hasVoted">Umeshapiga Kura</span>
-      <span v-else>Vote</span>
-    </button>
+  <button
+    @click="handleVote"
+    class="btn-primary w-full text-white font-bold py-3 px-4 rounded-lg shadow-primary-glow hover:scale-105 transition-all duration-300 disabled:bg-gray-600 disabled:text-gray-400 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:scale-100"
+    :disabled="isLoading || hasVoted"
+  >
+    <span v-if="isLoading">Inapokea kura...</span>
+    <span v-else-if="hasVoted">Umeshapiga Kura</span>
+    <span v-else>Vote</span>
+  </button>
 
-    <!-- Sehemu ya Kuonyesha Ujumbe -->
-    <div v-if="message" class="mt-3 text-center text-sm font-medium" :class="{ 'text-green-400': messageType === 'success', 'text-red-400': messageType === 'error' }">
-      {{ message }}
-    </div>
+  <!-- Sehemu ya Kuonyesha Ujumbe -->
+  <div v-if="message" class="mt-3 text-center text-sm font-medium" :class="{ 'text-green-400': messageType === 'success', 'text-red-400': messageType === 'error' }">
+    {{ message }}
   </div>
 </template>
 
+
 <style scoped>
 button {
-  background-color: var(--primary-color);
+  background-color: #dc2626; /* Tailwind red-600 */
+}
+button:hover {
+  background-color: #b91c1c; /* Tailwind red-700 */
 }
 </style>
+

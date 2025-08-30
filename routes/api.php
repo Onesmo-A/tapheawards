@@ -1,7 +1,12 @@
 <?php
+
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\VoteController;
+use App\Models\NomineeApplication;
+use Illuminate\Support\Facades\Log;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -10,22 +15,23 @@ use App\Http\Controllers\VoteController;
 */
 
 // ========== Public API Routes ==========
-
-// Hizi ni kwa ajili ya wateja wa nje (k.m. mobile app)
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
-
-// Njia hii ya upigaji kura inabaki kama ilivyo
-Route::post('/vote/{nominee}', [VoteController::class, 'store'])
-    ->name('api.votes.store') // Tumia jina tofauti kuepuka mgongano
-    ->middleware('throttle:votes');
 
 // ========== Protected API Routes (Requires Token) ==========
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/user', fn (\Illuminate\Http\Request $request) => $request->user());
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
 
-    // Hapa ndipo utaweka njia za kulipia tiketi au fomu
-    // Route::post('/tickets/purchase', [TicketController::class, 'purchase']);
-    // Route::post('/nominee-forms/purchase', [NomineeFormController::class, 'purchase']);
+    // Status ya application
+    Route::get('/applications/{application}/status', function (NomineeApplication $application) {
+        abort_if($application->user_id !== auth()->id(), 403);
+        return response()->json(['status' => $application->status]);
+    })->name('api.applications.status');
 });
+
+// ========== Webhook Route ==========
+// Hii route haina vizuizi vya 'web' (kama CSRF) na ni mahususi kwa ajili ya kupokea majibu kutoka mifumo ya nje.
+Route::post('/webhooks/zenopay', [\App\Http\Controllers\WebhookController::class, 'handleZenoPay'])->name('api.webhooks.zenopay');

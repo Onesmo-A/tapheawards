@@ -15,7 +15,9 @@ class Nominee extends Model
         'category_id',
         'name',
         'bio',
-        'image_path'
+        'image_path',
+        'facebook_url',
+        'instagram_url'
     ];
 
     public function category(): BelongsTo

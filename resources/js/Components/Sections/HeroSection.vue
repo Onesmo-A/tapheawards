@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Link } from '@inertiajs/vue3';
 
 const props = defineProps({
@@ -11,7 +11,7 @@ const props = defineProps({
   },
   rotationMs: {
     type: Number,
-    default: 8000,
+    default: 4000, // mabadiliko ya kila 8 sekunde
   },
 });
 
@@ -20,7 +20,7 @@ const heroSlides = computed(() => {
   return [
     { 
       title: props.title || 'Business Awards 2025',
-      description: props.description || '',
+      description: props.description || 'Celebrating Excellence in Business and Innovation',
       buttons: [
         { text: 'VOTE NOW →', link: '/categories', primary: true },
         { text: 'All Award Winners →', link: '/awards', primary: false },
@@ -32,29 +32,17 @@ const heroSlides = computed(() => {
 const currentIndex = ref(0);
 let timer = null;
 
-function next() {
-  currentIndex.value = (currentIndex.value + 1) % heroSlides.value.length;
-}
-function prev() {
-  currentIndex.value = (currentIndex.value - 1 + heroSlides.value.length) % heroSlides.value.length;
-}
-function goTo(i) {
-  currentIndex.value = i % heroSlides.value.length;
-}
+function next() { currentIndex.value = (currentIndex.value + 1) % heroSlides.value.length; }
+function prev() { currentIndex.value = (currentIndex.value - 1 + heroSlides.value.length) % heroSlides.value.length; }
+function goTo(i) { currentIndex.value = i % heroSlides.value.length; }
 function start() {
   stop();
   if (heroSlides.value.length > 1) {
     timer = setInterval(next, props.rotationMs);
   }
 }
-function stop() {
-  if (timer) clearInterval(timer);
-  timer = null;
-}
-function handleVisibility() {
-  if (document.hidden) stop();
-  else start();
-}
+function stop() { if (timer) clearInterval(timer); timer = null; }
+function handleVisibility() { if (document.hidden) stop(); else start(); }
 
 onMounted(() => {
   start();
@@ -64,48 +52,32 @@ onUnmounted(() => {
   stop();
   document.removeEventListener('visibilitychange', handleVisibility);
 });
-
-// Trophy rotation (ile ya awali imebaki)
-const currentTrophy = ref(1);
-let trophyIntervalId;
-onMounted(() => {
-  trophyIntervalId = setInterval(() => {
-    currentTrophy.value = (currentTrophy.value % 3) + 1;
-  }, 8000);
-});
-onUnmounted(() => clearInterval(trophyIntervalId));
 </script>
 
 <template>
   <div
-    class="relative h-screen flex items-center justify-center overflow-hidden text-white font-sans py-12 md:py-0"
+    class="relative h-screen flex items-center justify-center overflow-hidden text-white font-sans pt-20 md:pt-28 pb-12"
     @mouseenter="stop"
     @mouseleave="start"
   >
-    <!-- Background -->
-    <video autoplay loop muted playsinline class="absolute z-0 w-full h-full object-cover" aria-hidden="true">
-      <source src="/videos/hero-background.mp4" type="video/mp4" />
-    </video>
-    <div class="absolute inset-0 bg-black/60 z-10"></div>
-
     <!-- Content -->
     <div class="relative z-20 max-w-7xl mx-auto px-6 lg:px-8 w-full grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
       
       <!-- Text + Buttons -->
-      <div class="text-center md:text-left order-2 md:order-1">
+      <div class="text-center md:text-left order-2 md:order-1 mt-10 md:mt-16">
         <Transition name="hero-crazy" mode="out-in">
           <div :key="'slide-'+currentIndex">
-            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight leading-tight animate-title">
-              <span class="block mt-2 text-primary-gradient drop-shadow-glow">
+            <h1 class="text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tight leading-tight animate-title drop-shadow-title">
+              <span class="block mt-2 text-primary-gradient">
                 {{ heroSlides[currentIndex].title }}
               </span>
             </h1>
-            <p class="mt-6 text-lg md:text-xl text-gray-300 max-w-xl mx-auto md:mx-0 animate-description">
+            <p class="mt-6 text-base sm:text-lg md:text-xl text-black max-w-xl mx-auto md:mx-0 animate-description drop-shadow-lg">
               {{ heroSlides[currentIndex].description }}
             </p>
 
             <!-- Buttons -->
-            <div class="mt-10 flex flex-col md:flex-row gap-4 justify-center md:justify-start animate-buttons">
+            <div class="mt-8 flex flex-col md:flex-row gap-4 justify-center md:justify-start animate-buttons">
               <Link
                 v-for="(btn, i) in heroSlides[currentIndex].buttons"
                 :key="i"
@@ -119,66 +91,45 @@ onUnmounted(() => clearInterval(trophyIntervalId));
         </Transition>
 
         <!-- Controls -->
-        <div class="mt-6 flex items-center justify-center md:justify-start gap-4 select-none">
-          <button @click="prev" class="h-10 w-10 grid place-items-center rounded-full border border-white/30 hover:border-white/60 hover:bg-white/10 transition">‹</button>
+        <div class="mt-8 flex items-center justify-center md:justify-start gap-4 select-none">
+          <button @click="prev" class="h-10 w-10 grid place-items-center rounded-full bg-black/40 text-white border border-white/20 hover:bg-black/60 transition">‹</button>
           <div class="flex items-center gap-2">
             <button
               v-for="(s, i) in heroSlides"
               :key="'dot-'+i"
               @click="goTo(i)"
-              class="h-2.5 w-2.5 rounded-full transition-all"
-              :class="i === currentIndex ? 'bg-[var(--primary-color)] scale-125' : 'bg-white/40 hover:bg-white/70'"
+              class="h-3 w-3 rounded-full transition-all border shadow-md"
+              :class="i === currentIndex 
+                ? 'bg-[var(--accent-primary)] border-[var(--accent-primary)] scale-125' 
+                : 'bg-transparent border-red-600 hover:bg-red-500/30'"
             />
           </div>
-          <button @click="next" class="h-10 w-10 grid place-items-center rounded-full border border-white/30 hover:border-white/60 hover:bg-white/10 transition">›</button>
+          <button @click="next" class="h-10 w-10 grid place-items-center rounded-full bg-black/40 text-white border border-white/20 hover:bg-black/60 transition">›</button>
         </div>
       </div>
 
-      <!-- Trophy Column -->
-      <div class="trophy-container relative flex justify-center items-center order-1 md:order-2 h-[300px] w-[300px] sm:h-[350px] sm:w-[350px] md:h-[450px] md:w-[450px]">
-        <Transition name="trophy-fade">
-          <img
-            v-if="currentTrophy === 1" key="trophy1"
-            src="/images/trophy1.png" alt="Awards Trophy 1"
-            class="absolute w-full h-full object-contain mx-auto md:mx-0 animate-spin-slow-y"
-          />
-          <img
-            v-else-if="currentTrophy === 2" key="trophy2"
-            src="/images/trophy2.png" alt="Awards Trophy 2"
-            class="absolute w-full h-full object-contain mx-auto md:mx-0 animate-spin-slow-y"
-          />
-          <img
-            v-else-if="currentTrophy === 3" key="trophy3"
-            src="/images/trophy3.png" alt="Awards Trophy 3"
-            class="absolute w-full h-full object-contain mx-auto md:mx-0 animate-spin-slow-y"
-          />
-        </Transition>
-      </div>
+<!-- Trophy Column -->
+<div
+  class="trophy-container relative flex justify-center
+         items-start md:items-end  <!-- Desktop items-end ili iwe chini kidogo -->
+         order-1 md:order-2
+         h-[250px] w-[250px] sm:h-[300px] sm:w-[300px] md:h-[450px] md:w-[450px]
+         mx-auto
+         md:translate-y-9"  
+>
+  <img
+    src="/images/trophy1.png"
+    alt="Awards Trophy"
+    class="w-full h-full object-contain"
+  />
+</div>
+
     </div>
   </div>
 </template>
 
 <style scoped>
 /* Trophy Spin */
-.trophy-container { perspective: 1000px; }
-@keyframes spinY-3d {
-  0% { transform: rotateY(0deg) rotateX(5deg); }
-  50% { transform: rotateY(180deg) rotateX(-5deg); }
-  100% { transform: rotateY(360deg) rotateX(5deg); }
-}
-.animate-spin-slow-y {
-  animation: spinY-3d 20s linear infinite;
-  transform-style: preserve-3d;
-}
-.trophy-fade-enter-active,
-.trophy-fade-leave-active {
-  transition: opacity 0.6s ease, transform 0.6s ease;
-}
-.trophy-fade-enter-from,
-.trophy-fade-leave-to {
-  opacity: 0;
-  transform: scale(0.9);
-}
 
 /* Title Animations */
 @keyframes titlePop {
@@ -195,7 +146,7 @@ onUnmounted(() => clearInterval(trophyIntervalId));
   100% { opacity: 1; transform: translateX(0) skewX(0) scale(1); }
 }
 .animate-description { 
-  animation: descFade 10s linear infinite alternate;
+  animation: descFade 1.5s ease-out;
   animation-fill-mode: backwards;
 }
 

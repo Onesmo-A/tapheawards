@@ -21,6 +21,8 @@ const form = useForm({
   category_id: props.nominee.category_id,
   bio: props.nominee.bio || '',
   image: null,
+  facebook_url: props.nominee.facebook_url || '',
+  instagram_url: props.nominee.instagram_url || '',
 });
 
 const submit = () => {
@@ -78,6 +80,30 @@ const submit = () => {
           class="mt-1 block w-full bg-gray-900 text-gray-100 border border-gray-700 rounded-md focus:ring-gold-500 focus:border-gold-500"
         ></textarea>
         <InputError class="mt-2" :message="form.errors.bio" />
+      </div>
+
+      <div>
+        <InputLabel for="facebook_url" value="Facebook URL (Optional)" class="text-gold-300" />
+        <TextInput
+          id="facebook_url"
+          type="url"
+          v-model="form.facebook_url"
+          autocomplete="url"
+          class="mt-1 block w-full bg-gray-900 text-gray-100 border border-gray-700 rounded-md focus:ring-gold-500 focus:border-gold-500"
+        />
+        <InputError class="mt-2" :message="form.errors.facebook_url" />
+      </div>
+
+      <div>
+        <InputLabel for="instagram_url" value="Instagram URL (Optional)" class="text-gold-300" />
+        <TextInput
+          id="instagram_url"
+          type="url"
+          v-model="form.instagram_url"
+          autocomplete="url"
+          class="mt-1 block w-full bg-gray-900 text-gray-100 border border-gray-700 rounded-md focus:ring-gold-500 focus:border-gold-500"
+        />
+        <InputError class="mt-2" :message="form.errors.instagram_url" />
       </div>
 
       <div>

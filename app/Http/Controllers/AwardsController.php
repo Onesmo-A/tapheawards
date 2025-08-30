@@ -25,7 +25,7 @@ class AwardsController extends Controller
 
         $viewData = [
             'title' => 'Awards Winners',
-            'description' => 'Celebrating the winners of the Business Awards across different years.',
+'description' => 'Celebrating the winners of the Taphe Awards across different years.',
             'showWinners' => $showWinners,
             'filters' => $request->only(['search']),
             'winnersByYear' => null,
@@ -59,8 +59,7 @@ class AwardsController extends Controller
                 ->has('nominee')
                 ->orderBy('year', 'desc')
                 ->orderBy('category_id', 'asc')
-                ->get()
-                ->filter(fn ($winner) => $winner->nominee !== null);
+                ->get();
 
             $winnersArray = WinnerResource::collection($winners)->resolve();
             $viewData['winnersByYear'] = collect($winnersArray)->groupBy('year');

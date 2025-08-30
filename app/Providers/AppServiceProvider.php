@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Models\NomineeApplication;
 use App\Models\Winner;
 use App\Models\Vote;
 use App\Policies\WinnerPolicy;
+use App\Policies\NomineeApplicationPolicy;
 use App\Observers\VoteObserver;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
@@ -12,6 +14,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\RateLimiter;
 
 class AppServiceProvider extends ServiceProvider
@@ -41,5 +44,13 @@ class AppServiceProvider extends ServiceProvider
 
         // Sajili Policies
         Gate::policy(Winner::class, WinnerPolicy::class);
+
+        Gate::policy(NomineeApplication::class, NomineeApplicationPolicy::class);
+
+        // Hii ni muhimu kwa ajili ya ngrok na HTTPS kwenye local development.
+        // Inalazimisha route zote zitengenezwe na https://
+        // if ($this->app->environment('local')) {
+        //     URL::forceScheme('https');
+        // }
     }
 }

@@ -1,11 +1,30 @@
+# Ensure LF line endings on all text files
 * text=auto eol=lf
+*.js text eol=lf
+*.vue text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.html text eol=lf
+*.php text eol=lf
+*.json text eol=lf
+*.md text eol=lf
 
+# Diff settings
 *.blade.php diff=html
 *.css diff=css
 *.html diff=html
 *.md diff=markdown
 *.php diff=php
 
+# Exclude unneeded files from export (ZIP/archive)
 /.github export-ignore
 CHANGELOG.md export-ignore
 .styleci.yml export-ignore
+/tests/ export-ignore
+/node_modules/ export-ignore
+/vendor/ export-ignore
+/public/build/ export-ignore
+/public/hot/ export-ignore
+/public/storage export-ignore
+/.idea/ export-ignore
+/.vscode/ export-ignore

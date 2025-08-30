@@ -2,13 +2,17 @@
 
 namespace App\Http\Resources;
 
+use App\Http\Resources\NomineeResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+
+
 
 class CategoryResource extends JsonResource
 {
     /**
-     * The "data" wrapper that should be applied.
+     * Hii inazuia Laravel kufunga data ndani ya "data" key,
+     * na kurahisisha matumizi kwenye Vue.
      *
      * @var string|null
      */
@@ -26,11 +30,14 @@ class CategoryResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'description' => $this->description,
-            'nominees' => NomineeResource::collection($this->whenLoaded('nominees')),
-            'nominees_count' => $this->when(isset($this->nominees_count), $this->nominees_count),
-
-             // Hii ni muhimu: inajumuisha 'children' kama zilipakiwa na controller
+            'parent_id' => $this->parent_id,
+            'image_url' => $this->image_url,
+            'status' => $this->status,
+            'nominees_count' => $this->whenCounted('nominees'),
             'children' => CategoryResource::collection($this->whenLoaded('children')),
+            // Hii ndiyo njia sahihi ya kujumuisha data za washiriki
+            'nominees' => NomineeResource::collection($this->whenLoaded('nominees')),
         ];
     }
+
 }

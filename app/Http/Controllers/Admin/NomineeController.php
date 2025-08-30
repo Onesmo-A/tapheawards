@@ -50,6 +50,8 @@ class NomineeController extends Controller
             'bio' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             'category_id' => 'required|exists:categories,id',
+            'facebook_url' => 'nullable|url',
+            'instagram_url' => 'nullable|url',
         ]);
 
         if ($request->hasFile('image')) {
@@ -85,6 +87,8 @@ class NomineeController extends Controller
             'bio' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             'category_id' => 'required|exists:categories,id',
+            'facebook_url' => 'nullable|url',
+            'instagram_url' => 'nullable|url',
         ]);
 
         if ($request->hasFile('image')) {

@@ -34,7 +34,9 @@ export function useVote() {
 
         try {
             const fingerprintData = await getFingerprintData();
-            const response = await axios.post(`/api/vote/${nomineeId}`, fingerprintData);
+            // Tumebadilisha URL ili ilingane na ile tuliyoiweka kwenye routes/web.php
+            // Badala ya /api/vote/{id}, sasa ni /nominees/{id}/vote
+            const response = await axios.post(`/nominees/${nomineeId}/vote`, fingerprintData);
 
             toast.success(response.data.message);
             message.value = response.data.message;

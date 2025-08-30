@@ -2,43 +2,31 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class Category extends Model
 {
     use HasFactory;
 
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = ['image_url'];
+
     protected $fillable = [
         'name',
         'slug',
         'description',
-        'image_path',
         'parent_id',
+        'image_path',
+        'status',
     ];
-
-    /**
-     * Append the public URL for the image.
-     */
-    protected $appends = ['image_url'];
-
-    /**
-     * Automatically create a slug from the name if not provided.
-     */
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($category) {
-            if (empty($category->slug)) {
-                $category->slug = Str::slug($category->name);
-            }
-        });
-    }
 
     /**
      * Get the parent category.
@@ -49,40 +37,43 @@ class Category extends Model
     }
 
     /**
-     * Get the child categories.
+     * Get the child categories (sub-categories/awards).
+     * Hii ndiyo relationship muhimu kwa tatizo lako.
      */
     public function children(): HasMany
     {
         return $this->hasMany(Category::class, 'parent_id');
     }
 
+    /**
+     * Get the nominees for the category.
+     */
     public function nominees(): HasMany
     {
         return $this->hasMany(Nominee::class);
     }
 
     /**
-     * Get the winner for this category.
+     * Get the applications for the category.
      */
-    public function winners(): HasMany
+    public function nomineeApplications(): HasMany
     {
-        return $this->hasMany(Winner::class);
+        return $this->hasMany(NomineeApplication::class);
     }
 
     /**
      * Get the publicly accessible URL for the category's image.
-     * Returns null if no image is set.
+     * Returns a default placeholder if no image is set.
      *
-     * @return string|null
+     * @return string
      */
-    public function getImageUrlAttribute(): ?string
+    public function getImageUrlAttribute(): string
     {
-        if (empty($this->image_path)) {
-            return null;
+        // Kama kuna picha, rudisha URL yake
+        if ($this->image_path) {
+            return Storage::url($this->image_path);
         }
-
-        $cleanPath = str_replace('public/', '', $this->image_path);
-
-        return Storage::url($cleanPath);
+        // Kama hakuna picha, rudisha URL ya picha mbadala (placeholder)
+        return asset('images/placeholder.png');
     }
 }

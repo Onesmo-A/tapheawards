@@ -3,221 +3,204 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\NomineeApplicationResource;
 use App\Models\Category;
 use App\Models\NomineeApplication;
-use App\Models\Setting;
 use App\Services\ZenoPaymentService;
-use Illuminate\Http\Client\ConnectionException;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
-use Inertia\Response;
+use Inertia\Response as InertiaResponse;
 
 class NomineeApplicationController extends Controller
 {
-    /**
-     * Display a listing of the user's nominee applications.
-     * Hii itakuwa ukurasa wa "Status".
-     */
-    public function index(Request $request): Response
+    public function index()
     {
-        $applications = $request->user()->nomineeApplications()->with('category', 'transaction')->latest()->get();
+        $applications = auth()->user()->nomineeApplications()
+            ->has('category') // ONGEZA: Hakikisha maombi yana kategoria halali kabla ya kuyaonyesha
+            ->with(['category:id,name', 'transaction']) // ONGEZA: Pakia 'transaction' ili data ya malipo ipatikane
+            ->latest()
+            ->paginate(10);
 
         return Inertia::render('User/Applications/Index', [
-            'title' => 'My Applications',
             'applications' => $applications,
-            'csrf_token' => csrf_token(), // Ongeza hii
         ]);
     }
 
     /**
-     * Show the form for creating a new nominee application.
-     * Hii itakuwa ukurasa wa "Apply".
+     * Hatua ya 1: Onyesha ukurasa wa kuchagua kategoria.
+     * Hii inaitwa na route 'user.applications.selectCategory'.
      */
-    public function create(Request $request): Response|RedirectResponse
+    public function selectCategory(): InertiaResponse
     {
-        // Kagua kama mtumiaji tayari ana maombi yanayosubiri
-        $hasPending = Auth::user()->nomineeApplications()
-            ->whereIn('status', ['pending_payment', 'pending_review'])
-            ->exists();
+        // 1. Tumia Policy kuzuia mtumiaji kuanza ombi jipya kama tayari ana ombi linaloendelea.
+        // Hii inazuia maombi mengi kwa wakati mmoja.
+        Gate::authorize('create', NomineeApplication::class);
 
-        if ($hasPending) {
-            // Mwelekeze kwenye ukurasa wa status na ujumbe
-            return Redirect::route('user.applications.index')
-                ->with('warning', 'Tayari una ombi ambalo halijakamilika. Tafadhali kamilisha au subiri lijibiwe.');
-        }
+        // 2. Pata makundi makuu ya tuzo (yale hayana parent_id).
+        // Kisha, kwa kila kundi, pakia 'children' (tuzo zenyewe) ambazo
+        // zinaruhusu maombi (`status` = 'active').
+        $categoryGroups = Category::query()
+            ->whereNull('parent_id')
+            ->with(['children' => function ($query) {
+                // Chuja watoto (tuzo) ili zibaki zile tu zinazopokea maombi
+                $query->where('status', 'active')->orderBy('name');
+            }])
+            // Chuja makundi makuu ili yabaki yale tu yenye tuzo zinazopokea maombi
+            ->whereHas('children', function ($query) {
+                $query->where('status', 'active');
+            })
+            ->orderBy('name')
+            ->get();
 
-        // Ikiwa category_id imechaguliwa kutoka ukurasa wa awali, onyesha fomu
-        if ($request->has('category')) {
-            $category = Category::findOrFail($request->input('category'));
-            $nomination_fee = Setting::where('key', 'nomination_fee')->value('value') ?? 0;
-
-            return Inertia::render('User/Applications/Create', [
-                'selectedCategory' => $category,
-                'nomination_fee' => (int) $nomination_fee,
-                'title' => 'Apply for: ' . $category->name,
-            ]);
-        }
-
-        // Kama hakuna category iliyochaguliwa, onyesha ukurasa wa kuchagua kategoria
-        // TUMEREKEBISHA HAPA: Njia ya view sasa ni 'User/Applications/SelectCategory'
-        // Hii itahakikisha inatumia layout sahihi ya dashboard.
-        // PIA TUMEREKEBISHA HAPA: 'is_active' imebadilishwa kuwa 'status' = 'active' kulingana na kosa la database.
-        // Kama jina la safu yako ni tofauti, badilisha 'status' hapa chini.
+        // 3. Tuma data kwenda kwenye Vue component.
         return Inertia::render('User/Applications/SelectCategory', [
-            'categories' => Category::where('status', 'active')->get(['id', 'name', 'description']),
-            'title' => 'Start Application: Select Category',
+            'categoryGroups' => $categoryGroups,
         ]);
     }
 
     /**
-     * Store a newly created nominee application in storage.
+     * Hatua ya 2: Onyesha fomu ya kujaza kwa kategoria maalum.
+     * Hii inaitwa na route 'user.applications.create'.
      */
-    public function store(Request $request, ZenoPaymentService $paymentService): RedirectResponse
+    public function create(Category $category): InertiaResponse
+    {
+        return Inertia::render('User/Applications/Create', [
+            'title' => 'Jaza Fomu: ' . $category->name,
+            'selectedCategory' => $category,
+            'nomination_fee' => (int) config('services.zenopay.application_fee', 200),
+        ]);
+    }
+
+    public function store(Request $request, ZenoPaymentService $paymentService): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
             'applicant_name' => 'required|string|max:255',
-            'applicant_phone' => 'required|string|regex:/^0[67][1-9]\d{7}$/',
+            // Legeza sheria ya awali ili kupokea miundo mbalimbali ya namba
+            'applicant_phone' => 'required|string|min:9|max:15',
             'applicant_email' => 'required|email|max:255',
-            'bio' => 'required|string|min:50|max:2000',
-            'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'bio' => 'required|string|max:2000',
+            'photo' => 'nullable|image|max:2048',
         ]);
 
-        // Pata ada ya maombi kutoka kwenye settings
-        $fee_value = Setting::where('key', 'nomination_fee')->value('value');
-        // Boresha mantiki: Tumia ada ya msingi ikiwa setting haipo, ni null, au ni tupu.
-        $nomination_fee = (int) ($fee_value ?: 200);
-        $photoPath = $request->file('photo')->store('nominee_photos', 'public');
+        // Safisha na hakiki namba ya simu iwe katika muundo wa 255...
+        $normalizedPhone = (string) Str::of($validated['applicant_phone'])
+            ->replace(' ', '')
+            ->replace('+', '');
 
-        // HATUA YA 1: Hifadhi maombi kwanza ndani ya DB Transaction.
-        // Hii inahakikisha data ya ombi inahifadhiwa salama kabla ya kujaribu kuwasiliana na ZenoPay.
+        if (Str::startsWith($normalizedPhone, '0')) {
+            $normalizedPhone = '255' . substr($normalizedPhone, 1);
+        } elseif (strlen($normalizedPhone) === 9 && (Str::startsWith($normalizedPhone, '7') || Str::startsWith($normalizedPhone, '6'))) {
+            $normalizedPhone = '255' . $normalizedPhone;
+        }
+
+        // Baada ya kuisafisha, hakiki tena kama iko sahihi kabla ya kuendelea
+        if (!preg_match('/^255[67]\d{8}$/', $normalizedPhone)) {
+            // Rudisha kosa maalum la namba ya simu ambalo litaonekana kwenye fomu
+            return back()->withErrors([
+                'applicant_phone' => 'Namba ya simu uliyoingiza si sahihi. Tafadhali tumia muundo halali wa Tanzania.'
+            ])->withInput();
+        }
+
+        $applicationFee = config('services.zenopay.application_fee');
+        $application = null;
+
         try {
-            $application = DB::transaction(function () use ($validated, $photoPath, $nomination_fee) {
-                return Auth::user()->nomineeApplications()->create([
+            DB::transaction(function () use ($request, $validated, $normalizedPhone, $applicationFee, &$application) {
+                $photoPath = $request->hasFile('photo') ? $request->file('photo')->store('nominee_photos', 'public') : null;
+
+                $application = NomineeApplication::create([
+                    'user_id' => $request->user()->id,
                     'category_id' => $validated['category_id'],
                     'applicant_name' => $validated['applicant_name'],
+                    // Hifadhi namba halisi aliyoingiza mtumiaji kwenye application
                     'applicant_phone' => $validated['applicant_phone'],
                     'applicant_email' => $validated['applicant_email'],
                     'bio' => $validated['bio'],
                     'photo_path' => $photoPath,
-                    'status' => $nomination_fee > 0 ? 'pending_payment' : 'pending_review',
-                    'nomination_fee' => $nomination_fee,
+                    'status' => 'pending_payment',
+                ]);
+
+                $application->transaction()->create([
+                    'user_id' => $request->user()->id,
+                    'order_id' => (string) Str::uuid(),
+                    'amount' => $applicationFee,
+                    'status' => 'pending',
+                    // Tumia namba iliyosafishwa kwa ajili ya muamala wa malipo
+                    'phone_number' => $normalizedPhone,
                 ]);
             });
-        } catch (\Throwable $th) {
-            Log::critical('Database error during nomination submission: ' . $th->getMessage(), ['exception' => $th]);
-            return back()->with('error', 'Tumeshindwa kupokea ombi lako. Tafadhali jaribu tena.');
-        }
 
-        // Ikiwa hakuna ada, mchakato umekamilika.
-        if ($nomination_fee <= 0) {
-            return Redirect::route('user.applications.show', $application->id)
-                ->with('success', 'Ombi lako limepokelewa na linasubiri mapitio.');
-        }
+            $paymentInitiated = $paymentService->initiatePayment($application->transaction);
 
-        // HATUA YA 2: Anzisha malipo (kama yanahitajika) BAADA ya kuhifadhi data.
-        try {
-            $webhookUrl = route('webhooks.zenopay');
-            $transaction = $paymentService->initiatePayment(
-                $application,
-                Auth::user(),
-                $nomination_fee,
-                $validated['applicant_phone'],
-                $webhookUrl
-            );
+            if ($paymentInitiated) {
+                return redirect()->route('user.applications.show', $application->id)->with('success', 'Ombi lako limepokelewa. Tafadhali kamilisha malipo kwenye simu yako.');            }
 
-            if (!$transaction) {
-                // ZenoPay walijibu na kosa (e.g., invalid API key), lakini ombi letu limehifadhiwa.
-                // Sasisha status ya ombi kuwa 'payment_failed'.
-                $application->update(['status' => 'payment_failed']);
-                return Redirect::route('user.applications.show', $application->id)
-                    ->with('error', 'Tumeshindwa kuanzisha malipo. Tafadhali jaribu tena au wasiliana na msaada.');
-            }
-
-            // Malipo yameanzishwa, mwelekeze mtumiaji kwenye ukurasa wa status.
-            return Redirect::route('user.applications.show', $application->id)
-                ->with('success', 'Ombi lako limepokelewa. Tafadhali thibitisha malipo kwenye simu yako.');
-
-        } catch (ConnectionException $e) {
-            // Kosa la mtandao. Ombi limehifadhiwa, lakini malipo hayajaanza.
-            // Cron job itashughulikia hili baadaye.
-            Log::warning('ZenoPay Connection Error after submission: ' . $e->getMessage(), ['application_id' => $application->id]);
-            return Redirect::route('user.applications.show', $application->id)
-                ->with('warning', 'Ombi lako limehifadhiwa, lakini imeshindikana kuwasiliana na mtandao wa malipo. Tutajaribu tena kiotomatiki.');
-        } catch (\Throwable $th) {
-            // Kosa lingine lisilotegemewa wakati wa kuanzisha malipo.
-            Log::critical('An unexpected error occurred during payment initiation: ' . $th->getMessage(), ['exception' => $th, 'application_id' => $application->id]);
             $application->update(['status' => 'payment_failed']);
-            return Redirect::route('user.applications.show', $application->id)
-                ->with('error', 'Kosa la kiufundi limetokea wakati wa kuanzisha malipo. Tafadhali jaribu tena.');
+            $application->transaction->update(['status' => 'failed', 'notes' => 'Payment initiation failed.']);
+            return back()->with('error', 'Imeshindikana kuanzisha malipo. Hakikisha namba ya simu ni sahihi na jaribu tena.');
+
+        } catch (\Exception $e) {
+            Log::error('Nomination Application Store Failed', ['error' => $e->getMessage()]);
+            return back()->with('error', 'Kumetokea tatizo la kiufundi. Tafadhali wasiliana na wasaidizi.');
         }
     }
 
-    /**
-     * Display the specified application status.
-     */
-    public function show(NomineeApplication $application)
+    public function show(NomineeApplication $application): InertiaResponse
     {
-        // Hakikisha mtumiaji anayeangalia status ndiye mmiliki wa ombi
-        if ($application->user_id !== Auth::id()) {
-            abort(403, 'This action is unauthorized.');
+        $this->authorize('view', $application);
+    
+        // Pakia mahusiano (relationships) muhimu
+        $application->load(['category:id,name', 'transaction']);
+    
+        // BORESHO: Kagua kama kategoria ya ombi hili bado ipo.
+        // Kama haipo, huenda ilifutwa. Ni bora kumrudisha mtumiaji na ujumbe.
+        if (!$application->category) {
+            return redirect()->route('user.applications.index')
+                ->with('error', 'Samahani, kategoria ya ombi ulilochagua haipatikani tena.');
         }
-
-        // Load transaction relationship
-        $application->load(['transaction', 'category']);
-
+    
         return Inertia::render('User/Applications/Show', [
-            'application' => new NomineeApplicationResource($application),
-            'title' => 'Application Status: ' . $application->applicant_name,
+            'application' => $application,
         ]);
     }
 
-    /**
-     * Re-initiate the payment process for an application.
-     */
-    public function retryPayment(Request $request, NomineeApplication $application, ZenoPaymentService $paymentService): RedirectResponse
+    public function retryPayment(NomineeApplication $application, ZenoPaymentService $paymentService): \Illuminate\Http\RedirectResponse
     {
-        // 1. Usalama: Hakikisha mtumiaji ndiye mmiliki na ombi liko kwenye status sahihi
-        if ($application->user_id !== Auth::id()) {
-            abort(403, 'This action is unauthorized.');
-        }
+        // Tumia 'update' policy, kwani kujaribu kulipa tena ni aina ya 'update'.
+        // Hii inahakikisha mtumiaji anamiliki ombi hili.
+        // Hakikisha una 'update' method kwenye NomineeApplicationPolicy yako.
+        $this->authorize('update', $application);
 
         if (!in_array($application->status, ['pending_payment', 'payment_failed'])) {
-            return back()->with('error', 'This application is not awaiting payment.');
+            return back()->with('error', 'Huwezi kujaribu kulipia ombi hili.');
         }
 
-        // 2. Anzisha upya malipo
-        try {
-            $webhookUrl = route('webhooks.zenopay');
-            $transaction = $paymentService->initiatePayment(
-                $application,
-                Auth::user(),
-                $application->nomination_fee,
-                $application->applicant_phone, // Tumia namba iliyohifadhiwa
-                $webhookUrl
-            );
-
-            if (!$transaction) {
-                return back()->with('error', 'We could not re-initiate the payment. Please contact support.');
-            }
-
-            // Hakikisha status inarudi kuwa 'pending_payment'
-            $application->update(['status' => 'pending_payment']);
-
-            return back()->with('success', 'A new payment request has been sent to your phone.');
-
-        } catch (ConnectionException $e) {
-            Log::warning('ZenoPay Connection Error during payment retry', ['application_id' => $application->id, 'error' => $e->getMessage()]);
-            return back()->with('warning', 'Could not connect to the payment service. Please try again in a few moments.');
-        } catch (\Throwable $th) {
-            Log::critical('Unexpected error during payment retry', ['application_id' => $application->id, 'exception' => $th]);
-            return back()->with('error', 'A technical error occurred. Please contact support.');
+        $transaction = $application->transaction;
+        if (!$transaction) {
+            return back()->with('error', 'Hakuna taarifa za muamala kwa ombi hili.');
         }
+
+        // HAPA NDIPO PENYE UTATUZI: Tunaita service na kuipa 'transaction' object pekee.
+        $paymentInitiated = $paymentService->initiatePayment($transaction);
+
+        if ($paymentInitiated) {
+            DB::transaction(function () use ($transaction, $application) {
+                $transaction->update([
+                    'status' => 'pending', // Weka status iwe pending tena
+                    'notes' => 'Retry payment initiated.',
+                    'order_id' => (string) Str::uuid()
+                ]);
+                $application->update([
+                    'status' => 'pending_payment'
+                ]);
+            });
+            return redirect()->route('user.applications.show', $application->id)->with('success', 'Ombi la malipo limetumwa tena. Tafadhali kamilisha kwenye simu yako.');
+        }
+
+        return back()->with('error', 'Imeshindikana kuanzisha malipo tena. Tafadhali jaribu baada ya muda mfupi.');
     }
 }

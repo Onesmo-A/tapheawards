@@ -54,7 +54,7 @@ const getProgress = (value, max) => (value / max) * 100
   <div class="bg-gray-900 text-white pt-4 sm:py-24 flex flex-col">
     <!-- Countdown Container -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <h2 v-if="!isVotingOver" class="text-3xl md:text-4xl font-extrabold text-gold-gradient drop-shadow-glow mb-2">
+      <h2 v-if="!isVotingOver" class="text-3xl md:text-4xl font-extrabold text-primary-gradient drop-shadow-glow mb-2">
         Voting Closes In
       </h2>
       <p v-if="!isVotingOver" class="text-sm sm:text-lg text-gray-400 max-w-xl mx-auto mb-2 sm:mb-6">
@@ -107,7 +107,7 @@ const getProgress = (value, max) => (value / max) * 100
               <Transition name="tick" mode="out-in">
                 <span
                   :key="value"
-                  class="text-4xl sm:text-5xl md:text-7xl font-bold text-gold-gradient bg-clip-text text-transparent"
+                  class="text-4xl sm:text-5xl md:text-7xl font-bold text-primary-gradient bg-clip-text text-transparent"
                 >
                   {{ formatNumber(value) }}
                 </span>
@@ -121,59 +121,57 @@ const getProgress = (value, max) => (value / max) * 100
       </div>
 
       <div v-else class="mt-8">
-        <h3 class="text-2xl md:text-4xl font-extrabold text-gold-gradient drop-shadow-glow mb-4">
+        <h3 class="text-2xl md:text-4xl font-extrabold text-primary-gradient drop-shadow-glow mb-4">
           Voting Has Ended!
         </h3>
         <p class="text-sm sm:text-lg text-gray-300 max-w-2xl mx-auto">
           Thank you for participating. Winners will be announced soon.
           <br />
           Follow us on Social Media
-          <a href="https://www.instagram.com/businessawards_2024/" target="_blank" class="text-yellow-400 underline">businessawards_2024
+          <a href="https://www.instagram.com/businessawards_2024/" target="_blank" class="text-primary-gradient underline">
+            businessawards_2024
           </a>
         </p>
         <!-- Button to Event Location -->
         <div class="mt-8">
-            <a href="#event-location"
-               class="inline-block bg-gold-gradient-btn text-gray-900 font-bold py-3 px-8 rounded-full shadow-lg hover:shadow-xl transition-transform transform hover:scale-105 duration-300">
-                View Event Location on Google Maps
-            </a>
+          <a href="#event-location" class="btn-primary">
+            View Event Location on Google Maps
+          </a>
         </div>
       </div>
     </div>
 
     <!-- Footer -->
-   <!-- Footer as simple div immediately after countdown -->
-<div class="mt-2 sm:mt-4 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center border-t border-gray-700 pt-2">
-  <p class="text-gray-400 text-xs sm:text-sm">
-    Powered by
-    <a
-      href="https://wa.me/255743331626"
-      target="_blank"
-      class="font-semibold text-gold-gradient hover:text-white transition"
-    >
-      Native Technology Tz
-    </a>
-  </p>
-  <div class="flex justify-center space-x-4 text-lg mt-2">
-    <a
-      href="https://www.instagram.com/nativetechnology_tz/"
-      target="_blank"
-      aria-label="Instagram"
-      class="text-yellow-400 hover:text-white transition"
-    >
-      <i class="fab fa-instagram"></i>
-    </a>
-    <a
-      href="https://wa.me/255743331626"
-      target="_blank"
-      aria-label="WhatsApp"
-      class="text-green-500 hover:text-white transition"
-    >
-      <i class="fab fa-whatsapp"></i>
-    </a>
-  </div>
-</div>
-
+    <div class="mt-2 sm:mt-4 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center border-t border-gray-700 pt-2">
+      <p class="text-gray-400 text-xs sm:text-sm">
+        Powered by
+        <a
+          href="https://wa.me/255743331626"
+          target="_blank"
+          class="font-semibold text-primary-gradient hover:text-white transition"
+        >
+          Native Technology Tz
+        </a>
+      </p>
+      <div class="flex justify-center space-x-4 text-lg mt-2">
+        <a
+          href="https://www.instagram.com/nativetechnology_tz/"
+          target="_blank"
+          aria-label="Instagram"
+          class="text-red-500 hover:text-white transition"
+        >
+          <i class="fab fa-instagram"></i>
+        </a>
+        <a
+          href="https://wa.me/255743331626"
+          target="_blank"
+          aria-label="WhatsApp"
+          class="text-green-500 hover:text-white transition"
+        >
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -196,14 +194,5 @@ svg {
 }
 circle {
   transition: stroke-dashoffset 0.5s ease;
-}
-
-.bg-gold-gradient-btn {
-    background-image: linear-gradient(to right, #FBBF24, #F59E0B, #FBBF24); /* yellow-400 to amber-500 */
-    background-size: 200% auto;
-    transition: background-position 0.5s ease;
-}
-.bg-gold-gradient-btn:hover {
-    background-position: right center;
 }
 </style>

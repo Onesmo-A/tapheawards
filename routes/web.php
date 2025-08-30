@@ -60,8 +60,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // 1. Onyesha list ya maombi (status)
     Route::get('/dashboard/applications', [NomineeApplicationController::class, 'index'])->name('user.applications.index');
-    // 2. Onyesha ukurasa wa kuchagua category
-    Route::get('/dashboard/applications/apply', [NomineeApplicationController::class, 'create'])->name('user.applications.create');
+    // 2. Mchakato wa Maombi
+    // Hatua ya 1: Onyesha ukurasa wa kuchagua kategoria
+    Route::get('/dashboard/applications/apply', [NomineeApplicationController::class, 'selectCategory'])->name('user.applications.selectCategory');
+    // Hatua ya 2: Onyesha fomu ya kujaza kwa kategoria maalum
+    Route::get('/dashboard/applications/create/{category}', [NomineeApplicationController::class, 'create'])->name('user.applications.create');
     // 3. Hifadhi maombi mapya
     Route::post('/dashboard/applications', [NomineeApplicationController::class, 'store'])->name('user.applications.store');
     // 4. Onyesha status ya ombi moja
@@ -144,7 +147,9 @@ Route::prefix('event')->group(function () {
 
 Route::get('/sitemap.xml', [SitemapController::class, 'index']);
 
-// ========== Webhook Routes ==========
-// Hizi hazihitaji authentication ya mtumiaji lakini zinahitaji usalama wake.
-use App\Http\Controllers\WebhookController;
-Route::post('/webhooks/zenopay', [WebhookController::class, 'handleZenoPay'])->name('webhooks.zenopay');
+// ========== Voting Endpoint ==========
+// Hii ndiyo endpoint inayopokea maombi ya kura kutoka kwa frontend.
+// Inalindwa na 'throttle:votes' (kutoka AppServiceProvider) kuzuia maombi mengi kwa wakati mmoja kutoka IP moja.
+Route::post('/nominees/{nominee}/vote', [VoteController::class, 'store'])
+    ->middleware('throttle:votes')
+    ->name('nominees.vote');

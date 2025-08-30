@@ -29,6 +29,8 @@ class NomineeResource extends JsonResource
             'image_url' => $this->image_url, // Tumia accessor kutoka kwa Model
             // Muhimu kwa ajili ya UX ya kuzuia kura rudia kwenye kategoria
             'category_id' => $this->category_id,
+            'facebook_url' => $this->facebook_url,
+            'instagram_url' => $this->instagram_url,
         ];
     }
 }

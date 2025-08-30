@@ -2,12 +2,14 @@
 import { Head } from '@inertiajs/vue3';
 import DefaultLayout from '@/Layouts/DefaultLayout.vue';
 import HeroSection from '@/Components/Sections/HeroSection.vue';
+import NominationOpenSection from '@/Components/Sections/NominationOpenSection.vue';
 import WhyParticipateSection from '@/Components/Sections/WhyParticipateSection.vue';
 import SponsorsSection from '@/Components/Sections/SponsorsSection.vue';
 import CategorySlider from '@/Components/Sections/CategorySlider.vue';
 import GallerySection from '@/Components/Sections/GallerySection.vue';
 import MapSection from '@/Components/Sections/MapSection.vue';
 import CountDownSection from '@/Components/Sections/CountdownSection.vue';
+import Testimonials from '@/Components/Sections/Testimonials.vue';
 
 defineOptions({
   layout: DefaultLayout,
@@ -32,14 +34,18 @@ defineProps({
     <!-- NEW: pitisha slides -->
     <HeroSection :title="title" :description="description" :slides="heroSlides" />
 
+    <!-- Nomination Section -->
+    <!-- TODO: Unaweza kuifanya hii section ionekane kwa condition, k.m. v-if="settings?.nomination_active" -->
+    <NominationOpenSection />
+
     <CountDownSection
-      v-if="settings && (settings.voting_active === true || settings.voting_active == 1) && settings.voting_deadline"
+      v-if="settings?.voting_active && settings.voting_deadline"
       :end-date="settings.voting_deadline" />
 
     <CategorySlider
       v-if="categories && categories.data && categories.data.length > 0"
       :categories="categories.data" />
-
+ <Testimonials />
     <WhyParticipateSection />
     <SponsorsSection />
     <GallerySection />

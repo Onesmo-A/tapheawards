@@ -1,69 +1,66 @@
 <script setup>
-import { Head } from '@inertiajs/vue3';
-import { defineAsyncComponent } from 'vue';
-import DefaultLayout from '@/Layouts/DefaultLayout.vue';
 import NomineeCard from '@/Components/NomineeCard.vue';
-import Pagination from '@/Components/Pagination.vue';
+import { Head, Link } from '@inertiajs/vue3';
+import { computed } from 'vue';
+import DefaultLayout from '@/Layouts/DefaultLayout.vue';
 
-defineOptions({
-  layout: DefaultLayout,
-});
-
+// Props
 const props = defineProps({
-    category: Object,
-    nominees: Object, // Nominee data comes with pagination
+    category: {
+        type: Object,
+        required: true,
+    },
+    settings: {
+        type: Object,
+        required: true,
+    }
 });
+
+const categoryUrl = computed(() => route('categories.show', props.category.slug));
+
+const votingActive = computed(() => props.settings.voting_active);
+const votingDeadline = computed(() => props.settings.voting_deadline);
+const now = new Date();
+const isVotingClosed = computed(() => {
+    if (!votingActive.value) return true;
+    if (votingDeadline.value && new Date(votingDeadline.value) < now) {
+        return true;
+    }
+    return false;
+});
+
 </script>
 
 <template>
-    <Head>
-        <title>{{ category.name }}</title>
-        <meta name="description" :content="category.description || `View nominees and vote in the ${category.name} category at the TAPHE Awards.`" />
-    </Head>
+    <DefaultLayout :title="category.name">
+        <Head :title="category.name" />
 
-    <main>
-        <!-- Category Header -->
-        <section class="pt-32 pb-16 bg-gradient-to-b from-gray-900 to-black text-white">
-            <div class="text-center max-w-7xl mx-auto px-6 lg:px-8">
-                <h1 class="text-base font-semibold leading-7 text-red-400 uppercase">Category</h1>
-                <p class="mt-2 text-4xl font-bold tracking-tight text-white sm:text-6xl text-red-gradient drop-shadow-glow">
-                    {{ category.name }}
-                </p>
-                <p v-if="category.description" class="mt-6 text-lg leading-8 text-gray-400 max-w-2xl mx-auto">
-                    {{ category.description }}
-                </p>
-            </div>
-        </section>
+        <div class="py-12 bg-gray-900 text-white">
+            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight mb-2">{{ category.name }}</h1>
+                    <p class="text-lg text-gray-400 max-w-3xl mx-auto">{{ category.description }}</p>
+                    <div v-if="isVotingClosed" class="mt-4 p-4 bg-red-900/50 border border-red-700 rounded-lg max-w-2xl mx-auto">
+                        <p class="font-semibold text-red-300">Voting for this category is currently closed.</p>
+                    </div>
+                </div>
 
-        <!-- Nominees Grid for Voting -->
-        <section class="bg-black py-20">
-            <div class="max-w-7xl mx-auto px-6 lg:px-8">
-                <div v-if="nominees.data && nominees.data.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
-                    <NomineeCard
-                        v-for="nominee in nominees.data"
-                        :key="nominee.id"
+                <div v-if="category.nominees && category.nominees.length > 0"
+                    class="grid grid-cols-[repeat(auto-fit,minmax(20rem,1fr))] gap-8 justify-items-center">
+                    <NomineeCard 
+                        v-for="nominee in category.nominees" 
+                        :key="nominee.id" 
                         :nominee="nominee"
+                        :categoryUrl="categoryUrl"
                     />
                 </div>
-                <div v-else class="text-center text-gray-400">
-                    <p class="text-xl">There are currently no nominees in this category.</p>
-                </div>
-
-                <div v-if="nominees.links.length > 3" class="mt-16">
-                    <Pagination :links="nominees.links" />
+                <div v-else class="text-center py-16">
+                    <p class="text-gray-500 text-xl">No nominees found in this category.</p>
+                    <Link :href="route('home')" class="mt-4 inline-block text-red-500 hover:text-red-400 transition">
+                        &larr; Back to Home
+                    </Link>
                 </div>
             </div>
-        </section>
-    </main>
+        </div>
+    </DefaultLayout>
 </template>
-
-<style scoped>
-.text-red-gradient {
-  background: linear-gradient(to right, #ff0000, #600202, #ef2828);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-.drop-shadow-glow {
-  filter: drop-shadow(0 0 10px rgba(255, 34, 0, 0.6));
-}
-</style>

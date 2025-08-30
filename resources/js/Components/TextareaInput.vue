@@ -1,28 +1,63 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { ref, watch } from 'vue';
 
-defineProps({
+// Props kutoka kwa parent component
+const props = defineProps({
     modelValue: String,
+    rows: {
+        type: Number,
+        default: 5,
+    },
+    placeholder: {
+        type: String,
+        default: 'Mfano: Tunatoa huduma bora za afya kwa jamii, tukiangalia afya ya mama na mtoto, kliniki yetu ina wafanyakazi wenye uzoefu na vifaa vya kisasa.',
+    },
 });
 
-defineEmits(['update:modelValue']);
+// Emit ili kufuata v-model
+const emit = defineEmits(['update:modelValue']);
 
-const textarea = ref(null);
+// Ref ya input
+const inputValue = ref(props.modelValue || '');
+const wordLimit = 40;
+const warning = ref('');
 
-onMounted(() => {
-    if (textarea.value.hasAttribute('autofocus')) {
-        textarea.value.focus();
+// Watch props.modelValue ili kudumisha synch
+watch(() => props.modelValue, (newVal) => {
+    inputValue.value = newVal || '';
+});
+
+// Function ya kudhibiti input
+function onInput(e) {
+    let words = e.target.value.trim().split(/\s+/);
+
+    if (words.length > wordLimit) {
+        words = words.slice(0, wordLimit);
+        warning.value = `Umefika kikomo cha maneno ${wordLimit}.`;
+    } else {
+        warning.value = '';
     }
-});
 
-defineExpose({ focus: () => textarea.value.focus() });
+    inputValue.value = words.join(' ');
+    emit('update:modelValue', inputValue.value);
+}
 </script>
 
 <template>
-    <textarea
-        class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
-        :value="modelValue"
-        @input="$emit('update:modelValue', $event.target.value)"
-        ref="textarea"
-    ></textarea>
+    <div>
+        <textarea
+            :rows="rows"
+            :placeholder="placeholder"
+            class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full p-2"
+            :value="inputValue"
+            @input="onInput"
+        ></textarea>
+        <p v-if="warning" class="text-sm text-red-500 mt-1">{{ warning }}</p>
+    </div>
 </template>
+
+<style scoped>
+textarea {
+    resize: vertical;
+}
+</style>

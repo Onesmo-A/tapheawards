@@ -12,7 +12,19 @@ const page = usePage();
 
 // Kagua kama link yoyote ndani ya submenu hii iko 'active'
 const isActive = computed(() => {
-    return props.item.children.some(child => page.url.startsWith(route(child.route, child.params || {}).replace(/\?.*$/, '')));
+       return props.item.children.some(child => {
+        // Usijaribu kukagua link iliyozimwa au isiyo na route
+        if (child.disabled || !child.route) {
+            return false;
+        }
+        try {
+            // Jaribu kutengeneza URL. Itashindwa kama vigezo vinavyohitajika havipo.
+            const childUrl = route(child.route, child.params || {});
+            return page.url.startsWith(childUrl.replace(/\?.*$/, ''));
+        } catch (e) {
+            return false; // Kama imeshindwa, sio link inayotumika na tunaepuka kosa.
+        }
+    });
 });
 
 const isOpen = ref(isActive.value);

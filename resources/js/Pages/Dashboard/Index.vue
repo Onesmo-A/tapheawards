@@ -1,86 +1,155 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import ApplicationStatusCard from '@/Components/ApplicationStatusCard.vue';
-import { Head, usePage, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
-import { InboxIcon } from '@heroicons/vue/24/outline';
+import {
+    ArrowRightIcon,
+    TicketIcon,
+    DocumentPlusIcon,
+    ClockIcon,
+    ExclamationTriangleIcon,
+    CheckCircleIcon,
+    UsersIcon,
+    PresentationChartLineIcon
+} from '@heroicons/vue/24/outline';
 
-// Pata taarifa za mtumiaji kutoka kwenye props zilizoshirikiwa na Inertia (njia sahihi)
-const user = computed(() => usePage().props.auth.user);
+defineOptions({ layout: AuthenticatedLayout });
 
-defineProps({
-    applications: Array,
+const page = usePage();
+const user = computed(() => page.props.auth.user);
+const pendingApplication = computed(() => page.props.auth.pendingApplication);
+
+const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('sw-TZ', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+    });
+};
+
+const statusDetails = computed(() => {
+    if (!pendingApplication.value?.status) return {};
+    const status = pendingApplication.value.status;
+    const details = {
+        pending_payment: { text: 'Inasubiri Malipo', icon: ClockIcon, classes: 'bg-yellow-100 text-yellow-800 border-yellow-400' },
+        payment_failed: { text: 'Malipo Yameshindikana', icon: ExclamationTriangleIcon, classes: 'bg-red-100 text-red-800 border-red-400' },
+        pending_review: { text: 'Inasubiri Uhakiki', icon: ClockIcon, classes: 'bg-blue-100 text-blue-800 border-blue-400' },
+        approved: { text: 'Limekubaliwa', icon: CheckCircleIcon, classes: 'bg-green-100 text-green-800 border-green-400' },
+    };
+    return details[status] || { text: status.replace(/_/g, ' '), icon: ClockIcon, classes: 'bg-gray-100 text-gray-800 border-gray-400' };
 });
 </script>
 
 <template>
-  <Head title="Dashboard" />
+    <Head title="Dashboard" />
 
-  <AuthenticatedLayout>
-    <template #header>
-        <h2 class="font-semibold text-xl text-gray-200 leading-tight">
-            Dashboard
-        </h2>
-    </template>
+    <div class="bg-gray-50 min-h-screen">
+        <div class="max-w-7xl mx-auto py-10 sm:px-6 lg:px-8 space-y-10">
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <!-- Welcome Header -->
+            <div class="px-4 sm:px-0 border-b border-gray-200 pb-5">
+                <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">Karibu, {{ user.name }}!</h1>
+                <p class="mt-2 text-lg text-gray-600">Hapa ndipo pa kuanzia safari yako ya tuzo.</p>
+            </div>
 
-                <!-- Main Content: User Details -->
-                <div class="lg:col-span-2 bg-gray-800/80 backdrop-blur-sm p-6 md:p-8 rounded-xl shadow-lg text-white">
-                    <h1 class="text-3xl font-bold mb-2 text-gold-400">
-                        Karibu, {{ user?.name.split(' ')[0] || 'Mtumiaji' }}!
-                    </h1>
-                    <p class="text-gray-400 mb-6">
-                        Hii ni dashboard yako ya watumiaji. Hapa unaweza kuona maelezo yako na kuanzisha maombi ya tuzo.
-                    </p>
-                    <div class="border-t border-gray-700 pt-6">
-                        <h2 class="text-xl font-semibold mb-4 text-gray-200">Maelezo ya Akaunti</h2>
-                        <ul class="space-y-3 text-gray-300">
-                            <li class="flex items-center"><strong class="w-28 flex-shrink-0">Jina Kamili:</strong> <span>{{ user?.name }}</span></li>
-                            <li class="flex items-center"><strong class="w-28 flex-shrink-0">Email:</strong> <span>{{ user?.email }}</span></li>
-                            <li class="flex items-center"><strong class="w-28 flex-shrink-0">ID ya Mtumiaji:</strong> <span>{{ user?.id }}</span></li>
-                        </ul>
+            <!-- Stats Section (Static & Professional) -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 px-4 sm:px-0">
+                <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-blue-500">
+                    <div class="flex items-center gap-4">
+                        <UsersIcon class="h-10 w-10 text-blue-500"/>
+                        <div>
+                            <p class="text-gray-500 text-sm">Jumla ya Washiriki</p>
+                            <p class="text-2xl font-bold text-gray-900">200+</p>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Sidebar-like Action Card -->
-                <div class="bg-gray-800/80 backdrop-blur-sm p-6 rounded-xl shadow-lg flex flex-col justify-center">
-                    <h2 class="text-xl font-semibold mb-4 text-gray-200">Maombi ya Tuzo</h2>
-                    <p class="text-gray-400 mb-6">Uko tayari kushiriki? Anzisha mchakato wa maombi yako sasa.</p>
-                    <Link :href="route('user.applications.create')">
-                        <PrimaryButton class="w-full justify-center">Anzisha Maombi Mapya</PrimaryButton>
-                    </Link>
+                <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-green-500">
+                    <div class="flex items-center gap-4">
+                        <PresentationChartLineIcon class="h-10 w-10 text-green-500"/>
+                        <div>
+                            <p class="text-gray-500 text-sm">Maombi Yaliyokubalika</p>
+                            <p class="text-2xl font-bold text-gray-900">0</p>
+                        </div>
+                    </div>
                 </div>
 
+                <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-red-500">
+                    <div class="flex items-center gap-4">
+                        <ExclamationTriangleIcon class="h-10 w-10 text-red-500"/>
+                        <div>
+                            <p class="text-gray-500 text-sm">Maombi Yaliyoachwa</p>
+                            <p class="text-2xl font-bold text-gray-900">0</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Recent Applications Section -->
-            <div class="bg-gray-800/80 backdrop-blur-sm p-6 md:p-8 rounded-xl shadow-lg text-white">
-                <h2 class="text-xl font-semibold mb-6 text-gray-200">Maombi Yako ya Hivi Karibuni</h2>
-
-                <div v-if="applications && applications.length > 0" class="space-y-4">
-                    <ApplicationStatusCard
-                        v-for="app in applications"
-                        :key="app.id"
-                        :application="app"
-                    />
-                </div>
-
-                <div v-else class="text-center py-10 border-2 border-dashed border-gray-700 rounded-lg">
-                    <InboxIcon class="mx-auto h-12 w-12 text-gray-500" />
-                    <h3 class="mt-2 text-sm font-semibold text-gray-300">Hakuna maombi</h3>
-                    <p class="mt-1 text-sm text-gray-500">Bado hujawasilisha maombi yoyote. Anza sasa!</p>
-                    <div class="mt-6">
-                        <Link :href="route('user.applications.create')">
-                            <PrimaryButton>Anzisha Maombi Mapya</PrimaryButton>
+            <!-- Pending Application Card -->
+            <div v-if="pendingApplication" :class="statusDetails.classes" class="border-l-4 rounded-r-lg p-4 sm:p-6 shadow-md">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <component :is="statusDetails.icon" class="h-10 w-10 flex-shrink-0" />
+                        <div class="flex-grow">
+                            <p class="font-bold text-lg">{{ statusDetails.text }}</p>
+                            <p class="text-sm">Ombi la tuzo ya <strong>{{ pendingApplication.category?.name || 'Haijulikani' }}</strong> lilitumwa {{ formatDate(pendingApplication.created_at) }}.</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 md:mt-0 md:ml-6 flex-shrink-0">
+                        <Link :href="route('user.applications.show', pendingApplication.id)" class="btn-primary inline-flex items-center text-sm !py-2 !px-4 w-full sm:w-auto justify-center">
+                            Angalia Maelezo & Malipo
+                            <ArrowRightIcon class="ml-2 -mr-1 w-4 h-4" />
                         </Link>
                     </div>
                 </div>
             </div>
+
+            <!-- Main Action Cards -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4 sm:px-0">
+
+                <!-- Start New Application -->
+                <div class="bg-gradient-to-br from-pink-800 to-gray-900 text-white p-8 rounded-xl shadow-2xl flex flex-col justify-between transform hover:-translate-y-1 transition-transform duration-300">
+                    <div>
+                        <DocumentPlusIcon class="h-12 w-12 mb-4 opacity-80" />
+                        <h2 class="text-white text-2xl font-bold tracking-tight">Omba Form za Tuzo</h2>
+                        <p class="mt-2 text-gray-400">Uko tayari kushiriki? Anza kwa kuchagua tuzo na ujaze fomu ya maombi.</p>
+                    </div>
+                    <div class="mt-6">
+                        <Link :href="route('user.applications.selectCategory')" class="inline-flex items-center bg-white text-gray-800 font-semibold rounded-lg text-sm px-6 py-3 text-center hover:bg-gray-200 transition-colors duration-300">
+                            Tuma Ombi Jipya
+                            <ArrowRightIcon class="ml-2 w-5 h-5" />
+                        </Link>
+                    </div>
+                </div>
+
+                <!-- Buy Tickets -->
+                <div class="bg-white p-8 rounded-xl border border-gray-200 shadow-lg flex flex-col justify-between transform hover:-translate-y-1 transition-transform duration-300">
+                    <div>
+                        <TicketIcon class="h-12 w-12 mb-4 text-red-500" />
+                        <h2 class="text-2xl font-bold text-gray-800 tracking-tight">Nunua Tiketi</h2>
+                        <p class="mt-2 text-gray-600">Usikose tukio la mwaka! Pata tiketi yako sasa na uwe sehemu ya historia.</p>
+                    </div>
+                     <div class="mt-6">
+                        <button @click="$inertia.get(route('tickets.purchase'))" class="inline-flex items-center bg-red-600 text-white font-semibold rounded-lg text-sm px-6 py-3 text-center hover:bg-red-700 transition-colors duration-300">
+                            Nunua Tiketi Sasa
+                            <ArrowRightIcon class="ml-2 w-5 h-5" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Static Info Section (Professional & Modern) -->
+            <div class="bg-white p-8 rounded-xl shadow-xl mt-10 space-y-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">Taarifa Muhimu</h2>
+                <ul class="space-y-3 text-gray-700 list-disc list-inside">
+                    <li>Hakikisha unakamilisha maombi yako kwa wakati.</li>
+                    <li>Angalia email yako mara kwa mara kwa taarifa za uthibitisho.</li>
+                    <li>Maombi ya Tiketi ni kwa msingi wa kwanza kuja, kwanza kuhudhuria.</li>
+                    <li>Kwa msaada zaidi, wasiliana na timu yetu kupitia <strong>support@tapheawards.co.tz</strong>.</li>
+                </ul>
+            </div>
+
         </div>
     </div>
-  </AuthenticatedLayout>
 </template>

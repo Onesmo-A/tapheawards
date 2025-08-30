@@ -1,7 +1,8 @@
 # Environment files
-.env.backup
-.env.production
-.env.example
+.env
+.env.*.local
+!.env.example
+.zip
 
 # Logs
 *.log
@@ -26,20 +27,37 @@ Thumbs.db
 /node_modules/
 /public/build/
 /public/hot/
-/public/storage/
+/public/storage
 
 # Laravel storage and cache
 /storage/*.key
 /storage/pail
 /bootstrap/cache/*.php
-/vendor/
-/tests/
-/database/
-/.editorconfig/
 
 # Composer vendor folder
 /vendor/
 
+# Tests (optional)
+# /tests/
+
+# Database
+/database/*.sqlite
+/database/seeds/*.sql
+
 # Homestead files
 Homestead.json
 Homestead.yaml
+
+# Exclude unneeded files from export (ZIP/archive)
+/.github export-ignore
+CHANGELOG.md export-ignore
+.styleci.yml export-ignore
+/tests/ export-ignore
+/node_modules/ export-ignore
+/vendor/ export-ignore
+/public/build/ export-ignore
+/public/hot/ export-ignore
+/public/storage export-ignore
+/.idea/ export-ignore
+/.vscode/ export-ignore
+*.zip export-ignore

@@ -1,12 +1,7 @@
 <script setup>
-import { Link, Head } from '@inertiajs/vue3';
-import ApplicationLogo from '@/Components/ApplicationLogo.vue';
-import Sponsors from '@/Components/Sponsors.vue';
-import FacebookIcon from '@/Components/Icons/FacebookIcon.vue';
-import InstagramIcon from '@/Components/Icons/InstagramIcon.vue';
-import TwitterIcon from '@/Components/Icons/TwitterIcon.vue';
-import LinkedInIcon from '@/Components/Icons/LinkedInIcon.vue';
+import { Head } from '@inertiajs/vue3';
 import AppHeader from '@/Components/Layout/AppHeader.vue';
+import TopBar from '@/Components/Layout/TopBar.vue';
 import AppFooter from '@/Components/Layout/AppFooter.vue';
 </script>
 
@@ -19,11 +14,17 @@ import AppFooter from '@/Components/Layout/AppFooter.vue';
         <meta property="og:image" content="/images/og-image.jpg" />
     </Head>
 
-    <div class="min-h-screen flex flex-col bg-gray-900 text-gray-200 font-sans">
+    <div class="min-h-screen flex flex-col font-sans bg-background-main text-text-primary">
+        <TopBar />
         <AppHeader />
 
         <!-- Main content -->
-        <main class="flex-grow">
+        <main class="flex-grow pt-20 md:pt-[7.5rem]">
+            <!-- 
+                MAREKEBISHO:
+                - pt-20: Inaongeza nafasi juu (5rem) kwa ajili ya AppHeader kwenye simu.
+                - md:pt-[7.5rem]: Inaongeza nafasi juu (7.5rem) kwa ajili ya TopBar (2.5rem) + AppHeader (5rem) kwenye desktop.
+            -->
             <slot />
         </main>
 

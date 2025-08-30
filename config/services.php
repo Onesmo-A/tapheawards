@@ -41,8 +41,12 @@ return [
     ],
 
     'zenopay' => [
-        'base_uri' => env('ZENO_API_URL', 'https://zenoapi.com/api'),
+        // URL ya msingi ya ZenoPay API
+        'url' => env('ZENO_API_URL', 'https://zenoapi.com/api'),
+        // API Key yako kutoka ZenoPay
         'key' => env('ZENO_API_KEY'),
+        // Ada ya fomu ya maombi
+        'application_fee' => env('NOMINATION_APPLICATION_FEE', 50000),
     ],
 
 ];

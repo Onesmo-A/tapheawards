@@ -4,7 +4,7 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, useForm, Link } from '@inertiajs/vue3';
 
 defineOptions({
   layout: AdminLayout,
@@ -19,10 +19,16 @@ const form = useForm({
   category_id: '',
   bio: '',
   image: null,
+  facebook_url: '',
+  instagram_url: '',
 });
 
 const submit = () => {
-  form.post(route('admin.nominees.store'));
+  form.post(route('admin.nominees.store'), {
+    onError: (errors) => {
+      console.log(errors);
+    },
+  });
 };
 </script>
 
@@ -33,6 +39,7 @@ const submit = () => {
     <h1 class="text-2xl font-bold text-gold-400 mb-6">Add New Nominee</h1>
 
     <form @submit.prevent="submit" class="space-y-6 bg-gray-800 p-6 rounded-lg shadow-lg">
+      <!-- Name -->
       <div>
         <InputLabel for="name" value="Nominee Name" class="text-gold-300" />
         <TextInput
@@ -47,6 +54,7 @@ const submit = () => {
         <InputError class="mt-2" :message="form.errors.name" />
       </div>
 
+      <!-- Category -->
       <div>
         <InputLabel for="category_id" value="Category" class="text-gold-300" />
         <select
@@ -63,6 +71,7 @@ const submit = () => {
         <InputError class="mt-2" :message="form.errors.category_id" />
       </div>
 
+      <!-- Bio -->
       <div>
         <InputLabel for="bio" value="Biography (Optional)" class="text-gold-300" />
         <textarea
@@ -74,6 +83,33 @@ const submit = () => {
         <InputError class="mt-2" :message="form.errors.bio" />
       </div>
 
+      <!-- Facebook -->
+      <div>
+        <InputLabel for="facebook_url" value="Facebook URL (Optional)" class="text-gold-300" />
+        <TextInput
+          id="facebook_url"
+          type="url"
+          v-model="form.facebook_url"
+          autocomplete="url"
+          class="mt-1 block w-full bg-gray-900 text-gray-100 border border-gray-700 rounded-md focus:ring-gold-500 focus:border-gold-500"
+        />
+        <InputError class="mt-2" :message="form.errors.facebook_url" />
+      </div>
+
+      <!-- Instagram -->
+      <div>
+        <InputLabel for="instagram_url" value="Instagram URL (Optional)" class="text-gold-300" />
+        <TextInput
+          id="instagram_url"
+          type="url"
+          v-model="form.instagram_url"
+          autocomplete="url"
+          class="mt-1 block w-full bg-gray-900 text-gray-100 border border-gray-700 rounded-md focus:ring-gold-500 focus:border-gold-500"
+        />
+        <InputError class="mt-2" :message="form.errors.instagram_url" />
+      </div>
+
+      <!-- Image -->
       <div>
         <InputLabel for="image" value="Nominee Image (Optional)" class="text-gold-300" />
         <input
@@ -97,7 +133,14 @@ const submit = () => {
         <InputError class="mt-2" :message="form.errors.image" />
       </div>
 
-      <div class="flex justify-end">
+      <!-- Buttons -->
+      <div class="flex justify-between items-center mt-6">
+        <Link
+          :href="route('admin.nominees.index')"
+          class="text-sm text-gray-400 hover:text-gray-200 underline"
+        >
+          Cancel
+        </Link>
         <PrimaryButton
           :class="{ 'opacity-50 cursor-not-allowed': form.processing }"
           :disabled="form.processing"

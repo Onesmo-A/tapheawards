@@ -66,9 +66,11 @@ class VoteController extends Controller
     // 4. Tengeneza Fingerprints na Multi-Factor Hash kwa kutumia private method
     $fingerprints = $this->generateFingerprints($request, $validated);
 
-    // 5. Kagua kama "Multi-Factor Hash" imeshapiga kura kwenye category hii (ulinzi mkuu)
+    // 5. Kagua kama mtumiaji ameshapiga kura kwenye kategoria hii.
+    // KWA MAJARIBIO: Tunatumia 'fingerprint_js' pekee kama kigezo cha kipekee.
+    // Hapo awali tulikuwa tunatumia 'multi_factor_hash'.
     $alreadyVoted = Vote::where('category_id', $nominee->category_id)
-        ->where('multi_factor_hash', $fingerprints['multi_factor_hash'])
+        ->where('fingerprint_js', $validated['fingerprint_js'])
         ->exists();
 
     if ($alreadyVoted) {

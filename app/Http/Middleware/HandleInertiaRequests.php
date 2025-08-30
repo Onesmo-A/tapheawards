@@ -38,6 +38,7 @@ class HandleInertiaRequests extends Middleware
                 // Pata ombi la mtumiaji ambalo bado liko kwenye mchakato (muhimu kwa ajili ya kuonyesha ujumbe kwenye dashboard)
                 'pendingApplication' => fn () => $request->user()
                     ? $request->user()->nomineeApplications()
+                        ->with('category') // IMEONGEZWA: Inapakia taarifa za kategoria kuzuia kosa kwenye dashboard
                         ->whereIn('status', ['pending_payment', 'payment_failed', 'pending_review'])
                         ->latest()->first()
                     : null,

@@ -1,18 +1,18 @@
 <script setup>
-import { Head } from '@inertiajs/vue3';
+import TopBar from '@/Components/Layout/TopBar.vue';
 import AppHeader from '@/Components/Layout/AppHeader.vue';
 import AppFooter from '@/Components/Layout/AppFooter.vue';
-
-defineProps({
-  title: String,
-  description: String
-});
 </script>
 
 <template>
-  <div class="min-h-screen bg-black">
-    <AppHeader />
-    <slot />
-    <AppFooter />
-  </div>
+    <div class="bg-gray-50 min-h-screen flex flex-col">
+        <TopBar />
+        <AppHeader />
+
+        <main class="flex-grow">
+            <slot />
+        </main>
+
+        <AppFooter />
+    </div>
 </template>
