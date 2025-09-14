@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\NomineeApplication;
 use App\Models\Transaction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -15,32 +16,40 @@ class WebhookController extends Controller
     public function handleZenoPay(Request $request)
     {
         // Log ya awali kabisa kuthibitisha ombi limefika, na tunaweka payload yote
-        Log::channel('stack')->info('ZenoPay Webhook Endpoint Hit.', [
+        Log::info('ZenoPay Webhook: Endpoint Hit.', [
             'ip' => $request->ip(),
             'headers' => $request->headers->all(), // Log headers zote kwa ajili ya uchunguzi
             'payload' => $request->all()
         ]);
 
         try {
-            // ================== SULUHUisho la MUDA ==================
-            // Kizuizi hiki kimezimwa kwa muda kwa sababu ZenoPay hawatumi 'x-api-key' header kwenye webhook yao.
-            // NI MUHIMU kuwasiliana na ZenoPay ili waanze kutuma header hii, kisha uondoe maoni (uncomment)
-            // kwenye kizuizi hiki ili kurudisha usalama.
-            //
-            // $incomingApiKey = $request->header('x-api-key');
-            // $expectedApiKey = config('services.zenopay.key');
-            //
-            // if ($incomingApiKey !== $expectedApiKey) {
-            //     Log::critical('ZenoPay Webhook: UNAUTHORIZED ATTEMPT - Invalid API Key.', [
-            //         'ip' => $request->ip(),
-            //         'incoming_key' => $incomingApiKey,
-            //         'expected_key' => $expectedApiKey,
-            //     ]);
-            //     return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
-            // }
+            // ================== USALAMA WA WEBHOOK (HYBRID: API Key + IP Whitelist) ==================
+            // Kwa kuwa ZenoPay hawatumi API Key kwenye webhook, tunatumia IP Whitelisting kama njia kuu ya usalama.
+            // Pia tunaiacha code ya API Key kwa ajili ya siku za usoni kama wataanza kuituma.
+            $zenoApiKey = config('services.zenopay.key');
+            $receivedApiKey = $request->header('x-api-key') ?? $request->header('HTTP_X_API_KEY');
+
+            $isApiKeyValid = $receivedApiKey && hash_equals((string) $zenoApiKey, (string) $receivedApiKey);
+
+            $allowedIps = explode(',', config('services.zenopay.ips', ''));
+            $requestIp = $request->ip();
+            $isIpAllowed = in_array($requestIp, $allowedIps);
+
+            if ($isApiKeyValid) {
+                $authMethod = 'API Key';
+            } elseif ($isIpAllowed) {
+                $authMethod = 'IP Whitelist';
+                Log::info('ZenoPay Webhook: Authenticated via IP Whitelist (API Key was missing/invalid).', ['ip' => $requestIp]); // Hii ni logi salama
+            } else {
+                Log::critical('ZenoPay Webhook: UNAUTHORIZED ATTEMPT - Both API Key and IP Whitelist checks failed.', [
+                    'ip' => $request->ip(),
+                    'received_key' => $receivedApiKey,
+                ]);
+                return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+            }
 
             $payload = $request->all();
-            Log::info('ZenoPay Webhook Received and Authenticated:', $payload);
+            Log::info('ZenoPay Webhook: Received and Authenticated via ' . $authMethod, ['payload' => $payload]);
 
             $orderId = $payload['order_id'] ?? null;
             $status = $payload['payment_status'] ?? null;
@@ -51,40 +60,43 @@ class WebhookController extends Controller
             }
 
             // 2. Pata transaction yetu kwa kutumia order_id
+            Log::info('ZenoPay Webhook: Searching for transaction.', ['order_id' => $orderId]);
             $transaction = Transaction::where('order_id', $orderId)->first();
 
             if (!$transaction) {
                 Log::error('ZenoPay Webhook: Transaction not found.', ['order_id' => $orderId]);
                 return response()->json(['status' => 'success', 'message' => 'Transaction not found but acknowledged']);
             }
-
             // 3. Zuia kusasisha transaction ambayo haiko 'pending'
-            if ($transaction->status !== 'pending') {
+            // BORESHO: Tumia constant badala ya 'hardcoded string'
+            if ($transaction->status !== Transaction::STATUS_PENDING) {
                 Log::info('ZenoPay Webhook: Transaction already processed, ignoring.', ['order_id' => $orderId, 'current_status' => $transaction->status]);
                 return response()->json(['status' => 'success', 'message' => 'Already processed']);
             }
 
+            Log::info('ZenoPay Webhook: Transaction found and is pending. Proceeding to update.', ['transaction_id' => $transaction->id, 'order_id' => $orderId]);
             // 4. Tumia DB Transaction kuhakikisha data inakuwa sahihi (atomicity)
             DB::transaction(function () use ($transaction, $status, $payload) {
+                // BORESHO: Tumia constants kwa usahihi na usalama
                 if ($status === 'COMPLETED') {
                     $transaction->update([
-                        'status' => 'completed',
+                        'status' => Transaction::STATUS_COMPLETED,
                         'gateway_reference' => $payload['reference'] ?? ($payload['transid'] ?? null),
                         'payment_method' => $payload['channel'] ?? null,
                         'notes' => 'Webhook: Payment completed successfully.',
                     ]);
-                    $transaction->payable?->update(['status' => 'pending_review']);
-                    Log::info('ZenoPay Webhook: Transaction status updated to COMPLETED.', ['order_id' => $transaction->order_id]);
+                    $transaction->payable?->update(['status' => NomineeApplication::STATUS_PENDING_REVIEW]);
+                    Log::info('ZenoPay Webhook: DB Update - Transaction status updated to COMPLETED.', ['order_id' => $transaction->order_id, 'application_id' => $transaction->payable->id]);
                 } elseif ($status === 'FAILED') {
                     $transaction->update([
-                        'status' => 'failed',
+                        'status' => Transaction::STATUS_FAILED,
                         'notes' => 'Webhook: Payment failed. Reason: ' . ($payload['message'] ?? 'Unknown'),
                     ]);
-                    $transaction->payable?->update(['status' => 'payment_failed']);
-                    Log::info('ZenoPay Webhook: Transaction status updated to FAILED.', ['order_id' => $transaction->order_id]);
+                    $transaction->payable?->update(['status' => NomineeApplication::STATUS_PAYMENT_FAILED]);
+                    Log::info('ZenoPay Webhook: DB Update - Transaction status updated to FAILED.', ['order_id' => $transaction->order_id, 'application_id' => $transaction->payable->id]);
                 }
             });
-
+            Log::info('ZenoPay Webhook: Process completed successfully. Sending 200 OK response.', ['order_id' => $orderId]);
             // 5. Jibu ZenoPay kwamba umepokea taarifa yao
             return response()->json(['status' => 'success']);
 

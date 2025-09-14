@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import { Bars3Icon, XMarkIcon } from '@heroicons/vue/24/outline';
@@ -17,23 +17,49 @@ const { isAuthenticated, user, logout } = useAuth();
 const navigation = [
   { name: 'Home', href: route('home') },
   { name: 'Categories', href: route('categories.index') },
+  { name: 'Sponsors', href: route('sponsors.index') },
   { name: 'About', href: route('about') },
 ];
 
-const awardsDropdownLinks = [
-  { name: 'All Awards', href: route('awards.index'), description: 'Browse all award seasons and winners.' },
-  { name: 'Participate', href: route('participate'), description: 'Join the competition as a nominee.' },
-  { name: 'Winners', href: route('awards.index'), description: 'See past winners and their achievements.' },
-  { name: 'Get Tickets', href: route('tickets.index'), description: 'Attend the prestigious gala event.' },
-  { name: 'Vote', href: route('categories.index'), description: 'Cast your vote for your favorite nominees.' },
+const awardsMegaMenu = [
+    {
+        title: 'The Awards',
+        links: [
+            { name: 'All Awards', href: route('awards.index'), description: 'Browse all award seasons and winners.' },
+            { name: 'Winners', href: route('awards.index'), description: 'See past winners and their achievements.' },
+            { name: 'Vote', href: route('categories.index'), description: 'Cast your vote for your favorite nominees.' },
+        ]
+    },
+    {
+        title: 'Get Involved',
+        links: [
+            { name: 'Participate', href: route('participate'), description: 'Join the competition as a nominee.' },
+            { name: 'Suggest a Nominee', href: route('nominees.suggest'), description: 'Propose a deserving individual for an award.' },
+            { name: 'Get Tickets', href: route('tickets.index'), description: 'Attend the prestigious gala event.' },
+        ]
+    }
 ];
 
-const mediaDropdownLinks = [
-  { name: 'News', href: route('news.index'), description: 'Latest updates & articles about the awards.' },
-  { name: 'Gallery', href: route('gallery.index'), description: 'Photos & videos from our events.' },
-  { name: 'Guest of Honor', href: route('event.guest-of-honor'), description: 'Learn about our special guest.' },
-  { name: 'Contact Us', href: route('contact.show'), description: 'Get in touch with our team.' },
+const moreMegaMenu = [
+    {
+        title: 'Media',
+        links: [
+            { name: 'News', href: route('news.index'), description: 'Latest updates & articles about the awards.' },
+            { name: 'Gallery', href: route('gallery.index'), description: 'Photos & videos from our events.' },
+        ]
+    },
+    {
+        title: 'Event & Info',
+        links: [
+            { name: 'Guest of Honor', href: route('event.guest-of-honor'), description: 'Learn about our special guest.' },
+            { name: 'Contact Us', href: route('contact.show'), description: 'Get in touch with our team.' },
+        ]
+    }
 ];
+
+// For mobile menu, we need a flat list.
+const flatAwardsLinks = computed(() => awardsMegaMenu.flatMap(col => col.links));
+const flatMoreLinks = computed(() => moreMegaMenu.flatMap(col => col.links));
 
 const handleLogout = async () => {
   await logout();
@@ -161,7 +187,7 @@ onUnmounted(() => {
           </button>
           <div v-show="mobileSubMenuOpen === 'awards'" class="pt-2 pb-1 pl-5 space-y-1">
             <Link
-              v-for="item in awardsDropdownLinks"
+              v-for="item in flatAwardsLinks"
               :key="item.name"
               :href="item.href"
               @click="closeMobileMenu"
@@ -183,7 +209,7 @@ onUnmounted(() => {
           </button>
           <div v-show="mobileSubMenuOpen === 'media'" class="pt-2 pb-1 pl-5 space-y-1">
             <Link
-              v-for="item in mediaDropdownLinks"
+              v-for="item in flatMoreLinks"
               :key="item.name"
               :href="item.href"
               @click="closeMobileMenu"
@@ -229,17 +255,22 @@ onUnmounted(() => {
     <transition name="fade">
       <div v-show="isAwardsDropdownOpen" class="absolute left-0 top-20 w-screen z-40">
         <div class="bg-[var(--background-section)] rounded-2xl shadow-primary-glow border-t-4 border-[var(--accent-primary)]">
-          <div class="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-            <Link
-              v-for="item in awardsDropdownLinks"
-              :key="item.name"
-              :href="item.href"
-              @click="closeAllDropdowns"
-              class="transition-all group p-5 rounded-xl hover:bg-gradient-to-br hover:from-gray-50 hover:to-gray-100 hover:shadow-lg hover:scale-[1.02]"
-            >
-              <p class="font-semibold text-[var(--text-accent)] text-lg">{{ item.name }}</p>
-              <p class="text-sm text-[var(--text-secondary)] mt-1">{{ item.description }}</p>
-            </Link>
+          <div class="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-10">
+            <div v-for="column in awardsMegaMenu" :key="column.title">
+              <p class="font-bold text-base text-gray-500 uppercase tracking-wider mb-4">{{ column.title }}</p>
+              <ul class="space-y-4">
+                <li v-for="item in column.links" :key="item.name">
+                  <Link
+                    :href="item.href"
+                    @click="closeAllDropdowns"
+                    class="group block transition-all hover:translate-x-1"
+                  >
+                    <p class="font-semibold text-[var(--text-accent)] text-lg group-hover:text-red-500">{{ item.name }}</p>
+                    <p class="text-sm text-[var(--text-secondary)] mt-1">{{ item.description }}</p>
+                  </Link>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
@@ -249,17 +280,22 @@ onUnmounted(() => {
     <transition name="fade">
       <div v-show="isMediaDropdownOpen" class="absolute left-0 top-20 w-screen z-40">
         <div class="bg-[var(--background-section)] rounded-2xl shadow-primary-glow border-t-4 border-[var(--accent-primary)]">
-          <div class="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-            <Link
-              v-for="item in mediaDropdownLinks"
-              :key="item.name"
-              :href="item.href"
-              @click="closeAllDropdowns"
-              class="transition-all group p-5 rounded-xl hover:bg-gradient-to-br hover:from-gray-50 hover:to-gray-100 hover:shadow-lg hover:scale-[1.02]"
-            >
-              <p class="font-semibold text-[var(--text-accent)] text-lg">{{ item.name }}</p>
-              <p class="text-sm text-[var(--text-secondary)] mt-1">{{ item.description }}</p>
-            </Link>
+          <div class="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-10">
+            <div v-for="column in moreMegaMenu" :key="column.title">
+              <p class="font-bold text-base text-gray-500 uppercase tracking-wider mb-4">{{ column.title }}</p>
+              <ul class="space-y-4">
+                <li v-for="item in column.links" :key="item.name">
+                  <Link
+                    :href="item.href"
+                    @click="closeAllDropdowns"
+                    class="group block transition-all hover:translate-x-1"
+                  >
+                    <p class="font-semibold text-[var(--text-accent)] text-lg group-hover:text-red-500">{{ item.name }}</p>
+                    <p class="text-sm text-[var(--text-secondary)] mt-1">{{ item.description }}</p>
+                  </Link>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>

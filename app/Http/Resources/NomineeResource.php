@@ -31,6 +31,7 @@ class NomineeResource extends JsonResource
             'category_id' => $this->category_id,
             'facebook_url' => $this->facebook_url,
             'instagram_url' => $this->instagram_url,
+            'tiktok_url' => $this->tiktok_url,
         ];
     }
 }

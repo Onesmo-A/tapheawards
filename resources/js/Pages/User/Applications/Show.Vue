@@ -1,13 +1,16 @@
 <script setup>
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { ArrowLeftIcon, PrinterIcon } from '@heroicons/vue/24/solid';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 
 defineOptions({ layout: AuthenticatedLayout });
 
 const props = defineProps({
     application: Object,
 });
+
+const pollingInterval = ref(null);
 
 const statusDetails = (status) => {
     const details = {
@@ -31,6 +34,44 @@ const formatDate = (dateString) => {
 const printPage = () => {
     window.print();
 };
+
+// BORESHO: Anzisha 'polling' ili kuangalia hali ya malipo kiotomatiki
+const startPolling = () => {
+    // Usianzishe polling mpya kama tayari ipo
+    if (pollingInterval.value) return;
+
+    pollingInterval.value = setInterval(() => {
+        router.reload({
+            only: ['application', 'flash'], // Pakia upya data ya ombi na flash messages tu
+            preserveState: true,
+            preserveScroll: true,
+        });
+    }, 5000); // Angalia kila sekunde 5
+};
+
+const stopPolling = () => {
+    if (pollingInterval.value) {
+        clearInterval(pollingInterval.value);
+        pollingInterval.value = null;
+    }
+};
+
+// Anzisha polling kama hali ni 'pending_payment'
+onMounted(() => {
+    if (props.application.status === 'pending_payment') {
+        startPolling();
+    }
+});
+
+// Sitisha polling mtumiaji akiondoka kwenye ukurasa
+onUnmounted(() => stopPolling());
+
+// Sitisha polling kama hali imebadilika
+watch(() => props.application.status, (newStatus) => {
+    if (newStatus !== 'pending_payment') {
+        stopPolling();
+    }
+});
 </script>
 
 <template>

@@ -88,6 +88,8 @@ const deleteCategory = (category) => {
             <th class="px-6 py-3">#</th>
             <th class="px-6 py-3">Image</th>
             <th class="px-6 py-3">Category Name</th>
+            <th class="px-6 py-3">Status</th>
+            <th class="px-6 py-3">Fee (TZS)</th>
             <th class="px-6 py-3">Nominees</th>
             <th class="px-6 py-3">Slug</th>
             <th class="px-6 py-3 text-right">Action</th>
@@ -95,7 +97,7 @@ const deleteCategory = (category) => {
         </thead>
         <tbody>
           <tr v-if="categories.data.length === 0">
-            <td colspan="6" class="px-6 py-4 text-center text-gray-400">
+            <td colspan="8" class="px-6 py-4 text-center text-gray-400">
               No categories found.
             </td>
           </tr>
@@ -103,12 +105,13 @@ const deleteCategory = (category) => {
             v-for="(category, index) in categories.data"
             :key="category.id"
             class="border-b border-gray-700 hover:bg-gray-700/50 transition-colors duration-200"
+            :class="{ 'bg-gray-800': category.parent_id }"
           >
-            <td class="px-6 py-4">{{ index + 1 }}</td>
+            <td class="px-6 py-4">{{ categories.from + index }}</td>
             <td class="px-6 py-4">
               <img
-                v-if="category.image_url"
-                :src="category.image_url"
+                v-if="category.image_path"
+                :src="`/storage/${category.image_path}`"
                 :alt="category.name"
                 class="h-10 w-10 rounded-full object-cover"
               />
@@ -119,15 +122,27 @@ const deleteCategory = (category) => {
                 {{ category.name.charAt(0) }}
               </div>
             </td>
-           <td class="px-6 py-4 font-medium text-white whitespace-nowrap">
-  <Link
-    :href="route('admin.categories.show', category.id)"
-    class="hover:text-gold-400 transition duration-200 underline"
-  >
-    {{ category.name }}
-  </Link>
-</td>
-
+            <td class="px-6 py-4 font-medium text-white whitespace-nowrap">
+                <div class="flex flex-col">
+                    <Link :href="route('admin.categories.show', category.id)" class="hover:text-gold-400 transition duration-200 underline">
+                        {{ category.name }}
+                    </Link>
+                    <span v-if="category.parent" class="text-xs text-gray-400 mt-1">
+                        ↳ in: {{ category.parent.name }}
+                    </span>
+                </div>
+            </td>
+            <td class="px-6 py-4">
+              <span
+                class="px-2 py-1 text-xs font-medium rounded-full"
+                :class="category.status === 'active' ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'"
+              >
+                {{ category.status }}
+              </span>
+            </td>
+            <td class="px-6 py-4">
+              {{ category.parent_id ? Number(category.nomination_fee).toLocaleString() : 'N/A' }}
+            </td>
             <td class="px-6 py-4">{{ category.nominees_count }}</td>
             <td class="px-6 py-4 font-mono text-gray-400">{{ category.slug }}</td>
             <td class="px-6 py-4 text-right">

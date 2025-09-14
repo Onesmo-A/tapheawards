@@ -3,6 +3,7 @@ import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 import { useToast } from 'vue-toastification';
+import DangerButton from '@/Components/DangerButton.vue';
 
 const props = defineProps({
     categories: Array,
@@ -48,6 +49,30 @@ const declareWinner = (categoryId) => {
             console.error(errors);
         },
     });
+};
+
+const removeWinner = (categoryId) => {
+    const category = props.categories.find(c => c.id === categoryId);
+    const winner = category?.winners[0];
+
+    if (!winner) {
+        toast.error("No winner found to remove.");
+        return;
+    }
+
+    if (confirm('Are you sure you want to remove this winner? This action cannot be undone.')) {
+        router.delete(route('admin.winners.destroy', winner.id), {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Winner removed successfully!');
+                // BORESHO: Sasisha state ya category husika mara moja
+                if (category) {
+                    category.winner_nominee_id = null;
+                }
+            },
+            onError: () => toast.error('Failed to remove winner.'),
+        });
+    }
 };
 
 const years = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + 2 - i);
@@ -111,11 +136,21 @@ const years = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + 2 
                                 </span>
                             </div>
                         </div>
-                        <div class="mt-6">
+                        <div class="mt-6 flex items-center space-x-4">
                             <button type="submit" :disabled="forms[category.id].processing"
                                 class="px-4 py-2 text-sm font-medium leading-5 text-white transition-colors duration-150 bg-purple-600 border border-transparent rounded-lg active:bg-purple-600 hover:bg-purple-700 focus:outline-none focus:shadow-outline-purple disabled:opacity-50">
-                                {{ forms[category.id].processing ? 'Saving...' : 'Declare Winner' }}
+                                {{ forms[category.id].processing ? 'Saving...' : (category.winner_nominee_id ? 'Update Winner' : 'Declare Winner') }}
                             </button>
+
+                            <DangerButton
+                                v-if="category.winner_nominee_id"
+                                @click="removeWinner(category.id)"
+                                type="button"
+                                class="disabled:opacity-50"
+                                :disabled="forms[category.id].processing"
+                            >
+                                Remove Winner
+                            </DangerButton>
                         </div>
                     </form>
                 </div>

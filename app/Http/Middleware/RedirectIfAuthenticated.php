@@ -21,10 +21,14 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
-                if (auth()->user()->is_admin) {
+                $user = Auth::guard($guard)->user();
+                // Kagua kama mtumiaji ni admin na mpeleke kwenye dashboard yake
+                // BORESHO: Tumia $user->is_admin badala ya Auth::user()->is_admin kwa uhakika zaidi
+                if ($user && $user->is_admin) {
                     return redirect()->route('admin.dashboard');
                 }
-                return redirect()->route('home');
+                // Mtumiaji wa kawaida aelekezwe kwenye dashboard yake
+                return redirect()->route('dashboard');
             }
         }
 

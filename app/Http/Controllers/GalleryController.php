@@ -2,18 +2,31 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Models\Post;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class GalleryController extends Controller
 {
-    /**
-     * Display the gallery page.
-     */
     public function index(): Response
     {
-        // Kwa sasa, tunaonyesha ukurasa tu. Baadaye, unaweza kupakia picha kutoka database hapa.
-        return Inertia::render('Gallery/Index');
+        $galleryItems = Post::query()
+            ->where('type', 'gallery')
+            ->where('status', 'published')
+            ->latest('published_at')
+            ->paginate(16)
+            ->through(fn ($post) => [
+                'id' => $post->id,
+                'slug' => $post->slug,
+                'title' => $post->title,
+                'excerpt' => $post->excerpt,
+                'featured_image_url' => $post->featured_image ? asset('storage/' . $post->featured_image) : null,
+            ]);
+
+        return Inertia::render('Gallery/Index', [
+            'title' => 'Photo Gallery',
+            'description' => 'Explore photos and videos from our past events and award ceremonies.',
+            'galleryItems' => $galleryItems,
+        ]);
     }
 }

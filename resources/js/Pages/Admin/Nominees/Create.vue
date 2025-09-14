@@ -12,15 +12,22 @@ defineOptions({
 
 const props = defineProps({
   categories: Array,
+  prefill: {
+    type: Object,
+    default: () => ({}),
+  },
 });
 
 const form = useForm({
-  name: '',
-  category_id: '',
-  bio: '',
+  name: props.prefill.name || '',
+  category_id: props.prefill.category_id || '',
+  bio: props.prefill.bio || '',
   image: null,
-  facebook_url: '',
-  instagram_url: '',
+  image_path: props.prefill.image_path || null, // For displaying the pre-filled image path
+  facebook_url: props.prefill.facebook_url || '',
+  instagram_url: props.prefill.instagram_url || '',
+  tiktok_url: props.prefill.tiktok_url || '',
+  source_application_id: props.prefill.source_application_id || null,
 });
 
 const submit = () => {
@@ -36,7 +43,12 @@ const submit = () => {
   <Head title="Add Nominee" />
 
   <div class="p-6 max-w-2xl mx-auto text-gray-100">
-    <h1 class="text-2xl font-bold text-gold-400 mb-6">Add New Nominee</h1>
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gold-400">
+            {{ prefill.name ? 'Confirm & Create Nominee' : 'Add New Nominee' }}
+        </h1>
+        <p v-if="prefill.name" class="text-sm text-gray-400 mt-1">Review the details from the application and save the new nominee.</p>
+    </div>
 
     <form @submit.prevent="submit" class="space-y-6 bg-gray-800 p-6 rounded-lg shadow-lg">
       <!-- Name -->
@@ -109,8 +121,29 @@ const submit = () => {
         <InputError class="mt-2" :message="form.errors.instagram_url" />
       </div>
 
+      <!-- TikTok -->
+      <div>
+        <InputLabel for="tiktok_url" value="TikTok URL (Optional)" class="text-gold-300" />
+        <TextInput
+          id="tiktok_url"
+          type="url"
+          v-model="form.tiktok_url"
+          autocomplete="url"
+          class="mt-1 block w-full bg-gray-900 text-gray-100 border border-gray-700 rounded-md focus:ring-gold-500 focus:border-gold-500"
+        />
+        <InputError class="mt-2" :message="form.errors.tiktok_url" />
+      </div>
+
       <!-- Image -->
       <div>
+        <!-- Onyesha picha iliyopo kutoka kwenye application -->
+        <div v-if="form.image_path && !form.image" class="mb-4">
+            <InputLabel value="Current Image (from application)" class="text-gold-300 mb-2" />
+            <img :src="`/storage/${form.image_path}`" alt="Current Nominee Image" class="h-32 w-32 rounded-md object-cover border-2 border-gray-600">
+            <p class="text-xs text-gray-400 mt-2">You can upload a new image below to replace this one.</p>
+        </div>
+
+        <!-- Sehemu ya kupakia picha mpya -->
         <InputLabel for="image" value="Nominee Image (Optional)" class="text-gold-300" />
         <input
           type="file"
@@ -131,6 +164,9 @@ const submit = () => {
           {{ form.progress.percentage }}%
         </progress>
         <InputError class="mt-2" :message="form.errors.image" />
+        
+        <!-- Hidden input to carry over the existing image path if no new image is uploaded -->
+        <input type="hidden" v-model="form.image_path" />
       </div>
 
       <!-- Buttons -->

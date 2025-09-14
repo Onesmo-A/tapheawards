@@ -97,7 +97,7 @@ class VoteController extends Controller
         $votes = $votesQuery->latest()->get();
 
         $data = [
-            'title' => count($titleParts) > 1 ? implode(' ', $titleParts) : 'Ripoti ya Kura Zote',
+            'title' => count($titleParts) > 1 ? implode(' ', $titleParts) : 'Ripoti ya Kura Zote', // BORESHO: Kichwa cha habari kinachoeleweka zaidi
             'date' => now()->setTimezone('Africa/Nairobi')->format('d M, Y H:i'),
             'votes' => $votes,
         ];

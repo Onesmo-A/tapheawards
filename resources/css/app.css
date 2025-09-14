@@ -9,8 +9,8 @@
     --background-section: #f8f9fa;  /* Nyeupe iliyochanganywa kidogo (off-white) kwa sections */
 
     /* Rangi za Maandishi (Text Colors) */
-    --text-primary: #2d3748;      /* Meusi yaliyopoa (almost black) kwa maandishi ya kawaida */
-    --text-secondary: #718096;    /* Kijivu kwa maandishi ya chini */
+    --text-primary: #291a1a;      /* Meusi yaliyopoa (almost black) kwa maandishi ya kawaida */
+    --text-secondary: #9aa7b9;    /* Kijivu kwa maandishi ya chini */
     --text-accent: #c53030;       /* Mekundu kwa vichwa vya habari na viunganishi */
 
     /* Rangi za Vitu Maalum (Accent Colors) */
@@ -24,8 +24,8 @@
     color: var(--text-primary);
   }
 
-  /* Weka vichwa vya habari (headings) na viunganishi (links) viwe na rangi nyekundu */
-  h1, h2, h3, h4, h5, h6, a:not(.btn-primary):not(.btn-secondary) {
+  /* Weka vichwa vya habari (headings) viwe na rangi nyekundu */
+  h1, h2, h3, h4, h5, h6 {
     color: var(--text-accent);
   }
 }
@@ -44,11 +44,11 @@
   }
 
   .shadow-primary-glow {
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1), 0 0 15px 2px rgb(var(--accent-primary-rgb) / 0.5);
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgba(184, 5, 5, 0.1), 0 0 15px 2px rgb(var(--accent-primary-rgb) / 0.5);
   }
 
   .shadow-primary-glow:not(:disabled):hover {
-    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1), 0 0 25px 5px rgb(var(--accent-primary-rgb) / 0.6);
+    box-shadow: 0 10px 15px -3px rgba(146, 55, 55, 0.1), 0 4px 6px -4px rgba(190, 70, 70, 0.1), 0 0 25px 5px rgb(var(--accent-primary-rgb) / 0.6);
   }
 
   /* Primary button - Red gradient */

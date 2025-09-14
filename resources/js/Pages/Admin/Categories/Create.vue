@@ -1,86 +1,142 @@
 <script setup>
-import { Head, useForm } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import InputError from '@/Components/InputError.vue';
+import InputLabel from '@/Components/InputLabel.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
+import TextInput from '@/Components/TextInput.vue';
+import { Head, useForm } from '@inertiajs/vue3';
+import { defineProps } from 'vue';
 
-defineOptions({
-    layout: AdminLayout
+const props = defineProps({
+    parentCategories: Array,
 });
 
 const form = useForm({
     name: '',
     description: '',
     image: null,
+    parent_id: '',
+    status: 'active',
+    nomination_fee: 0, // Ongeza nomination_fee
 });
 
 const submit = () => {
-    form.post(route('admin.categories.store'));
+    form.post(route('admin.categories.store'), {
+        onFinish: () => form.reset(), // Boresha reset iwe rahisi
+    });
+};
+
+const onFileChange = (event) => {
+    form.image = event.target.files[0];
 };
 </script>
 
 <template>
-  <Head title="Create Category" />
+    <Head title="Create Category" />
 
-  <div class="p-6 max-w-3xl mx-auto text-gray-200">
-    <h1 class="text-2xl font-bold mb-6 text-gold-gradient">Create New Category</h1>
+    <AdminLayout>
+        <template #header>
+            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Create Category</h2>
+        </template>
 
-    <form @submit.prevent="submit" class="space-y-6 bg-gray-800/50 p-6 rounded-lg shadow-md">
-      <!-- Name -->
-      <div>
-        <label for="name" class="block text-sm font-medium text-gray-300">Category Name</label>
-        <input
-          type="text"
-          id="name"
-          v-model="form.name"
-          required
-          class="mt-1 block w-full rounded-md bg-gray-900 border border-gray-700 text-gray-200 focus:ring-gold-500 focus:border-gold-500 sm:text-sm"
-          :class="{ 'border-red-500': form.errors.name }"
-        />
-        <p v-if="form.errors.name" class="mt-1 text-sm text-red-500">{{ form.errors.name }}</p>
-      </div>
+        <div class="py-12">
+            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6 text-gray-900 dark:text-gray-100">
 
-      <!-- Description -->
-      <div>
-        <label for="description" class="block text-sm font-medium text-gray-300">Description</label>
-        <textarea
-          id="description"
-          v-model="form.description"
-          rows="4"
-          class="mt-1 block w-full rounded-md bg-gray-900 border border-gray-700 text-gray-200 focus:ring-gold-500 focus:border-gold-500 sm:text-sm"
-          :class="{ 'border-red-500': form.errors.description }"
-        ></textarea>
-        <p v-if="form.errors.description" class="mt-1 text-sm text-red-500">{{ form.errors.description }}</p>
-      </div>
+                        <form @submit.prevent="submit" class="max-w-md mx-auto mt-8">
+                            <div>
+                                <InputLabel for="name" value="Category Name" />
+                                <TextInput
+                                    id="name"
+                                    type="text"
+                                    class="mt-1 block w-full"
+                                    v-model="form.name"
+                                    required
+                                    autofocus
+                                    autocomplete="name"
+                                />
+                                <InputError class="mt-2" :message="form.errors.name" />
+                            </div>
 
-      <!-- Image -->
-      <div>
-        <label for="image" class="block text-sm font-medium text-gray-300">Category Image</label>
-        <input
-          id="image"
-          type="file"
-          @input="form.image = $event.target.files[0]"
-          class="mt-1 block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:font-semibold file:bg-gold-500 file:text-gray-900 hover:file:bg-gold-600"
-        />
-        <p v-if="form.errors.image" class="mt-1 text-sm text-red-500">{{ form.errors.image }}</p>
-      </div>
+                            <div class="mt-4">
+                                <InputLabel for="parent_id" value="Parent Category (Optional)" />
+                                <select
+                                    id="parent_id"
+                                    v-model="form.parent_id"
+                                    class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                                >
+                                    <option value="">-- No Parent (It's a Main Category) --</option>
+                                    <option v-for="parent in parentCategories" :key="parent.id" :value="parent.id">
+                                        {{ parent.name }}
+                                    </option>
+                                </select>
+                                <InputError class="mt-2" :message="form.errors.parent_id" />
+                            </div>
 
-      <!-- Submit -->
-      <div class="flex justify-end">
-        <button
-          type="submit"
-          :disabled="form.processing"
-          class="inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-md text-gray-900 bg-gold-500 hover:bg-gold-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gold-500 disabled:opacity-50"
-        >
-          {{ form.processing ? 'Saving...' : 'Create Category' }}
-        </button>
-      </div>
-    </form>
-  </div>
+                            <div class="mt-4">
+                                <InputLabel for="description" value="Description" />
+                                <textarea
+                                    id="description"
+                                    class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                                    v-model="form.description"
+                                    autocomplete="description"
+                                ></textarea>
+                                <InputError class="mt-2" :message="form.errors.description" />
+                            </div>
+
+                            <!-- Nomination Fee (Only for sub-categories) -->
+                            <div v-if="form.parent_id">
+                                <div class="mt-4">
+                                    <InputLabel for="nomination_fee" value="Nomination Fee (TZS)" />
+                                    <TextInput
+                                        id="nomination_fee"
+                                        type="number"
+                                        class="mt-1 block w-full"
+                                        v-model="form.nomination_fee"
+                                        required
+                                        min="0"
+                                        step="1000"
+                                        autocomplete="off"
+                                    />
+                                    <InputError class="mt-2" :message="form.errors.nomination_fee" />
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <InputLabel for="image" value="Category Image" />
+                                <input
+                                    id="image"
+                                    type="file"
+                                    class="mt-1 block w-full"
+                                    @change="onFileChange"
+                                />
+                                <InputError class="mt-2" :message="form.errors.image" />
+                            </div>
+
+                            <div class="mt-4">
+                                <InputLabel for="status" value="Status" />
+                                <select
+                                    id="status"
+                                    class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                                    v-model="form.status"
+                                    required
+                                >
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                                <InputError class="mt-2" :message="form.errors.status" />
+                            </div>
+
+                            <div class="flex items-center justify-end mt-4">
+                                <PrimaryButton :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
+                                    Create Category
+                                </PrimaryButton>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </AdminLayout>
 </template>
-
-<style scoped>
-.text-gold-gradient {
-  background: linear-gradient(to right, #D4AF37, #FFD700);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-</style>

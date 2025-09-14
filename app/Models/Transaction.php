@@ -10,10 +10,24 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 class Transaction extends Model
 {
     use HasFactory;
+    const STATUS_PENDING = 'pending';
+    const STATUS_COMPLETED = 'completed';
+    const STATUS_FAILED = 'failed';
+    const STATUS_CANCELLED = 'cancelled';
 
     protected $fillable = [
-        'user_id', 'order_id', 'payable_id', 'payable_type', 'gateway_reference',
-        'amount', 'currency', 'status', 'payment_method', 'phone_number', 'notes',
+        'user_id', 
+        'order_id',
+        'payable_id', 
+        'payable_type', 
+        'gateway_reference',
+        'amount', 
+        'currency', 
+        'status', 
+        'payment_method', 
+        'phone_number', 
+        'email', 
+        'notes',
     ];
 
     public function user(): BelongsTo

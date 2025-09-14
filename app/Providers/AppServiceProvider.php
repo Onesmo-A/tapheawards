@@ -47,10 +47,13 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::policy(NomineeApplication::class, NomineeApplicationPolicy::class);
 
-        // Hii ni muhimu kwa ajili ya ngrok na HTTPS kwenye local development.
-        // Inalazimisha route zote zitengenezwe na https://
-        // if ($this->app->environment('local')) {
-        //     URL::forceScheme('https');
-        // }
+        // Hii ni kwa ajili ya mazingira ya production (kwenye server halisi)
+        // Inahakisha link zote (routes, assets) zinatumia https
+        if ($this->app->environment('local')) {
+            URL::forceScheme('https');
+        }
+        elseif ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
     }
 }

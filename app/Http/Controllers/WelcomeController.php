@@ -6,6 +6,7 @@ use App\Http\Resources\CategoryResource;
 use App\Models\Setting;
 use Illuminate\Support\Facades\Cache;
 use App\Models\Category;
+use App\Models\Post;
 use App\Models\Nominee;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -17,6 +18,19 @@ class WelcomeController extends Controller
      */
     public function index(): Response
     {
+         $updates = Post::query()
+            ->where('type', 'update')
+            ->where('status', 'published')
+            ->latest('published_at')
+            ->take(3)
+            ->get()
+            ->map(fn ($post) => [
+                'id' => $post->id,
+                'slug' => $post->slug,
+                'title' => $post->title,
+                'excerpt' => $post->excerpt,
+                'featured_image_url' => $post->featured_image ? asset('storage/' . $post->featured_image) : null,
+            ]);
         // Load settings with cache
         $settings = Cache::remember('app_settings', 3600, function () {
             return Setting::all()->pluck('value', 'key');
@@ -24,7 +38,7 @@ class WelcomeController extends Controller
 
         // Load categories with nominee count
         $categories = Category::withCount('nominees')->latest()->get();
-
+       
         // Load top 4 nominees per category
         if ($categories->isNotEmpty()) {
             $categoryIds = $categories->pluck('id')->all();
@@ -45,7 +59,11 @@ class WelcomeController extends Controller
             'title' => 'Home',
             'description' => 'Celebrating excellence, innovation, and integrity in Tanzania’s healthcare sector.',
             'categories' => CategoryResource::collection($categories),
-            'settings' => $settings,
+            // BORESHO: Tuma mipangilio muhimu tu na hakikisha inakuwa na cast sahihi
+            'settings' => [
+                'voting_active' => (bool) $settings->get('voting_active', true),
+                'voting_deadline' => $settings->get('voting_deadline'),
+            ], 'updates' => $updates,
 
             // Hero slides for TAPHE Awards
             'heroSlides' => [

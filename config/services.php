@@ -41,12 +41,16 @@ return [
     ],
 
     'zenopay' => [
-        // URL ya msingi ya ZenoPay API
+        // URL ya ZenoPay API
         'url' => env('ZENO_API_URL', 'https://zenoapi.com/api'),
-        // API Key yako kutoka ZenoPay
+        // API Key kutoka ZenoPay
         'key' => env('ZENO_API_KEY'),
         // Ada ya fomu ya maombi
-        'application_fee' => env('NOMINATION_APPLICATION_FEE', 50000),
+        // 'application_fee' => env('NOMINATION_APPLICATION_FEE', 100000), // Kiasi katika TZS (e.g., 10000 = TZS 100,000)
+
+        // Webhook URL
+        'webhook_url' => env('APP_URL') . '/api/webhooks/zenopay',
+        'ips' => env('ZENOPAY_IPS', '196.13.129.2,41.223.134.226,64.227.9.159'),
     ],
 
 ];

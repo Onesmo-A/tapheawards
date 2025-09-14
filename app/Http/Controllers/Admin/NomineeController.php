@@ -35,8 +35,11 @@ class NomineeController extends Controller
      */
     public function create()
     {
+        // Boresho: Pata data ya 'prefill' kutoka kwenye session na uipitishe kama prop.
+        // Hii inafanya mtiririko kuwa wazi zaidi.
         return Inertia::render('Admin/Nominees/Create', [
             'categories' => Category::orderBy('name')->get(['id', 'name']),
+            'prefill' => session('prefill', []),
         ]);
     }
 
@@ -47,19 +50,35 @@ class NomineeController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,id',
             'bio' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
-            'category_id' => 'required|exists:categories,id',
+            'image_path' => 'nullable|string', // Ruhusu image_path iliyopo kutoka kwenye application
             'facebook_url' => 'nullable|url',
             'instagram_url' => 'nullable|url',
+            'tiktok_url' => 'nullable|url',
+            'source_application_id' => 'nullable|exists:nominee_applications,id',
         ]);
 
+        $imagePath = $validated['image_path'] ?? null;
+
         if ($request->hasFile('image')) {
-            // Rekebisho: Hifadhi picha kwenye 'public' disk ili iweze kuonekana na watumiaji.
-            $validated['image_path'] = $request->file('image')->store('nominees', 'public');
+            // Hifadhi picha mpya kwenye 'public' disk.
+            $imagePath = $request->file('image')->store('nominees', 'public');
         }
 
-        Nominee::create($validated);
+        // Rekebisho: Unda Nominee kwa usahihi ukitumia fields zinazotarajiwa na Model.
+        Nominee::create([
+            'name' => $validated['name'],
+            'category_id' => $validated['category_id'],
+            'bio' => $validated['bio'],
+            'image_path' => $imagePath,
+            'facebook_url' => $validated['facebook_url'] ?? null,
+            'instagram_url' => $validated['instagram_url'] ?? null,
+            'tiktok_url' => $validated['tiktok_url'] ?? null,
+            'source_application_id' => $validated['source_application_id'] ?? null,
+        ]);
+
 
         return redirect()->route('admin.nominees.index')
             ->with('success', 'Nominee created successfully.');
@@ -84,23 +103,26 @@ class NomineeController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,id',
             'bio' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
-            'category_id' => 'required|exists:categories,id',
             'facebook_url' => 'nullable|url',
             'instagram_url' => 'nullable|url',
+            'tiktok_url' => 'nullable|url',
         ]);
+
+        $updateData = $validated;
 
         if ($request->hasFile('image')) {
             // Delete old image if exists
             if ($nominee->image_path) {
                 Storage::disk('public')->delete($nominee->image_path);
             }
-            // Rekebisho: Hifadhi picha mpya kwenye 'public' disk.
-            $validated['image_path'] = $request->file('image')->store('nominees', 'public');
+            // Hifadhi picha mpya kwenye 'public' disk.
+            $updateData['image_path'] = $request->file('image')->store('nominees', 'public');
         }
 
-        $nominee->update($validated);
+        $nominee->update($updateData);
 
         return redirect()->route('admin.nominees.index')
             ->with('success', 'Nominee updated successfully.');

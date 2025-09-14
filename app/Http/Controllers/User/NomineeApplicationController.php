@@ -5,7 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\NomineeApplication;
-use App\Services\ZenoPaymentService;
+use App\Jobs\InitiateZenoPayPayment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -74,7 +74,7 @@ class NomineeApplicationController extends Controller
         ]);
     }
 
-    public function store(Request $request, ZenoPaymentService $paymentService): \Illuminate\Http\RedirectResponse
+    public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
@@ -105,11 +105,14 @@ class NomineeApplicationController extends Controller
             ])->withInput();
         }
 
-        $applicationFee = config('services.zenopay.application_fee');
+        // REKEBISHO: Pata kategoria na ada yake kutoka kwenye database
+        $category = Category::findOrFail($validated['category_id']);
+        $applicationFee = $category->nomination_fee;
+
         $application = null;
 
         try {
-            DB::transaction(function () use ($request, $validated, $normalizedPhone, $applicationFee, &$application) {
+            $application = DB::transaction(function () use ($request, $validated, $normalizedPhone, $applicationFee, $category) {
                 $photoPath = $request->hasFile('photo') ? $request->file('photo')->store('nominee_photos', 'public') : null;
 
                 $application = NomineeApplication::create([
@@ -132,19 +135,17 @@ class NomineeApplicationController extends Controller
                     // Tumia namba iliyosafishwa kwa ajili ya muamala wa malipo
                     'phone_number' => $normalizedPhone,
                 ]);
+
+                // Dispatch the job to handle payment initiation in the background
+                InitiateZenoPayPayment::dispatch($application->transaction);
+
+                return $application;
             });
 
-            $paymentInitiated = $paymentService->initiatePayment($application->transaction);
-
-            if ($paymentInitiated) {
-                return redirect()->route('user.applications.show', $application->id)->with('success', 'Ombi lako limepokelewa. Tafadhali kamilisha malipo kwenye simu yako.');            }
-
-            $application->update(['status' => 'payment_failed']);
-            $application->transaction->update(['status' => 'failed', 'notes' => 'Payment initiation failed.']);
-            return back()->with('error', 'Imeshindikana kuanzisha malipo. Hakikisha namba ya simu ni sahihi na jaribu tena.');
+            return redirect()->route('user.applications.show', $application->id)->with('success', 'Ombi lako limepokelewa. Tafadhali subiri ujumbe wa malipo kwenye simu yako.');
 
         } catch (\Exception $e) {
-            Log::error('Nomination Application Store Failed', ['error' => $e->getMessage()]);
+            Log::critical('Nomination Application Store Failed', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return back()->with('error', 'Kumetokea tatizo la kiufundi. Tafadhali wasiliana na wasaidizi.');
         }
     }
@@ -168,7 +169,7 @@ class NomineeApplicationController extends Controller
         ]);
     }
 
-    public function retryPayment(NomineeApplication $application, ZenoPaymentService $paymentService): \Illuminate\Http\RedirectResponse
+    public function retryPayment(NomineeApplication $application): \Illuminate\Http\RedirectResponse
     {
         // Tumia 'update' policy, kwani kujaribu kulipa tena ni aina ya 'update'.
         // Hii inahakikisha mtumiaji anamiliki ombi hili.
@@ -184,23 +185,26 @@ class NomineeApplicationController extends Controller
             return back()->with('error', 'Hakuna taarifa za muamala kwa ombi hili.');
         }
 
-        // HAPA NDIPO PENYE UTATUZI: Tunaita service na kuipa 'transaction' object pekee.
-        $paymentInitiated = $paymentService->initiatePayment($transaction);
+        try {
+            // FIX: Generate a new order_id BEFORE dispatching the payment job.
+            // This prevents re-using an old order_id and ensures the webhook matches.
+            DB::transaction(function () use ($application, $transaction) {
+                $application->update(['status' => 'pending_payment']);
 
-        if ($paymentInitiated) {
-            DB::transaction(function () use ($transaction, $application) {
                 $transaction->update([
-                    'status' => 'pending', // Weka status iwe pending tena
-                    'notes' => 'Retry payment initiated.',
-                    'order_id' => (string) Str::uuid()
-                ]);
-                $application->update([
-                    'status' => 'pending_payment'
+                    'status' => 'pending',
+                    'notes' => 'Retry payment initiated by user.',
+                    'order_id' => (string) Str::uuid(), // New Order ID for the new attempt
                 ]);
             });
-            return redirect()->route('user.applications.show', $application->id)->with('success', 'Ombi la malipo limetumwa tena. Tafadhali kamilisha kwenye simu yako.');
-        }
 
-        return back()->with('error', 'Imeshindikana kuanzisha malipo tena. Tafadhali jaribu baada ya muda mfupi.');
+            // Dispatch the job with the updated transaction
+            InitiateZenoPayPayment::dispatch($transaction->fresh());
+
+            return redirect()->route('user.applications.show', $application->id)->with('success', 'Ombi jipya la malipo limetumwa. Tafadhali kamilisha kwenye simu yako.');
+        } catch (\Exception $e) {
+            Log::critical('Payment Retry Failed', ['application_id' => $application->id, 'error' => $e->getMessage()]);
+            return back()->with('error', 'Imeshindikana kuanzisha malipo tena. Tafadhali jaribu baada ya muda mfupi.');
+        }
     }
 }

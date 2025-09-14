@@ -5,12 +5,13 @@ namespace App\Http\Controllers;
 use App\Http\Resources\CategoryResource;
 use App\Http\Resources\NomineeResultResource;
 use App\Http\Resources\WinnerResource;
-use Inertia\Inertia;
+use App\Models\SeasonAward;
 use App\Models\Category;
 use App\Models\Winner;
 use App\Models\Nominee;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Inertia\Inertia;
 
 class AwardsController extends Controller
 {
@@ -20,12 +21,17 @@ class AwardsController extends Controller
             return \App\Models\Setting::all()->pluck('value', 'key');
         });
 
+        // Pata 'award seasons' zote, panga kwa mwaka (mpya juu)
+        $awardSeasons = SeasonAward::orderBy('year', 'desc')->get();
+
         $showWinners = (bool) $settings->get('show_winners', false);
         $search = $request->input('search');
 
         $viewData = [
             'title' => 'Awards Winners',
-'description' => 'Celebrating the winners of the Taphe Awards across different years.',
+            'description' => 'Celebrating the winners of the Taphe Awards across different years.',
+            // BORESHO: Ongeza 'awardSeasons' kwenye data inayotumwa kwenye view
+            'awardSeasons' => $awardSeasons,
             'showWinners' => $showWinners,
             'filters' => $request->only(['search']),
             'winnersByYear' => null,

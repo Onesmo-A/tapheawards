@@ -18,8 +18,8 @@ class AuthenticatedSessionController extends Controller
      */
     public function create(): Response
     {
-        // Badilisha ili kuonyesha component sahihi ya 'LoginApi' kama ilivyo kwenye routes
-        return Inertia::render('Auth/LoginApi', [
+        // BORESHO: Hakikisha inatumia component sahihi ya 'Login'
+        return Inertia::render('Auth/Login', [
             'canResetPassword' => Route::has('password.request'),
             'status' => session('status'),
         ]);
@@ -38,8 +38,8 @@ class AuthenticatedSessionController extends Controller
             return redirect()->intended(route('admin.dashboard'));
         }
 
-        // Mtumiaji wa kawaida aelekezwe kwenye 'dashboard' yake, sio 'home'
-        return redirect()->intended(route('dashboard'));
+        // BORESHO: Mtumiaji wa kawaida aelekezwe kwenye 'dashboard' yake, sio 'home'
+        return redirect()->intended(route('user.applications.index'));
     }
 
     /**

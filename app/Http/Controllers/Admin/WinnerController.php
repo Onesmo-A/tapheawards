@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Admin;
-
+use App\Models\Nominee;
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests; // 👉 ONGEZA HII
 use Illuminate\Http\Request;
@@ -20,13 +20,17 @@ class WinnerController extends Controller
 
         $year = $request->input('year', date('Y'));
 
-        $categories = Category::with(['nominees' => function ($query) {
-            $query->orderBy('votes_count', 'desc');
-        }])
+        // BORESHO: Pata kategoria ambazo zina washiriki (nominees) tu.
+        $categories = Category::whereHas('nominees')
+            ->with(['nominees' => function ($query) {
+                // Panga washiriki kwa kura (nyingi juu)
+                $query->orderBy('votes_count', 'desc');
+            }])
             ->with(['winners' => function ($query) use ($year) {
                 $query->where('year', $year);
             }])
             ->get()
+            // BORESHO: Tumia ->map() badala ya ->through() kwa uwazi zaidi
             ->map(function ($category) {
                 // Attach the winner nominee directly to the category for easier access in Vue
                 $winner = $category->winners->first();
@@ -63,5 +67,20 @@ class WinnerController extends Controller
         );
 
         return back()->with('success', 'Winner declared successfully!');
+    }
+
+    /**
+     * Remove the specified winner from storage.
+     *
+     * @param  \App\Models\Winner  $winner
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function destroy(Winner $winner)
+    {
+        $this->authorize('delete', $winner);
+
+        $winner->delete();
+
+        return back()->with('success', 'Winner has been removed successfully.');
     }
 }

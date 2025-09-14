@@ -7,9 +7,8 @@ import AppFooter from '@/Components/Layout/AppFooter.vue';
 
 <template>
     <Head>
-        <title>Business Awards</title>
         <meta name="description" content="Celebrating excellence and innovation in the Tanzanian business landscape. Vote for your favorite nominees and be part of the most prestigious business awards in the country." />
-        <meta property="og:title" content="Business Awards" />
+        <meta property="og:title" content="TAPHE Awards" />
         <meta property="og:description" content="Celebrating excellence and innovation in the Tanzanian business landscape." />
         <meta property="og:image" content="/images/og-image.jpg" />
     </Head>

@@ -2,7 +2,7 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 import '../css/app.css';
 import './bootstrap';
 
-import VueGtag from 'vue-gtag-next'; // <- hii ndio import muhimu
+import VueGtag from 'vue-gtag-next';
 import { createInertiaApp, router } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createApp, h, ref } from 'vue';
@@ -11,18 +11,16 @@ import PageLoader from './Components/PageLoader.vue';
 import Toast from 'vue-toastification';
 import 'vue-toastification/dist/index.css';
 
-// App Name from .env or fallback
+// ------------------ Env Variables ------------------
 const appName = import.meta.env.VITE_APP_NAME || 'TAPHE Awards';
+const GA_ID = import.meta.env.VITE_GA_ID || null; // chukua GA ID kutoka .env
 
 // ------------------ Page Loader ------------------
 const loading = ref(false);
-
-// Tengeneza div ya loader na iongeze mwanzoni mwa body
 const loaderEl = document.createElement('div');
 loaderEl.id = 'page-loader';
 document.body.appendChild(loaderEl);
 
-// Mount Vue component ya PageLoader
 createApp({
     setup() {
         return { loading };
@@ -32,40 +30,44 @@ createApp({
     },
 }).mount('#page-loader');
 
-// Onyesha au ficha loader kulingana na matukio ya Inertia
 router.on('start', () => (loading.value = true));
 router.on('finish', () => (loading.value = false));
-// ------------------ Mwisho Page Loader ------------------
 
 // ------------------ Inertia App ------------------
 createInertiaApp({
-      title: (title) => {
-        const appName = import.meta.env.VITE_APP_NAME || 'TAPHE Awards';
-        return title ? `${title} - ${appName}` : appName;
-    },
+    title: (title) => (title ? `${title} - ${appName}` : appName),
     resolve: (name) =>
         resolvePageComponent(
             `./Pages/${name}.vue`,
-            import.meta.glob('./Pages/**/*.vue'),
+            import.meta.glob('./Pages/**/*.vue')
         ),
-  setup({ el, App, props, plugin }) {
-    return createApp({ render: () => h(App, props) })
-        .use(plugin)
-        .use(ZiggyVue, Ziggy)
-        .use(VueGtag, {
-            property: {
-                // id: "G-18TTWXZ8Q7", 
-                // Your Google Analytics ID
-            }
-        })
-      .use(Toast)  // <--- Ongeza hii hapa
-        .mount(el); 
-},
+    setup({ el, App, props, plugin }) {
+        const vueApp = createApp({ render: () => h(App, props) })
+            .use(plugin)
+            .use(ZiggyVue, Ziggy)
+            .use(Toast);
 
+        // ------------------ Google Analytics SPA Tracking ------------------
+ if (GA_ID) {
+    vueApp.use(VueGtag, {
+        property: { id: GA_ID }
+    });
+
+    // SPA pageviews tracking using Inertia events
+    router.on('navigate', (event) => {
+        if (window.gtag) {
+            window.gtag('event', 'page_view', {
+                page_path: event.detail.page.url,
+            });
+        }
+    });
+}
+
+        return vueApp.mount(el);
+    },
     progress: {
-        color: '#f50909ff',      // Tailwind yellow-400
-        showSpinner: true,     // Spinner enabled
-        height: '8px',         // Bar height
+        color: '#f50909ff',
+        showSpinner: true,
+        height: '8px',
     },
 });
-// ------------------ Mwisho Inertia App ------------------

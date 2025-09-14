@@ -2,56 +2,32 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Post;
 use Inertia\Inertia;
-use Illuminate\Http\Request;
+use Inertia\Response;
 
 class EventController extends Controller
 {
-    public function index()
+    public function index(): Response
     {
-        return Inertia::render('Event/Index', [
-            'event' => [
-                'date' => '2025-12-31',
-                'time' => '18:00',
-                'venue' => 'Mlimani City Conference Centre'
-            ]
-        ]);
-    }
+        $events = Post::query()
+            ->where('type', 'event')
+            ->where('status', 'published')
+            ->latest('published_at')
+            ->paginate(12)
+            ->through(fn ($post) => [
+                'id' => $post->id,
+                'slug' => $post->slug,
+                'title' => $post->title,
+                'excerpt' => $post->excerpt,
+                'published_at' => $post->published_at,
+                'featured_image_url' => $post->featured_image ? asset('storage/' . $post->featured_image) : null,
+            ]);
 
-    public function guestOfHonor()
-    {
-        return Inertia::render('Event/GuestOfHonor', [
-            'guest' => [
-                'name' => 'Hon. January Makamba',
-                'title' => 'Minister of Energy',
-                'image' => '/images/guest-of-honor.jpg',
-                'bio' => 'Distinguished leader with extensive experience...'
-            ]
-        ]);
-    }
-
-    public function schedule()
-    {
-        return Inertia::render('Event/Schedule', [
-            'schedule' => [
-                ['time' => '18:00', 'event' => 'Registration & Networking'],
-                ['time' => '19:00', 'event' => 'Opening Ceremony'],
-                // ... more events
-            ]
-        ]);
-    }
-
-    public function venue()
-    {
-        return Inertia::render('Event/Venue');
-    }
-
-    public function artists()
-    {
-        return Inertia::render('Event/Artists', [
-            'artists' => [
-                // List of performing artists
-            ]
+        return Inertia::render('Events/Index', [
+            'title' => 'Matukio Yetu',
+            'description' => 'Pata taarifa za matukio yajayo na yaliyopita ya TAPHE Awards.',
+            'events' => $events,
         ]);
     }
 }

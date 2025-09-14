@@ -12,6 +12,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // BORESHO: Hii inaielekeza Laravel kuamini 'proxies' zote.
+        // Ni muhimu unapotumia huduma kama Ngrok au Load Balancer
+        // ili kupata IP halisi ya mtumiaji/huduma badala ya IP ya proxy.
+        $middleware->trustProxies(at: '*');
+
         // Hapa ndipo tunasajili middleware chetu
         $middleware->web(append: [
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,

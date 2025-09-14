@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Admin;
+use Illuminate\Http\RedirectResponse;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
@@ -13,50 +14,63 @@ class CategoryController extends Controller
 {
     public function index(Request $request)
     {
-        $search = $request->input('search');
-
-        $query = Category::withCount('nominees')->latest();
-
-        if ($search) {
-            $query->where('name', 'like', "%{$search}%");
-        }
-
-        $categories = $query->paginate(10)->withQueryString();
+        // Boresho: Pata kategoria zote na uzipange kimuundo (mzazi na watoto)
+        // Hii itasaidia kuonyesha mpangilio sahihi kwenye ukurasa wa 'Index.vue'
+        $categories = Category::withCount('nominees')
+            ->with('parent') // Pakia mzazi wa kila kategoria
+            ->when($request->input('search'), function ($query, $search) {
+                $query->where('name', 'like', "%{$search}%");
+            })
+            ->orderByRaw('ISNULL(parent_id) DESC, parent_id, name') // Boresho: Panga wazazi kwanza, kisha watoto wao
+            ->orderBy('name')
+            ->paginate(20) // Ongeza idadi kidogo ili kuonyesha makundi vizuri
+            ->withQueryString();
 
         return Inertia::render('Admin/Categories/Index', [
             'categories' => $categories,
-            'filters' => [
-                'search' => $search,
-            ],
+            'filters' => $request->only(['search']),
         ]);
     }
 
     public function create()
     {
-        return Inertia::render('Admin/Categories/Create');
-    }
+        // Tuma kategoria zote zinazoweza kuwa wazazi (parent) kwenda kwenye fomu
+        $parentCategories = Category::whereNull('parent_id')->orderBy('name')->get(['id', 'name']);
 
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:categories',
-            'description' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+        return Inertia::render('Admin/Categories/Create', [
+            'parentCategories' => $parentCategories,
         ]);
-
-        $validated['slug'] = Str::slug($validated['name']);
-
-        if ($request->hasFile('image')) {
-            $validated['image_path'] = $request->file('image')->store('categories', 'public');
-        } else {
-            $validated['image_path'] = null;
-        }
-
-        Category::create($validated);
-
-        return redirect()->route('admin.categories.index')
-            ->with('success', 'Category created successfully.');
     }
+
+  public function store(Request $request): RedirectResponse
+{
+    $validated = $request->validate([
+        'name' => 'required|string|max:255|unique:categories,name,NULL,id,parent_id,' . ($request->parent_id ?? 'NULL'),
+        'description' => 'nullable|string',
+        'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+        'parent_id' => 'nullable|exists:categories,id',
+        'status' => 'required|in:active,inactive',
+        // Ongeza validation kwa nomination_fee
+        'nomination_fee' => 'nullable|numeric|min:0|required_if:parent_id,!=,null',
+    ]);
+
+    $category = new Category();
+    $category->name = $validated['name'];
+    $category->slug = Str::slug($validated['name']);
+    $category->description = $validated['description'] ?? null;
+    $category->nomination_fee = $request->parent_id ? ($validated['nomination_fee'] ?? 0) : 0;
+    $category->parent_id = $validated['parent_id'] ?? null; // Hapa ndo key
+    $category->status = $validated['status'];
+
+    if ($request->hasFile('image')) {
+        $category->image_path = $request->file('image')->store('categories', 'public');
+    }
+
+    $category->save();
+
+    return redirect()->route('admin.categories.index')
+        ->with('success', 'Category created successfully.');
+}
 
     public function show(Category $category)
     {
@@ -68,33 +82,51 @@ class CategoryController extends Controller
             'category' => $category,
             'nominees' => $category->nominees,
         ]);
-    }
+    } 
 
+    
     public function edit(Category $category)
     {
+        // Tuma kategoria zote zinazoweza kuwa wazazi, isipokuwa kategoria yenyewe
+        $parentCategories = Category::whereNull('parent_id')
+            ->where('id', '!=', $category->id)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
         return Inertia::render('Admin/Categories/Edit', [
             'category' => $category,
+            'parentCategories' => $parentCategories,
         ]);
     }
 
-    public function update(Request $request, Category $category)
+    public function update(Request $request, Category $category): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
+            // Boresha sheria ya 'unique' kwa ajili ya 'update'
+            'name' => 'required|string|max:255|unique:categories,name,' . $category->id . ',id,parent_id,' . ($request->parent_id ?? 'NULL'),
             'description' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'parent_id' => 'nullable|exists:categories,id',
+            'status' => 'required|in:active,inactive',
+            // Ongeza validation kwa nomination_fee
+            'nomination_fee' => 'nullable|numeric|min:0|required_if:parent_id,!=,null',
         ]);
 
-        $validated['slug'] = Str::slug($validated['name']);
+        $category->name = $validated['name'];
+        $category->slug = Str::slug($validated['name']);
+        $category->description = $validated['description'] ?? null;
+        $category->parent_id = $validated['parent_id'] ?? null;
+        $category->nomination_fee = $request->parent_id ? ($validated['nomination_fee'] ?? 0) : 0;
+        $category->status = $validated['status'];
 
         if ($request->hasFile('image')) {
             if ($category->image_path) {
                 \Storage::disk('public')->delete($category->image_path);
             }
-            $validated['image_path'] = $request->file('image')->store('categories', 'public');
+            $category->image_path = $request->file('image')->store('categories', 'public');
         }
 
-        $category->update($validated);
+        $category->save();
 
         return redirect()->route('admin.categories.index')
             ->with('success', 'Category updated successfully.');
@@ -112,7 +144,7 @@ class CategoryController extends Controller
             ->with('success', 'Category deleted successfully.');
     }
 
-    // ✅ Export PDF report for a single category
+    
     public function exportPdf(Category $category)
     {
         $nominees = $category->nominees()

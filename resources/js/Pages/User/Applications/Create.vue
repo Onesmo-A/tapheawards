@@ -8,6 +8,8 @@ import TextareaInput from '@/Components/TextareaInput.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import InputError from '@/Components/InputError.vue';
 import TextInput from '@/Components/TextInput.vue';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
+import ConfirmationModal from '@/Components/ConfirmationModal.vue';
 import FileInput from '@/Components/FileInput.vue';
 
 const props = defineProps({
@@ -28,11 +30,16 @@ const steps = [
     { name: 'Malipo & Uthibitisho', status: 'upcoming' },
 ];
 
+const confirmingSubmission = ref(false);
+
 const form = useForm({
     category_id: props.selectedCategory.id,
     applicant_name: '',
     applicant_phone: '',
     applicant_email: '',
+    facebook_url: '',
+    instagram_url: '',
+    tiktok_url: '',
     bio: '',
     photo: null,
 });
@@ -51,14 +58,20 @@ function updatePhotoPreview(file) {
     reader.readAsDataURL(file);
 }
 
-function submit() {
+const confirmSubmission = () => {
+    // Onyesha modal ya uthibitisho.
+    // Uhakiki wa data (validation) utafanyika upande wa server
+    // mtumiaji atakapobonyeza "Ndiyo, Lipa Sasa".
+    confirmingSubmission.value = true;
+};
+
+const submit = () => {
     form.post(route('user.applications.store'), {
         preserveScroll: true,
-        onError: (errors) => {
-            // unaweza kuongeza handling ya errors hapa
-        },
+        onSuccess: () => confirmingSubmission.value = false,
+        onError: () => confirmingSubmission.value = false,
     });
-}
+};
 </script>
 
 <template>
@@ -74,7 +87,7 @@ function submit() {
                 <Stepper :steps="steps" class="mb-8" />
 
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <form @submit.prevent="submit" class="p-6 space-y-6">
+                    <form @submit.prevent="confirmSubmission" class="p-6 space-y-6">
                         <h3 class="text-lg font-medium leading-6 text-gray-900">2. Jaza Fomu ya Maombi</h3>
                         <p class="mt-1 text-sm text-gray-500">
                             Unatuma maombi kwa ajili ya tuzo ya:
@@ -137,7 +150,7 @@ function submit() {
 
                         <!-- Picha -->
                         <div>
-                            <InputLabel for="photo" value="Picha ya Mshiriki/Logo ya Biashara (Si lazima)" />
+                            <InputLabel for="photo" value="Picha/Logo ya Biashara (itaonyeshwa kwenye ukurasa wa wapiga kura)" />
                             <FileInput
                                 id="photo"
                                 class="mt-1"
@@ -151,7 +164,32 @@ function submit() {
                                 </span>
                             </div>
                             <InputError class="mt-2" :message="form.errors.photo" />
+                        </div> 
+
+                        <!-- Social Media Links -->
+                        <div class="col-span-1 md:col-span-2 border-t pt-6">
+                             <h4 class="text-base font-medium text-gray-800">Mitandao ya Kijamii (Si lazima)</h4>
+                             <p class="text-sm text-gray-500">Weka viunga (links) kamili vya kurasa zako.</p>
                         </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <InputLabel for="facebook_url" value="Facebook URL" />
+                                <TextInput id="facebook_url" v-model="form.facebook_url" type="url" class="mt-1 block w-full" placeholder="https://facebook.com/yourpage" />
+                                <InputError class="mt-2" :message="form.errors.facebook_url" />
+                            </div>
+                             <div>
+                                <InputLabel for="instagram_url" value="Instagram URL" />
+                                <TextInput id="instagram_url" v-model="form.instagram_url" type="url" class="mt-1 block w-full" placeholder="https://instagram.com/yourhandle" />
+                                <InputError class="mt-2" :message="form.errors.instagram_url" />
+                            </div>
+                            <div>
+                                <InputLabel for="tiktok_url" value="TikTok URL" />
+                                <TextInput id="tiktok_url" v-model="form.tiktok_url" type="url" class="mt-1 block w-full" placeholder="https://tiktok.com/@yourhandle" />
+                                <InputError class="mt-2" :message="form.errors.tiktok_url" />
+                            </div>
+                        </div>
+
 
                         <!-- Ada na Button -->
                         <div class="border-t pt-6 flex items-center justify-between">
@@ -161,14 +199,38 @@ function submit() {
                                     TSh {{ new Intl.NumberFormat().format(nomination_fee) }}/=
                                 </span>
                             </div>
-                            <PrimaryButton :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                                <span v-if="form.processing">Inatuma...</span>
-                                <span v-else>Endelea na Malipo</span>
+                            <PrimaryButton type="submit" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
+                                Endelea na Malipo
                             </PrimaryButton>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
+
+        <ConfirmationModal :show="confirmingSubmission" @close="confirmingSubmission = false">
+            <template #title>
+                Thibitisha Malipo
+            </template>
+
+            <template #content>
+                Utatumiwa ombi la kulipa <span class="font-bold">TSh {{ new Intl.NumberFormat().format(nomination_fee) }}/=</span> kwenye namba <strong class="text-gray-800">{{ form.applicant_phone }}</strong>.
+                <br /><br />
+                Tafadhali hakikisha simu yako iko karibu nawe ili kuthibitisha muamala.
+            </template>
+
+            <template #footer>
+                <SecondaryButton @click="confirmingSubmission = false"> Ghairi </SecondaryButton>
+                <PrimaryButton
+                    class="ms-3"
+                    :class="{ 'opacity-25': form.processing }"
+                    :disabled="form.processing"
+                    @click="submit"
+                >
+                    <span v-if="form.processing">Inasubiri...</span>
+                    <span v-else>Ndiyo, Lipa Sasa</span>
+                </PrimaryButton>
+            </template>
+        </ConfirmationModal>
     </AuthenticatedLayout>
 </template>

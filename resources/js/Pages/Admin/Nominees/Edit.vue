@@ -23,6 +23,7 @@ const form = useForm({
   image: null,
   facebook_url: props.nominee.facebook_url || '',
   instagram_url: props.nominee.instagram_url || '',
+  tiktok_url: props.nominee.tiktok_url || '',
 });
 
 const submit = () => {
@@ -107,11 +108,23 @@ const submit = () => {
       </div>
 
       <div>
+        <InputLabel for="tiktok_url" value="TikTok URL (Optional)" class="text-gold-300" />
+        <TextInput
+          id="tiktok_url"
+          type="url"
+          v-model="form.tiktok_url"
+          autocomplete="url"
+          class="mt-1 block w-full bg-gray-900 text-gray-100 border border-gray-700 rounded-md focus:ring-gold-500 focus:border-gold-500"
+        />
+        <InputError class="mt-2" :message="form.errors.tiktok_url" />
+      </div>
+
+      <div>
         <InputLabel for="image" value="New Nominee Image (Optional)" class="text-gold-300" />
-        <div v-if="nominee.image_url" class="my-2">
+        <div v-if="nominee.image_path" class="my-2">
           <p class="text-sm text-gray-400">Current Image:</p>
           <img
-            :src="nominee.image_url"
+            :src="`/storage/${nominee.image_path}`"
             :alt="nominee.name"
             class="w-32 h-32 object-cover rounded-md mt-1"
           />

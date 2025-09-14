@@ -111,7 +111,7 @@ onUnmounted(() => {
 <!-- Trophy Column -->
 <div
   class="trophy-container relative flex justify-center
-         items-start md:items-end  <!-- Desktop items-end ili iwe chini kidogo -->
+         items-start md:items-end 
          order-1 md:order-2
          h-[250px] w-[250px] sm:h-[300px] sm:w-[300px] md:h-[450px] md:w-[450px]
          mx-auto

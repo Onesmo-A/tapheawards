@@ -46,8 +46,12 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        // Baada ya kujisajili, mwelekeze mtumiaji kwenye dashboard
-        return redirect(route('dashboard', absolute: false))
-            ->with('success', 'Hongera! Akaunti yako imefunguliwa kikamilifu.');
+        // Baada ya kujisajili, mwelekeze mtumiaji kwenye dashboard sahihi
+        $redirectRoute = $user->is_admin ? 'admin.dashboard' : 'dashboard';
+
+        return redirect()->route($redirectRoute)->with(
+            'success',
+            'Hongera! Akaunti yako imefunguliwa kikamilifu.'
+        );
     }
 }

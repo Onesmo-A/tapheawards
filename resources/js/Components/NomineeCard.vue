@@ -54,14 +54,14 @@ const closeQR = () => {
         loading="lazy"
       />
       <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-      <h3 class="absolute bottom-0 left-0 p-4 text-2xl sm:text-3xl font-bold text-white">
+      <h3 class="absolute bottom-0 left-0 p-4 text-xl sm:text-3xl font-bold text-white">
         {{ nominee.name }}
       </h3>
     </div>
 
     <!-- Bio + Social + Vote -->
     <div class="p-6 flex flex-col items-center flex-grow text-center">
-      <p class="text-gray-200 text-sm sm:text-base leading-relaxed mb-4 min-h-[60px]">
+      <p class="text-gray-200 text-sm sm:text-base leading-relaxed mb-4 min-h-[60px] line-clamp-3">
         {{ nominee.bio }}
       </p>
 

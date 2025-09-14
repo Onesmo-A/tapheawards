@@ -42,7 +42,18 @@ const toggleSubmenu = () => {
 
 <template>
     <div>
-        <component :is="hasChildren ? 'button' : Link" :href="href" @click="toggleSubmenu" class="w-full text-left flex items-center p-2 rounded-lg transition-colors duration-200" :class="[active || isSubmenuActive ? 'bg-gold-500/10 text-gold-300' : 'text-gray-400 hover:bg-gray-700 hover:text-white']">
+        <component
+            :is="hasChildren ? 'button' : (href === '#' ? 'button' : Link)"
+            :href="href !== '#' ? href : null"
+            @click="toggleSubmenu"
+            class="w-full text-left flex items-center p-2 rounded-lg transition-colors duration-200"
+            :class="[
+                active || isSubmenuActive ? 'bg-gold-500/10 text-gold-300' : 'text-gray-400 hover:bg-gray-700 hover:text-white',
+                item.disabled ? 'opacity-50 cursor-not-allowed' : ''
+            ]"
+            :disabled="item.disabled"
+            :title="item.disabled ? 'Tayari una ombi linaloendelea' : ''"
+        >
             <component :is="components[item.icon] || components['beaker']" class="h-5 w-5 mr-3 flex-shrink-0" />
             <span class="flex-1">{{ item.name }}</span>
             <ChevronDownIcon v-if="hasChildren" class="h-5 w-5 transition-transform duration-300" :class="{ 'rotate-180': isSubmenuOpen }" />

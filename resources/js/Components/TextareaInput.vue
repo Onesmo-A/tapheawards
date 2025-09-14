@@ -10,7 +10,7 @@ const props = defineProps({
     },
     placeholder: {
         type: String,
-        default: 'Mfano: Tunatoa huduma bora za afya kwa jamii, tukiangalia afya ya mama na mtoto, kliniki yetu ina wafanyakazi wenye uzoefu na vifaa vya kisasa.',
+        default: '',
     },
 });
 

@@ -15,6 +15,10 @@ import {
 
 defineOptions({ layout: AuthenticatedLayout });
 
+const props = defineProps({
+    stats: Object,
+});
+
 const page = usePage();
 const user = computed(() => page.props.auth.user);
 const pendingApplication = computed(() => page.props.auth.pendingApplication);
@@ -50,27 +54,27 @@ const statusDetails = computed(() => {
             <!-- Welcome Header -->
             <div class="px-4 sm:px-0 border-b border-gray-200 pb-5">
                 <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">Karibu, {{ user.name }}!</h1>
-                <p class="mt-2 text-lg text-gray-600">Hapa ndipo pa kuanzia safari yako ya tuzo.</p>
+                <p class="mt-2 text-lg text-gray-600">Anza safari yako ya kuelekea usiku wa tuzo.</p>
             </div>
 
             <!-- Stats Section (Static & Professional) -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 px-4 sm:px-0">
-                <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-blue-500">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 px-4 sm:px-0">
+                <!-- <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-blue-500">
                     <div class="flex items-center gap-4">
                         <UsersIcon class="h-10 w-10 text-blue-500"/>
                         <div>
-                            <p class="text-gray-500 text-sm">Jumla ya Washiriki</p>
-                            <p class="text-2xl font-bold text-gray-900">200+</p>
+                            <p class="text-gray-500 text-sm">Jumla ya Kategoria za Tuzo</p>
+                            <p class="text-2xl font-bold text-gray-900">{{ props.stats?.award_categories ?? 0 }}</p>
                         </div>
                     </div>
-                </div>
+                </div> -->
 
                 <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-green-500">
                     <div class="flex items-center gap-4">
                         <PresentationChartLineIcon class="h-10 w-10 text-green-500"/>
                         <div>
                             <p class="text-gray-500 text-sm">Maombi Yaliyokubalika</p>
-                            <p class="text-2xl font-bold text-gray-900">0</p>
+                            <p class="text-2xl font-bold text-gray-900">{{ props.stats?.approved_applications ?? 0 }}</p>
                         </div>
                     </div>
                 </div>
@@ -80,7 +84,7 @@ const statusDetails = computed(() => {
                         <ExclamationTriangleIcon class="h-10 w-10 text-red-500"/>
                         <div>
                             <p class="text-gray-500 text-sm">Maombi Yaliyoachwa</p>
-                            <p class="text-2xl font-bold text-gray-900">0</p>
+                            <p class="text-2xl font-bold text-gray-900">{{ props.stats?.rejected_applications ?? 0 }}</p>
                         </div>
                     </div>
                 </div>
@@ -139,16 +143,17 @@ const statusDetails = computed(() => {
                 </div>
             </div>
 
-            <!-- Static Info Section (Professional & Modern) -->
-            <div class="bg-white p-8 rounded-xl shadow-xl mt-10 space-y-6">
-                <h2 class="text-2xl font-bold text-gray-900 mb-4">Taarifa Muhimu</h2>
-                <ul class="space-y-3 text-gray-700 list-disc list-inside">
-                    <li>Hakikisha unakamilisha maombi yako kwa wakati.</li>
-                    <li>Angalia email yako mara kwa mara kwa taarifa za uthibitisho.</li>
-                    <li>Maombi ya Tiketi ni kwa msingi wa kwanza kuja, kwanza kuhudhuria.</li>
-                    <li>Kwa msaada zaidi, wasiliana na timu yetu kupitia <strong>support@tapheawards.co.tz</strong>.</li>
-                </ul>
-            </div>
+<!-- Static Info Section (Professional & Modern) -->
+<div class="bg-white p-8 rounded-xl shadow-xl mt-10 space-y-6">
+  <h2 class="text-2xl font-bold text-gray-900 mb-4">Taarifa Muhimu</h2>
+  <ul class="space-y-3 text-gray-700 list-disc list-inside">
+    <li>Ujumbe wa kuthibitisha muamala utatumwa moja kwa moja kwenye simu yako mara tu unapowasilisha fomu.</li>
+    <li>Tafadhali hakikisha una salio la kutosha kwenye simu yako na kuwa nayo karibu wakati wa kufanya muamala.</li>
+    <li>Tembelea akaunti yako mara kwa mara ili kupata taarifa za uthibitisho.</li>
+    <li>Kwa msaada zaidi, tafadhali wasiliana na Uongozi: <strong>+255 749 562 993</strong> au <a href="mailto:info@tapheawards.co.tz">info@tapheawards.co.tz</a></li>
+  </ul>
+</div>
+
 
         </div>
     </div>

@@ -1,4 +1,9 @@
 User-agent: *
-Allow: /
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
 
-Sitemap: https://businessawards.co.tz/sitemap.xml
+Sitemap: https://tapheawards.co.tz/sitemap.xml

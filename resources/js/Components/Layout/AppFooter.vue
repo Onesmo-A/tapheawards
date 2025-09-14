@@ -10,17 +10,18 @@ import LinkedInIcon from '@/Components/Icons/LinkedInIcon.vue';
 import WhatsAppIcon from '@/Components/Icons/WhatsAppIcon.vue';
 import TikTokIcon from '@/Components/Icons/TikTokIcon.vue';
 import YouTubeIcon from '@/Components/Icons/YouTubeIcon.vue';
+import { MapPinIcon, EnvelopeIcon, PhoneIcon } from '@heroicons/vue/24/solid';
 
 const { sponsors } = useSponsors();
 
 const socialLinks = [
-  { name: 'Facebook', href: 'https://facebook.com/yourpage', icon: FacebookIcon },
-  { name: 'Twitter', href: 'https://twitter.com/yourhandle', icon: TwitterIcon },
-  { name: 'Instagram', href: 'https://instagram.com/yourprofile', icon: InstagramIcon },
-  { name: 'LinkedIn', href: 'https://linkedin.com/company/yourcompany', icon: LinkedInIcon },
-  { name: 'WhatsApp', href: 'https://wa.me/yournumber', icon: WhatsAppIcon },
+    { 
+    name: 'Instagram', 
+    href: 'https://www.instagram.com/taphe_awards?igsh=MTZ2cHhhbTdvNm56OQ%3D%3D&utm_source=qr', 
+    icon: InstagramIcon 
+  },
+  { name: 'WhatsApp', href: 'https://wa.me/+255749562993', icon: WhatsAppIcon },
   { name: 'TikTok', href: 'https://www.tiktok.com/@yourtiktokhandle', icon: TikTokIcon },
-  { name: 'YouTube', href: 'https://www.youtube.com/channel/yourchannelid', icon: YouTubeIcon },
 ];
 </script>
 
@@ -39,36 +40,40 @@ const socialLinks = [
           </p>
         </div>
 
-        <!-- Quick Links -->
-        <div>
-          <h3 class="text-sm font-semibold uppercase tracking-wider text-white">Quick Links</h3>
-          <ul class="mt-4 space-y-3">
-            <li><Link :href="route('about')" class="transition-colors hover:text-red-400">About</Link></li>
-            <li><Link href="#categories" class="transition-colors hover:text-red-400">Categories</Link></li>
-            <li><Link :href="route('participate')" class="transition-colors hover:text-red-400">Participate</Link></li>
-            <li><Link :href="route('tickets.index')" class="transition-colors hover:text-red-400">Get Tickets</Link></li>
-          </ul>
-        </div>
+<!-- Quick Links -->
+<div>
+  <h3 class="text-sm font-semibold uppercase tracking-wider text-white">Quick Links</h3>
+  <ul class="mt-4 space-y-3">
+    <li><Link :href="route('about')" class="transition-colors hover:text-red-400">About</Link></li>
+    <!-- Updated Categories link -->
+    <li><Link :href="route('categories.index')" class="transition-colors hover:text-red-400">Categories</Link></li>
+    <li><Link :href="route('participate')" class="transition-colors hover:text-red-400">Participate</Link></li>
+    <li><Link :href="route('tickets.index')" class="transition-colors hover:text-red-400">Get Tickets</Link></li>
+    <li><Link :href="route('sponsors.index')" class="transition-colors hover:text-red-400">Sponsors</Link></li>
+    <li><Link :href="route('nominees.suggest')" class="transition-colors hover:text-red-400">Pendekeza Mshiriki</Link>
+</li>
+  </ul>
+</div>
 
-        <!-- Contact Info -->
-        <div>
-          <h3 class="text-sm font-semibold uppercase tracking-wider text-white">Contact Us</h3>
-          <ul class="mt-4 space-y-3 text-sm">
-            <li class="flex items-start">
-              <span class="text-red-500">📍</span>
-              <span class="ml-3">Dar es Salaam, Tanzania</span>
-            </li>
-            <li class="flex items-start">
-              <span class="text-red-500">📧</span>
-              <a href="mailto:info@tapheawards.co.tz" class="ml-3 hover:text-red-400">info@tapheawards.co.tz</a>
-            </li>
-            <li class="flex items-start">
-              <span class="text-red-500">📞</span>
-              <a href="tel:+255652724557" class="ml-3 hover:text-red-400">+255 652 724 557</a>
-            </li>
-          </ul>
-        </div>
 
+     <!-- Contact Info -->
+<div>
+  <h3 class="text-sm font-semibold uppercase tracking-wider text-white">Contact Us</h3>
+  <ul class="mt-4 space-y-3 text-sm">
+    <li class="flex items-center">
+      <MapPinIcon class="h-5 w-5 text-red-500 flex-shrink-0" />
+      <span class="ml-3">Dar es Salaam, Tanzania</span>
+    </li>
+    <li class="flex items-center">
+      <EnvelopeIcon class="h-5 w-5 text-red-500 flex-shrink-0" />
+      <a href="mailto:info@tapheawards.co.tz" class="ml-3 hover:text-red-400">info@tapheawards.co.tz</a>
+    </li>
+    <li class="flex items-center">
+      <PhoneIcon class="h-5 w-5 text-red-500 flex-shrink-0" />
+      <a href="tel:+255749562993" class="ml-3 hover:text-red-400">+255 749 562 993</a>
+    </li>
+  </ul>
+</div>
         <!-- Social Media Section -->
         <div class="md:col-start-4">
           <h3 class="text-sm font-semibold uppercase tracking-wider text-white">Follow Us</h3>

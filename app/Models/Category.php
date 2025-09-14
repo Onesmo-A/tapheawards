@@ -54,6 +54,14 @@ class Category extends Model
     }
 
     /**
+     * Get the winners for the category.
+     */
+    public function winners(): HasMany
+    {
+        return $this->hasMany(Winner::class);
+    }
+
+    /**
      * Get the applications for the category.
      */
     public function nomineeApplications(): HasMany

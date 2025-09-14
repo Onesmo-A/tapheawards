@@ -29,38 +29,38 @@ class VoteController extends Controller
      */
   public function store(Request $request, Nominee $nominee)
 {
-    // 1. Hakiki ombi na toa ujumbe maalum kwa Kiswahili.
+    // 1. Validate the request with custom English messages.
     $validated = $request->validate([
         'fingerprint_js' => 'required|string|min:10',
         'screen_resolution' => 'required|string',
         'timezone' => 'required|string',
         'language' => 'required|string',
     ], [
-        'fingerprint_js.required' => 'Tatizo la kiufundi, tafadhali jaribu tena (FP-JS).',
-        'fingerprint_js.min' => 'Tatizo la kiufundi, tafadhali jaribu tena (FP-JS-MIN).',
-        'screen_resolution.required' => 'Tatizo la kiufundi, tafadhali jaribu tena (SCR).',
-        'timezone.required' => 'Tatizo la kiufundi, tafadhali jaribu tena (TZ).',
-        'language.required' => 'Tatizo la kiufundi, tafadhali jaribu tena (LANG).',
+        'fingerprint_js.required' => 'A technical issue occurred, please try again (FP-JS).',
+        'fingerprint_js.min' => 'A technical issue occurred, please try again (FP-JS-MIN).',
+        'screen_resolution.required' => 'A technical issue occurred, please try again (SCR).',
+        'timezone.required' => 'A technical issue occurred, please try again (TZ).',
+        'language.required' => 'A technical issue occurred, please try again (LANG).',
     ]);
-    // --- LOGIC YA KUDHIBITI UPIGAJI KURA ---
+    // --- VOTE CONTROL LOGIC ---
     $settings = Cache::remember('app_settings', 3600, function () {
         return Setting::all()->pluck('value', 'key');
     });
 
-    // 1. Kagua kama upigaji kura umezimwa
+    // 1. Check if voting is disabled
     if (! (bool) $settings->get('voting_active', true)) {
-        return response()->json(['message' => 'Samahani, zoezi la upigaji kura limesitishwa kwa sasa.'], 403);
+        return response()->json(['message' => 'Sorry, voting is currently disabled.'], 403);
     }
 
-    // 2. Kagua kama muda wa kupiga kura umekwisha
+    // 2. Check if the voting deadline has passed
     $deadline = $settings->get('voting_deadline');
     if ($deadline && Carbon::now()->isAfter(Carbon::parse($deadline))) {
-        return response()->json(['message' => 'Samahani, muda wa kupiga kura umekwisha.'], 403);
+        return response()->json(['message' => 'Sorry, the voting period has ended.'], 403);
     }
 
-    // 3. Kagua kama IP ni ya udanganyifu (VPN/Proxy)
+    // 3. Check if the IP is fraudulent (VPN/Proxy)
     if ($this->isFraudulentIp($request->ip())) {
-        return response()->json(['message' => 'Matumizi ya VPN au Proxy hayaruhusiwi.'], 403);
+        return response()->json(['message' => 'The use of VPN or Proxy is not allowed.'], 403);
     }
 
     // 4. Tengeneza Fingerprints na Multi-Factor Hash kwa kutumia private method
@@ -74,10 +74,10 @@ class VoteController extends Controller
         ->exists();
 
     if ($alreadyVoted) {
-        return response()->json(['message' => 'Umeshapiga kura katika kategoria hii.'], 429);
+        return response()->json(['message' => 'You have already voted in this category.'], 429);
     }
 
-    // --- HIFADHI KURA ---
+    // --- SAVE VOTE ---
     try {
         DB::transaction(function () use ($request, $nominee, $validated, $fingerprints) {
             $nominee->votes()->create([
@@ -96,15 +96,15 @@ class VoteController extends Controller
     } catch (\Illuminate\Database\QueryException $e) {
         // Hii inashughulikia kosa la 'duplicate entry' kama kinga ya ziada
         if ($e->errorInfo[1] == 1062) {
-            return response()->json(['message' => 'Umeshapiga kura katika kategoria hii.'], 429);
+            return response()->json(['message' => 'You have already voted in this category.'], 429);
         }
         Log::error('Vote creation DB error for nominee ' . $nominee->id, ['error' => $e->getMessage(), 'ip' => $request->ip()]);
         return response()->json(['message' => 'Server error, please try again later.'], 500);
     }
 
-    // --- RESPONSE BAADA YA MAFANIKIO ---
+    // --- SUCCESS RESPONSE ---
     return response()->json([
-        'message' => 'Asante! Kura yako imepokelewa.',
+        'message' => 'Thank you! Your vote has been received.',
     ], 200);
 }
 

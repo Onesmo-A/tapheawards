@@ -10,6 +10,8 @@ import GallerySection from '@/Components/Sections/GallerySection.vue';
 import MapSection from '@/Components/Sections/MapSection.vue';
 import CountDownSection from '@/Components/Sections/CountdownSection.vue';
 import Testimonials from '@/Components/Sections/Testimonials.vue';
+import SponsorCallUpSection from '@/Components/Sections/SponsorshipCTASection.vue';
+import SuggestNomineeSection from '@/Components/Sections/SuggestNomineeSection.vue';
 
 defineOptions({
   layout: DefaultLayout,
@@ -20,14 +22,28 @@ defineProps({
   title: String,
   description: String,
   settings: Object,
+   updates: Array,
   heroSlides: Array, // NEW
 });
 </script>
-
 <template>
   <Head>
     <title>{{ title }}</title>
     <meta name="description" :content="description" />
+
+    <!-- ================== MABORESHO YA SEO (Homepage) ================== -->
+    <!-- Open Graph / Facebook / WhatsApp -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://tapheawards.co.tz/" />
+    <meta property="og:title" :content="title" />
+    <meta property="og:description" :content="description" />
+    <meta property="og:image" content="https://tapheawards.co.tz/images/logo.png" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:title" :content="title" />
+    <meta property="twitter:description" :content="description" />
+    <meta property="twitter:image" content="https://tapheawards.co.tz/images/logo.png" />
   </Head>
 
   <main>
@@ -37,7 +53,7 @@ defineProps({
     <!-- Nomination Section -->
     <!-- TODO: Unaweza kuifanya hii section ionekane kwa condition, k.m. v-if="settings?.nomination_active" -->
     <NominationOpenSection />
-
+      <SponsorCallUpSection />
     <CountDownSection
       v-if="settings?.voting_active && settings.voting_deadline"
       :end-date="settings.voting_deadline" />
@@ -46,9 +62,10 @@ defineProps({
       v-if="categories && categories.data && categories.data.length > 0"
       :categories="categories.data" />
  <Testimonials />
+    <SuggestNomineeSection />
     <WhyParticipateSection />
     <SponsorsSection />
-    <GallerySection />
+      <GallerySection  :updates="updates"/>
     <MapSection />
   </main>
 </template>

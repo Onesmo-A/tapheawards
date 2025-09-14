@@ -8,61 +8,75 @@ use Illuminate\Support\Facades\Log;
 
 class ZenoPaymentService
 {
-    protected string $baseUrl;
-    protected ?string $apiKey;
+    protected $apiUrl; 
+    protected $apiKey;
+    protected $webhookUrl;
 
     public function __construct()
     {
-        $this->baseUrl = config('services.zenopay.url');
+        $this->apiUrl = config('services.zenopay.url');
         $this->apiKey = config('services.zenopay.key');
+        $this->webhookUrl = config('services.zenopay.webhook_url');
     }
 
     /**
-     * Anzisha ombi la malipo kwa kutumia Mobile Money Tanzania.
-     * Inapokea object ya Transaction pekee.
+     * Initiates a mobile money payment request to ZenoPay.
      *
      * @param Transaction $transaction
-     * @return bool True kama ombi limetumwa, false kama imeshindikana.
+     * @return array|null The response from ZenoPay on success, or null on failure.
      */
-    public function initiatePayment(Transaction $transaction): bool
+    public function initiatePayment(Transaction $transaction): ?array
     {
-        if (!$this->baseUrl || !$this->apiKey) {
+        if (!$this->apiUrl || !$this->apiKey) {
             Log::critical('ZenoPay Service Not Configured: URL or API Key is missing.');
-            return false;
+            return null;
         }
 
         // Endpoint maalum kwa malipo ya simu Tanzania
-        $endpoint = $this->baseUrl . '/payments/mobile_money_tanzania';
+        $endpoint = $this->apiUrl . '/payments/mobile_money_tanzania';
+
+        // ================== REKEBISHO MUHIMU ==================
+        // Nyaraka za ZenoPay zinahitaji namba iwe katika muundo wa '07XXXXXXXX'.
+        // Kwenye database tumehifadhi kama '2557XXXXXXXX'.
+        // Tunahitaji kuibadilisha kabla ya kuituma.
+        $zenoPayPhoneNumber = (string) $transaction->phone_number;
+        if (str_starts_with($zenoPayPhoneNumber, '255')) {
+            $zenoPayPhoneNumber = '0' . substr($zenoPayPhoneNumber, 3);
+        }
+
 
         // Payload kulingana na ZENOPAY DOCUMENTATION.txt
         $payload = [
             'order_id' => $transaction->order_id,
-            'buyer_email' => $transaction->user->email,
-            'buyer_name' => $transaction->payable->applicant_name, // Pata jina kutoka kwa application
-            'buyer_phone' => $transaction->phone_number, // Pata namba ya simu kutoka kwa transaction
+            'buyer_email' => $transaction->payable->applicant_email,
+            'buyer_name' => $transaction->payable->applicant_name,
+            'buyer_phone' => $zenoPayPhoneNumber,
             'amount' => (int) $transaction->amount, // Hakikisha ni integer
-            'webhook_url' => route('api.webhooks.zenopay'),
+            'webhook_url' => $this->webhookUrl,
         ];
 
-        try {
-            Log::info('Initiating ZenoPay Payment', ['endpoint' => $endpoint, 'payload' => $payload]);
+        Log::info('Initiating ZenoPay Payment', ['endpoint' => $endpoint, 'payload' => $payload]);
 
+        try {
             $response = Http::withHeaders([
+                'x-api-key' => $this->apiKey, // REKEBISHO: Tumia 'x-api-key' kama ilivyo kwenye nyaraka
                 'Content-Type' => 'application/json',
-                'x-api-key' => $this->apiKey,
-            ])->timeout(30)->post($endpoint, $payload);
+            ])->timeout(45)->post($endpoint, $payload);
 
             if ($response->successful() && $response->json('status') === 'success') {
                 Log::info('ZenoPay Initiation Successful', ['order_id' => $transaction->order_id, 'response' => $response->json()]);
-                return true;
+                return $response->json();
             }
 
             Log::error('ZenoPay Initiation Failed', ['order_id' => $transaction->order_id, 'status' => $response->status(), 'response' => $response->body()]);
-            return false;
+            $transaction->update(['status' => 'initiation_failed', 'notes' => 'API call failed: ' . $response->body()]);
+
+            return null;
 
         } catch (\Exception $e) {
             Log::error('ZenoPay HTTP Request Exception', ['order_id' => $transaction->order_id, 'error' => $e->getMessage()]);
-            return false;
+            $transaction->update(['status' => 'initiation_failed', 'notes' => 'HTTP Exception: ' . $e->getMessage()]);
+            return null;
         }
     }
 }

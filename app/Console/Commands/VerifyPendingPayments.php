@@ -30,21 +30,21 @@ class VerifyPendingPayments extends Command
 
             $response = Http::withHeaders([
                 'x-api-key' => config('services.zenopay.key'),
-            ])->get(config('services.zenopay.base_uri') . '/payments/order-status', [
+            ])->get(config('services.zenopay.url') . '/payments/order-status', [
                 'order_id' => $transaction->order_id,
             ]);
 
             if ($response->successful() && $response->json('resultcode') === '000') {
-                $data = $response->json('data.0');
+                $data = $response->json('data.0', []);
                 $paymentStatus = $data['payment_status'] ?? 'UNKNOWN';
 
                 if ($paymentStatus === 'COMPLETED') {
-                    $transaction->update(['status' => 'completed', 'gateway_reference' => $data['transid']]);
-                    $transaction->payable->update(['status' => 'pending_review']);
+                    $transaction->update(['status' => 'completed', 'gateway_reference' => $data['transid'] ?? null]);
+                    $transaction->payable?->update(['status' => 'pending_review']);
                     $this->info(" -> Status updated to COMPLETED.");
                 } elseif (in_array($paymentStatus, ['FAILED', 'CANCELLED'])) {
                     $transaction->update(['status' => 'failed', 'notes' => "Status checked via API: {$paymentStatus}"]);
-                    $transaction->payable->update(['status' => 'payment_failed']);
+                    $transaction->payable?->update(['status' => 'payment_failed']);
                     $this->warn(" -> Status updated to FAILED.");
                 }
             } else {
