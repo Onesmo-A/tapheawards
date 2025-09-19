@@ -1,7 +1,7 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
 import Stepper from '@/Components/Stepper.vue';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import AuthenticatedLayout from '@/Layouts/AAAAAuthenticatedLayout.vue';
 import { ChevronRightIcon } from '@heroicons/vue/24/solid';
 
 defineProps({

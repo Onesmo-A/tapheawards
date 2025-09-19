@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Post;
+use App\Models\MarathonRegistration; // BORESHO: Ongeza MarathonRegistration model
 use App\Models\Nominee;
 use App\Models\NomineeApplication;
 use App\Models\User;
@@ -37,6 +38,11 @@ class DashboardController extends Controller
             'rejected_applications' => NomineeApplication::where('status', NomineeApplication::STATUS_REJECTED)->count(),
 
             'transactions' => Transaction::count(),
+
+            // BORESHO: Ongeza takwimu za Marathon
+            'marathon_total' => MarathonRegistration::count(),
+            'marathon_completed' => MarathonRegistration::where('status', 'completed')->count(),
+            'marathon_pending' => MarathonRegistration::where('status', 'pending_payment')->count(),
         ];
 
         // BORESHO: Ongeza takwimu tuli (static) kwa ajili ya tiketi

@@ -48,8 +48,11 @@ class ZenoPaymentService
         // Payload kulingana na ZENOPAY DOCUMENTATION.txt
         $payload = [
             'order_id' => $transaction->order_id,
-            'buyer_email' => $transaction->payable->applicant_email,
-            'buyer_name' => $transaction->payable->applicant_name,
+            // ================== FIX MUHIMU ==================
+            // Taarifa za mnunuzi (jina na email) zinapatikana kwenye model inayohusiana ('payable'),
+            // sio kwenye 'transaction' yenyewe.
+            'buyer_email' => $transaction->payable->email ?? $transaction->payable->applicant_email,
+            'buyer_name' => $transaction->payable->full_name ?? $transaction->payable->applicant_name,
             'buyer_phone' => $zenoPayPhoneNumber,
             'amount' => (int) $transaction->amount, // Hakikisha ni integer
             'webhook_url' => $this->webhookUrl,

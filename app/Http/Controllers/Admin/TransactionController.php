@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\NomineeApplication;
+use App\Models\MarathonRegistration;
 use App\Models\Transaction;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -17,16 +18,20 @@ class TransactionController extends Controller
     public function index(Request $request)
     {
         $transactions = Transaction::query()
-            ->with(['user:id,name', 'payable' => function ($query) {
-                // Pakia taarifa za ombi husika (applicant_name)
-                $query->select('id', 'applicant_name');
-            }])
+            ->with(['user:id,name'])
             ->when($request->input('search'), function ($query, $search) {
                 $query->where('order_id', 'like', "%{$search}%")
                     ->orWhere('phone_number', 'like', "%{$search}%")
                     ->orWhereHas('user', fn ($q) => $q->where('name', 'like', "%{$search}%"))
-                    ->orWhereHasMorph('payable', [NomineeApplication::class], function ($q) use ($search) {
-                        $q->where('applicant_name', 'like', "%{$search}%");
+                    ->orWhereHasMorph('payable', [
+                        NomineeApplication::class,
+                        MarathonRegistration::class
+                    ], function ($q, $type) use ($search) {
+                        if ($type === NomineeApplication::class) {
+                            $q->where('applicant_name', 'like', "%{$search}%");
+                        } elseif ($type === MarathonRegistration::class) {
+                            $q->where('full_name', 'like', "%{$search}%");
+                        }
                     });
             })
             ->when($request->input('status'), function ($query, $status) {
@@ -35,6 +40,14 @@ class TransactionController extends Controller
             ->latest()
             ->paginate(20)
             ->withQueryString();
+
+        // BORESHO: Pakia 'payable' relationship kwa usahihi ili kuzuia kosa la "column not found".
+        $transactions->load(['payable' => function ($morphTo) {
+            $morphTo->morphWith([
+                NomineeApplication::class => ['category:id,name'],
+                MarathonRegistration::class => [],
+            ]);
+        }]);
 
         return Inertia::render('Admin/Transactions/Index', [
             'transactions' => $transactions,
@@ -63,15 +76,20 @@ class TransactionController extends Controller
     public function exportPdf(Request $request)
     {
         $transactions = Transaction::query()
-            ->with(['user:id,name', 'payable' => function ($query) {
-                $query->select('id', 'applicant_name');
-            }])
+            ->with(['user:id,name', 'payable'])
             ->when($request->input('search'), function ($query, $search) {
                 $query->where('order_id', 'like', "%{$search}%")
                     ->orWhere('phone_number', 'like', "%{$search}%")
                     ->orWhereHas('user', fn ($q) => $q->where('name', 'like', "%{$search}%"))
-                    ->orWhereHasMorph('payable', [NomineeApplication::class], function ($q) use ($search) {
-                        $q->where('applicant_name', 'like', "%{$search}%");
+                    ->orWhereHasMorph('payable', [
+                        NomineeApplication::class,
+                        MarathonRegistration::class
+                    ], function ($q, $type) use ($search) {
+                        if ($type === NomineeApplication::class) {
+                            $q->where('applicant_name', 'like', "%{$search}%");
+                        } elseif ($type === MarathonRegistration::class) {
+                            $q->where('full_name', 'like', "%{$search}%");
+                        }
                     });
             })
             ->when($request->input('status'), function ($query, $status) {

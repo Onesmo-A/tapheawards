@@ -36,5 +36,15 @@ class NomineeApplicationPolicy
         return $user->id === $application->user_id;
     }
 
-    // Unaweza kuongeza policies zingine hapa (update, delete, etc.)
+    /**
+     * Determine whether the user can retry payment for the model.
+     *
+     * @param  \App\Models\User  $user
+     * @param  \App\Models\NomineeApplication  $nomineeApplication
+     * @return \Illuminate\Auth\Access\Response|bool
+     */
+    public function retryPayment(User $user, NomineeApplication $nomineeApplication)
+    {
+        return $user->id === $nomineeApplication->user_id;
+    }
 }

@@ -151,3 +151,29 @@ const instagramUrl = 'https://www.instagram.com/taphe_awards';
 }
 
 </style>
+<style>
+/* Hii itahakikisha clear & dropdown icons ziko mwishoni kulia */
+.v-select {
+  position: relative;
+}
+
+.v-select .vs__dropdown-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.v-select .vs__actions {
+  position: absolute;
+  top: 50%;
+  right: 0.5rem; /* nafasi kidogo kutoka kulia */
+  transform: translateY(-50%);
+  display: flex;
+  gap: 0.25rem; /* nafasi kati ya 'x' na arrow */
+}
+
+.v-select .vs__selected-options {
+  padding-right: 2.5rem; /* toa nafasi ya icons pembeni kulia */
+}
+
+</style>

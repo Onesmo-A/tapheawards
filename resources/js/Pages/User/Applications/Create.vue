@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import AuthenticatedLayout from '@/Layouts/AAAAAuthenticatedLayout.vue';
 import Stepper from '@/Components/Stepper.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextareaInput from '@/Components/TextareaInput.vue';
@@ -10,7 +10,6 @@ import InputError from '@/Components/InputError.vue';
 import TextInput from '@/Components/TextInput.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import ConfirmationModal from '@/Components/ConfirmationModal.vue';
-import FileInput from '@/Components/FileInput.vue';
 
 const props = defineProps({
     selectedCategory: {
@@ -224,7 +223,7 @@ const submit = () => {
                 <PrimaryButton
                     class="ms-3"
                     :class="{ 'opacity-25': form.processing }"
-                    :disabled="form.processing"
+                    :disabled="form.processing" 
                     @click="submit"
                 >
                     <span v-if="form.processing">Inasubiri...</span>

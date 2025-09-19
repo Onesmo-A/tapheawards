@@ -1,8 +1,8 @@
 <script setup>
-import { Head, Link, router } from '@inertiajs/vue3';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { ArrowLeftIcon, PrinterIcon } from '@heroicons/vue/24/solid';
-import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import AuthenticatedLayout from '@/Layouts/AAAAAuthenticatedLayout.vue';
+import { ArrowLeftIcon, PrinterIcon, ArrowPathIcon, CheckCircleIcon, ExclamationTriangleIcon, ClockIcon } from '@heroicons/vue/24/solid';
+import { computed } from 'vue';
 
 defineOptions({ layout: AuthenticatedLayout });
 
@@ -10,17 +10,15 @@ const props = defineProps({
     application: Object,
 });
 
-const pollingInterval = ref(null);
-
 const statusDetails = (status) => {
     const details = {
-        pending_payment: { text: 'Inasubiri Malipo', class: 'text-yellow-600' },
-        payment_failed: { text: 'Malipo Yameshindikana', class: 'text-red-600' },
-        pending_review: { text: 'Inasubiri Uhakiki', class: 'text-blue-600' },
-        approved: { text: 'Limekubaliwa', class: 'text-green-600' },
-        rejected: { text: 'Limekataliwa', class: 'text-gray-600' },
+        pending_payment: { text: 'Malipo Yanasubiriwa', class: 'bg-yellow-100 text-yellow-800', icon: ClockIcon },
+        payment_failed: { text: 'Malipo Yameshindikana', class: 'bg-red-100 text-red-800', icon: ExclamationTriangleIcon },
+        pending_review: { text: 'Malipo Yanahakikiwa', class: 'bg-blue-100 text-blue-800', icon: ClockIcon },
+        approved: { text: 'Ombi Limekubaliwa', class: 'bg-green-100 text-green-800', icon: CheckCircleIcon },
+        rejected: { text: 'Ombi Limekataliwa', class: 'bg-gray-200 text-gray-800', icon: ExclamationTriangleIcon },
     };
-    return details[status] || { text: status.replace(/_/g, ' '), class: 'text-gray-600' };
+    return details[status] || { text: status.replace(/_/g, ' '), class: 'bg-gray-100 text-gray-800', icon: ClockIcon };
 };
 
 const formatDate = (dateString) => {
@@ -35,43 +33,19 @@ const printPage = () => {
     window.print();
 };
 
-// BORESHO: Anzisha 'polling' ili kuangalia hali ya malipo kiotomatiki
-const startPolling = () => {
-    // Usianzishe polling mpya kama tayari ipo
-    if (pollingInterval.value) return;
-
-    pollingInterval.value = setInterval(() => {
-        router.reload({
-            only: ['application', 'flash'], // Pakia upya data ya ombi na flash messages tu
-            preserveState: true,
-            preserveScroll: true,
-        });
-    }, 5000); // Angalia kila sekunde 5
-};
-
-const stopPolling = () => {
-    if (pollingInterval.value) {
-        clearInterval(pollingInterval.value);
-        pollingInterval.value = null;
-    }
-};
-
-// Anzisha polling kama hali ni 'pending_payment'
-onMounted(() => {
-    if (props.application.status === 'pending_payment') {
-        startPolling();
-    }
+const canRetryPayment = computed(() => {
+    return ['pending_payment', 'payment_failed'].includes(props.application.status);
 });
 
-// Sitisha polling mtumiaji akiondoka kwenye ukurasa
-onUnmounted(() => stopPolling());
+const retryForm = useForm({});
 
-// Sitisha polling kama hali imebadilika
-watch(() => props.application.status, (newStatus) => {
-    if (newStatus !== 'pending_payment') {
-        stopPolling();
-    }
-});
+const retryPayment = () => {
+    retryForm.post(route('user.applications.retry-payment', props.application.id), {
+        preserveScroll: true,
+        onStart: () => console.log('Retrying payment...'),
+        onFinish: () => console.log('Retry request finished.'),
+    });
+};
 </script>
 
 <template>
@@ -79,7 +53,7 @@ watch(() => props.application.status, (newStatus) => {
         <title>Taarifa za Ombi #{{ application.id }}</title>
     </Head>
 
-    <div class="py-8 md:py-12 bg-gray-50 min-h-full">
+    <div class="py-8 md:py-12 bg-gray-100 min-h-full">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
 
             <div class="flex justify-between items-center mb-6">
@@ -93,80 +67,85 @@ watch(() => props.application.status, (newStatus) => {
                 </button>
             </div>
 
-            <div class="bg-white shadow-lg rounded-lg overflow-hidden">
-                <div class="px-6 py-8 md:px-10">
+            <!-- Retry Payment Button -->
+            <div v-if="canRetryPayment" class="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-lg print:hidden">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="font-bold text-yellow-800">Malipo Bado Hayajakamilika</p>
+                        <p class="text-sm text-yellow-700">Kama hukupokea ombi la malipo au lilipotea, unaweza kujaribu tena.</p>
+                    </div>
+                    <button @click="retryPayment" :disabled="retryForm.processing" class="inline-flex items-center px-4 py-2 bg-yellow-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-500 active:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition ease-in-out duration-150 disabled:opacity-25">
+                        <ArrowPathIcon class="w-4 h-4 mr-2" :class="{ 'animate-spin': retryForm.processing }" />
+                        {{ retryForm.processing ? 'Inatuma...' : 'Jaribu Kulipa Tena' }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Receipt -->
+            <div class="bg-white shadow-lg rounded-lg overflow-hidden font-sans">
+                <div class="p-6 md:p-8">
                     <!-- Header -->
-                    <div class="flex flex-col md:flex-row justify-between items-start border-b border-gray-200 pb-6 mb-6">
+                    <div class="flex justify-between items-start border-b-2 border-dashed border-gray-300 pb-4 mb-6">
                         <div>
-                            <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Risiti ya Ombi</h1>
-                            <p class="text-gray-500 text-sm mt-1">Namba ya Ombi: #{{ application.id }}</p>
+                            <h2 class="text-xl font-bold text-gray-800">RISITI YA MAOMBI</h2>
+                            <p class="text-xs text-gray-500 mt-1">TAPHE AWARDS</p>
                         </div>
-                        <div class="text-left md:text-right mt-4 md:mt-0">
-                            <p class="text-lg font-semibold" :class="statusDetails(application.status).class">
+                        <div class="text-right">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full" :class="statusDetails(application.status).class">
                                 {{ statusDetails(application.status).text }}
-                            </p>
-                            <p class="text-sm text-gray-500">Tarehe: {{ formatDate(application.created_at) }}</p>
+                            </span>
+                            <p class="text-xs text-gray-500 mt-1">Ombi #{{ application.id }}</p>
                         </div>
                     </div>
 
                     <!-- Application Details -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                        <div>
-                            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">TAARIFA ZA MWOMBAJI</h3>
-                            <div class="mt-2 text-gray-800">
-                                <p class="font-medium">{{ application.applicant_name }}</p>
-                                <p>{{ $page.props.auth.user.email }}</p>
-                            </div>
-                        </div>
-                        <div>
-                            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">KATEGORIA YA TUZO</h3>
-                            <div class="mt-2 text-gray-800">
-                                <p class="font-medium">{{ application.category?.name || 'Haijulikani' }}</p>
-                            </div>
-                        </div>
+                    <div class="grid grid-cols-2 gap-x-6 gap-y-4 text-sm mb-8">
+                        <div class="text-gray-600">Jina la Mshiriki:</div>
+                        <div class="text-gray-800 font-medium text-right">{{ application.applicant_name }}</div>
+
+                        <div class="text-gray-600">Kategoria ya Tuzo:</div>
+                        <div class="text-gray-800 font-medium text-right">{{ application.category?.name || 'Haijulikani' }}</div>
+
+                        <div class="text-gray-600">Tarehe ya Ombi:</div>
+                        <div class="text-gray-800 font-medium text-right">{{ formatDate(application.created_at) }}</div>
                     </div>
 
                     <!-- Transaction Details -->
-                    <div class="mt-10" v-if="application.transaction">
-                        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">TAARIFA ZA MALIPO</h3>
-                        <div class="mt-4 bg-gray-50 rounded-lg p-4 border border-gray-200">
-                            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
-                                <div class="sm:col-span-1">
-                                    <dt class="text-gray-500">Namba ya Muamala:</dt>
-                                    <dd class="mt-1 font-mono text-gray-900">{{ application.transaction.order_id }}</dd>
-                                </div>
-                                <div class="sm:col-span-1">
-                                    <dt class="text-gray-500">Rejea ya Mtoa Huduma:</dt>
-                                    <dd class="mt-1 font-mono text-gray-900">{{ application.transaction.gateway_reference || '---' }}</dd>
-                                </div>
-                                <div class="sm:col-span-1">
-                                    <dt class="text-gray-500">Njia ya Malipo:</dt>
-                                    <dd class="mt-1 font-medium text-gray-900">{{ application.transaction.payment_method || '---' }}</dd>
-                                </div>
-                                <div class="sm:col-span-1">
-                                    <dt class="text-gray-500">Tarehe ya Malipo:</dt>
-                                    <dd class="mt-1 font-medium text-gray-900">{{ formatDate(application.transaction.updated_at) }}</dd>
-                                </div>
-                            </dl>
+                    <div class="mb-8" v-if="application.transaction">
+                        <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">MAELEZO YA MALIPO</h3>
+                        <div class="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                            <div class="text-gray-600">Njia ya Malipo:</div>
+                            <div class="text-gray-800 font-medium text-right">{{ application.transaction.payment_method || '---' }}</div>
+
+                            <div class="text-gray-600">Namba ya Simu:</div>
+                            <div class="text-gray-800 font-medium text-right">{{ application.transaction.phone_number }}</div>
+
+                            <div class="text-gray-600">Tarehe ya Muamala:</div>
+                            <div class="text-gray-800 font-medium text-right">{{ formatDate(application.transaction.updated_at) }}</div>
+
+                            <div class="text-gray-600 col-span-2 mt-2 pt-2 border-t border-dashed">Namba ya Muamala (Order ID):</div>
+                            <div class="text-gray-800 font-mono text-xs col-span-2 text-right">{{ application.transaction.order_id }}</div>
+
+                            <div class="text-gray-600 col-span-2">Rejea ya Mtoa Huduma:</div>
+                            <div class="text-gray-800 font-mono text-xs col-span-2 text-right">{{ application.transaction.gateway_reference || '---' }}</div>
                         </div>
                     </div>
 
                     <!-- Totals -->
-                    <div class="mt-10 border-t border-gray-200 pt-6">
-                        <div class="flex justify-end">
-                            <div class="w-full max-w-xs">
-                                <dl class="space-y-2 text-sm">
-                                    <div class="flex justify-between">
-                                        <dt class="text-gray-600">Ada ya Fomu:</dt>
-                                        <dd class="text-gray-800">TZS {{ new Intl.NumberFormat().format(application.transaction?.amount || 0) }}</dd>
-                                    </div>
-                                    <div class="flex justify-between border-t border-gray-200 pt-2 font-bold text-base">
-                                        <dt class="text-gray-900">Jumla Iliyolipwa:</dt>
-                                        <dd class="text-gray-900">TZS {{ new Intl.NumberFormat().format(application.transaction?.amount || 0) }}</dd>
-                                    </div>
-                                </dl>
-                            </div>
+                    <div class="border-t-2 border-dashed border-gray-300 pt-4 mt-6 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Ada ya Fomu:</span>
+                            <span class="text-gray-800">TZS {{ new Intl.NumberFormat().format(application.transaction?.amount || 0) }}</span>
                         </div>
+                        <div class="flex justify-between mt-2 font-bold text-base">
+                            <span class="text-gray-900">JUMLA:</span>
+                            <span class="text-gray-900">TZS {{ new Intl.NumberFormat().format(application.transaction?.amount || 0) }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="text-center mt-8 pt-4 border-t border-gray-200">
+                        <p class="text-xs text-gray-500">Asante kwa kushiriki katika Tuzo za TAPHE.</p>
                     </div>
 
                 </div>
@@ -178,6 +157,10 @@ watch(() => props.application.status, (newStatus) => {
 <style>
 @media print {
     .print\:hidden { display: none; }
-    body { -webkit-print-color-adjust: exact; }
+    body { 
+        -webkit-print-color-adjust: exact; 
+        print-color-adjust: exact;
+        background-color: #fff;
+    }
 }
 </style>

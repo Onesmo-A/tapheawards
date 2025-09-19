@@ -1,6 +1,6 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import AuthenticatedLayout from '@/Layouts/AAAAAuthenticatedLayout.vue';
 
 defineOptions({ layout: AuthenticatedLayout });
 
@@ -17,13 +17,14 @@ const formatDate = (dateString) => {
         day: 'numeric',
     });
 };
+
 const statusDetails = (status) => {
     const details = {
-        pending_payment: { text: 'Inasubiri Malipo', class: 'bg-yellow-100 text-yellow-800' },
+        pending_payment: { text: 'Malipo Yanasubiriwa', class: 'bg-yellow-100 text-yellow-800' },
         payment_failed: { text: 'Malipo Yameshindikana', class: 'bg-red-100 text-red-800' },
-        pending_review: { text: 'Inasubiri Uhakiki', class: 'bg-blue-100 text-blue-800' },
-        approved: { text: 'Limekubaliwa', class: 'bg-green-100 text-green-800' },
-        rejected: { text: 'Limekataliwa', class: 'bg-gray-200 text-gray-800' },
+        pending_review: { text: 'Malipo Yanahakikiwa', class: 'bg-blue-100 text-blue-800' },
+        approved: { text: 'Ombi Limekubaliwa', class: 'bg-green-100 text-green-800' },
+        rejected: { text: 'Ombi Limekataliwa', class: 'bg-gray-200 text-gray-800' },
     };
     // BORESHO: Kagua kama `status` ipo kabla ya kutumia `replace`
     // Hii inazuia kosa kama `application.status` ni `undefined` au `null`.
@@ -32,6 +33,7 @@ const statusDetails = (status) => {
     }
     return details[status] || { text: status.replace(/_/g, ' '), class: 'bg-gray-100 text-gray-800' };
 };
+
 </script>
 
 <template>
@@ -40,7 +42,7 @@ const statusDetails = (status) => {
     </Head>
 
     <div class="py-8 md:py-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"> 
             <!-- Header -->
             <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
                 <div>
@@ -48,7 +50,7 @@ const statusDetails = (status) => {
                     <p class="mt-2 text-sm text-gray-600">Tazama historia na hali ya maombi yako yote ya tuzo.</p>
                 </div>
                 <div class="mt-4 md:mt-0">
-                    <Link
+                    <Link 
                         :href="route('user.applications.selectCategory')" 
                         class="btn-primary inline-flex items-center justify-center text-sm !py-2 !px-4"
                     >
@@ -58,11 +60,11 @@ const statusDetails = (status) => {
             </div>
 
             <!-- Applications List --> 
-            <div class="bg-white shadow-md rounded-lg overflow-hidden"> 
+            <div class="bg-white shadow-md rounded-lg overflow-hidden">
                 <!-- Desktop Table -->
                 <div class="overflow-x-auto hidden md:block">
-                    <table class="min-w-full divide-y divide-gray-200"> 
-                        <thead class="bg-gray-50">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50"> 
                             <tr>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tuzo</th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarehe</th>
@@ -73,7 +75,7 @@ const statusDetails = (status) => {
                                 </th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white divide-y divide-gray-200"> 
+                        <tbody class="bg-white divide-y divide-gray-200">
                             <tr v-if="!applications.data || applications.data.length === 0">
                                 <td colspan="5" class="px-6 py-12 text-center text-sm text-gray-500">
                                     Haujatuma ombi lolote bado.
@@ -154,3 +156,7 @@ const statusDetails = (status) => {
         </div>
     </div>
 </template>
+
+<style scoped>
+
+</style>

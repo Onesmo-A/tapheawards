@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Models\Category;
 use App\Models\NomineeApplication;
+use App\Notifications\NewNomineeApplication;
 use App\Jobs\InitiateZenoPayPayment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -70,7 +72,8 @@ class NomineeApplicationController extends Controller
         return Inertia::render('User/Applications/Create', [
             'title' => 'Jaza Fomu: ' . $category->name,
             'selectedCategory' => $category,
-            'nomination_fee' => (int) config('services.zenopay.application_fee', 200),
+            // BORESHO: Pata ada kutoka kwenye kategoria husika badala ya config file.
+            'nomination_fee' => (int) $category->nomination_fee,
         ]);
     }
 
@@ -139,6 +142,14 @@ class NomineeApplicationController extends Controller
                 // Dispatch the job to handle payment initiation in the background
                 InitiateZenoPayPayment::dispatch($application->transaction);
 
+                // BORESHO: Tuma notisi kwa admin ndani ya try-catch kuzuia error kama email haipo
+                try {
+                    User::where('is_admin', true)->first()?->notify(new NewNomineeApplication($application));
+                } catch (\Exception $e) {
+                    // Log kosa la email bila kumzuia mtumiaji
+                    Log::error('Failed to send new application notification email: ' . $e->getMessage());
+                }
+
                 return $application;
             });
 
@@ -171,10 +182,8 @@ class NomineeApplicationController extends Controller
 
     public function retryPayment(NomineeApplication $application): \Illuminate\Http\RedirectResponse
     {
-        // Tumia 'update' policy, kwani kujaribu kulipa tena ni aina ya 'update'.
-        // Hii inahakikisha mtumiaji anamiliki ombi hili.
-        // Hakikisha una 'update' method kwenye NomineeApplicationPolicy yako.
-        $this->authorize('update', $application);
+        // REKEBISHO: Tumia policy sahihi ya 'retryPayment' badala ya 'update'.
+        $this->authorize('retryPayment', $application);
 
         if (!in_array($application->status, ['pending_payment', 'payment_failed'])) {
             return back()->with('error', 'Huwezi kujaribu kulipia ombi hili.');
@@ -186,19 +195,20 @@ class NomineeApplicationController extends Controller
         }
 
         try {
-            // FIX: Generate a new order_id BEFORE dispatching the payment job.
-            // This prevents re-using an old order_id and ensures the webhook matches.
+            // BORESHO: Tengeneza order_id mpya kabla ya kutuma ombi la malipo.
+            // Hii inazuia kutumia order_id ya zamani na inahakikisha kila jaribio la malipo ni la kipekee.
             DB::transaction(function () use ($application, $transaction) {
                 $application->update(['status' => 'pending_payment']);
 
                 $transaction->update([
                     'status' => 'pending',
                     'notes' => 'Retry payment initiated by user.',
-                    'order_id' => (string) Str::uuid(), // New Order ID for the new attempt
+                    // Tengeneza Order ID mpya kwa ajili ya jaribio hili jipya
+                    'order_id' => (string) Str::uuid(),
                 ]);
             });
 
-            // Dispatch the job with the updated transaction
+            // Tuma kazi (job) na taarifa mpya za muamala
             InitiateZenoPayPayment::dispatch($transaction->fresh());
 
             return redirect()->route('user.applications.show', $application->id)->with('success', 'Ombi jipya la malipo limetumwa. Tafadhali kamilisha kwenye simu yako.');

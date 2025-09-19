@@ -20,7 +20,8 @@ class SettingController extends Controller
         $defaults = [
             'voting_active' => '1',
             'voting_deadline' => null,
-            'show_winners' => '0', // Ongeza default kwa ajili ya kuonyesha washindi
+            'show_winners' => '0',
+            'marathon_fee' => '35000',
         ];
         // Unganisha defaults na settings zilizopo, zilizopo zitabaki na thamani zake
         $settings = collect($defaults)->merge($settings);
@@ -34,7 +35,8 @@ class SettingController extends Controller
         $validated = $request->validate([
             'voting_active' => 'required|boolean',
             'voting_deadline' => 'nullable|date',
-            'show_winners' => 'required|boolean', // Ongeza validation kwa setting mpya
+            'show_winners' => 'required|boolean',
+            'marathon_fee' => 'required|numeric|min:0',
         ]);
 
         foreach ($validated as $key => $value) {

@@ -13,6 +13,7 @@ use App\Http\Controllers\NewsController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\MarathonController;
 
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
@@ -24,6 +25,7 @@ use App\Http\Controllers\Admin\NomineeApplicationController as AdminNomineeAppli
 use App\Http\Controllers\Admin\TransactionController as AdminTransactionController;
 use App\Http\Controllers\Admin\SettingController as AdminSettingController;
 use App\Http\Controllers\Admin\InvitationController as AdminInvitationController;
+use App\Http\Controllers\Admin\UserController as AdminUserController; // BORESHO: Ongeza
 use Inertia\Inertia;
 use App\Http\Controllers\User\NomineeApplicationController;
 
@@ -112,6 +114,16 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::delete('/suggestions/{suggestion}', [AdminSuggestionController::class, 'destroy'])->name('suggestions.destroy');
     // Posts (Updates, Gallery, Events) Management
     Route::resource('posts', \App\Http\Controllers\Admin\PostController::class);
+
+    // BORESHO: Admin Marathon Management
+    Route::resource('marathon', \App\Http\Controllers\Admin\MarathonController::class)->only(['index', 'show'])->names('marathon');
+    // BORESHO: Ongeza routes za export
+    Route::get('/marathon/export/pdf', [\App\Http\Controllers\Admin\MarathonController::class, 'exportPdf'])->name('marathon.export.pdf');
+    Route::get('/marathon/export/excel', [\App\Http\Controllers\Admin\MarathonController::class, 'exportExcel'])->name('marathon.export.excel');
+
+
+    // BORESHO: Admin User Management
+    Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
 });
 // ========== Auth User Profile ==========
 Route::middleware('auth')->group(function () {
@@ -172,6 +184,18 @@ Route::get('/events', [EventController::class, 'index'])->name('events.index');
 Route::prefix('event')->group(function () {
     Route::get('/guest-of-honor', [EventController::class, 'guestOfHonor'])->name('event.guest-of-honor');
     Route::get('/artists', [EventController::class, 'artists'])->name('event.artists');
+});
+
+// ========== Marathon Routes (Public) ==========
+Route::prefix('marathon')->name('marathon.')->group(function () {
+    Route::get('/register', [MarathonController::class, 'create'])->name('register');
+    Route::post('/register', [MarathonController::class, 'store'])->name('store');
+    Route::get('/pending/{order_id}', [MarathonController::class, 'pendingPayment'])->name('pending');
+    Route::get('/success', [MarathonController::class, 'success'])->name('success');
+    Route::post('/check-status', [MarathonController::class, 'checkStatus'])->name('check-status'); // AJAX endpoint
+    // BORESHO: Routes za kuangalia status
+    Route::get('/check-status', [MarathonController::class, 'showCheckStatusPage'])->name('check-status-page');
+    Route::post('/find-registration', [MarathonController::class, 'findRegistration'])->name('find-registration');
 });
 
 // ========== Invitation Card Route ==========

@@ -1,16 +1,24 @@
 <script setup>
-import { ref, watch } from 'vue';
-import ApplicationLogo from '@/Components/ApplicationLogo.vue';
-import Dropdown from '@/Components/Dropdown.vue';
-import DropdownLink from '@/Components/DropdownLink.vue';
+import { ref, computed, watch } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import Sidebar from '@/Layouts/Partials/Sidebar.vue';
+import Dropdown from '@/Components/Dropdown.vue';
+import DropdownLink from '@/Components/DropdownLink.vue';
 import { Bars3Icon } from '@heroicons/vue/24/outline';
 import { useToast } from 'vue-toastification';
+import {
+    HomeIcon as DashboardIcon,
+    DocumentPlusIcon,
+    QueueListIcon,
+    TicketIcon,
+    UserCircleIcon
+} from '@heroicons/vue/24/outline';
 
 const sidebarOpen = ref(false);
 const page = usePage();
 const toast = useToast();
+
+const hasPendingApplication = computed(() => page.props.auth.hasPendingApplication);
 
 // Funga sidebar kiotomatiki mtumiaji anapobofya link (kwa ajili ya mobile)
 router.on('navigate', () => {
@@ -29,19 +37,33 @@ watch(() => page.props.flash, (flash) => {
         toast.warning(flash.warning);
     }
 }, { deep: true });
+
+const userMenu = computed(() => [
+    { name: 'Dashboard', route: 'dashboard', icon: DashboardIcon },
+    { name: 'Anzisha Maombi', route: 'user.applications.selectCategory', icon: DocumentPlusIcon, disabled: hasPendingApplication.value },
+    { name: 'Hali ya Maombi', route: 'user.applications.index', icon: QueueListIcon, notification: hasPendingApplication.value },
+    { name: 'Nunua Tiketi', route: 'tickets.index', icon: TicketIcon },
+    { name: 'Wasifu Wangu', route: 'profile.edit', icon: UserCircleIcon },
+]);
 </script>
 
 <template>
     <div>
-        <div class="min-h-screen bg-gray-100">
+        <div class="min-h-screen bg-gray-100 flex">
             <!-- Mobile sidebar overlay -->
-            <div v-show="sidebarOpen" class="fixed inset-0 z-30 bg-black/50 md:hidden" @click="sidebarOpen = false" />
+            <div v-if="sidebarOpen" class="fixed inset-0 z-30 bg-black/50 md:hidden" @click="sidebarOpen = false" />
 
             <!-- Sidebar -->
-            <Sidebar id="sidebar" :class="['fixed inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300 ease-in-out md:translate-x-0', { 'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen }]" />
+            <Sidebar 
+                id="sidebar" 
+                :class="['fixed inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0', { 'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen }]"
+                :userMenu="userMenu"
+                :sidebarOpen="true"
+                :mobileSidebarOpen="sidebarOpen"
+            />
 
             <!-- Main content -->
-            <div class="flex-1 flex flex-col md:pl-64">
+            <div class="flex-1 flex flex-col">
                 <nav class="bg-gray-800 border-b border-gray-700">
                     <!-- Primary Navigation Menu -->
                     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

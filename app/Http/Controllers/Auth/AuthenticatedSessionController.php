@@ -34,12 +34,13 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        if ($request->user()->is_admin) {
-            return redirect()->intended(route('admin.dashboard'));
+        // BORESHO: Angalia kama mtumiaji ni admin, mwelekeze kwenye admin dashboard
+        if (auth()->user()->is_admin) {
+            return redirect()->route('admin.dashboard');
         }
 
-        // BORESHO: Mtumiaji wa kawaida aelekezwe kwenye 'dashboard' yake, sio 'home'
-        return redirect()->intended(route('user.applications.index'));
+        // Mtumiaji wa kawaida aelekezwe kwenye 'dashboard' yake
+         return redirect()->route('dashboard');
     }
 
     /**

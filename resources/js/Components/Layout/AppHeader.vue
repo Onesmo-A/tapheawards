@@ -18,6 +18,7 @@ const navigation = [
   { name: 'Home', href: route('home') },
   { name: 'Categories', href: route('categories.index') },
   { name: 'Sponsors', href: route('sponsors.index') },
+  { name: 'Marathon', href: route('marathon.register') },
   { name: 'About', href: route('about') },
 ];
 
@@ -36,6 +37,7 @@ const awardsMegaMenu = [
             { name: 'Participate', href: route('participate'), description: 'Join the competition as a nominee.' },
             { name: 'Suggest a Nominee', href: route('nominees.suggest'), description: 'Propose a deserving individual for an award.' },
             { name: 'Get Tickets', href: route('tickets.index'), description: 'Attend the prestigious gala event.' },
+            { name: 'Marathon', href: route('marathon.register'), description: 'Register for the charity marathon race.' },
         ]
     }
 ];
@@ -219,6 +221,13 @@ onUnmounted(() => {
             </Link>
           </div>
         </div>
+
+        <!-- Marathon Link (Mobile) -->
+        <Link
+          :href="route('marathon.register')"
+          @click="closeMobileMenu"
+          class="block px-3 py-2 rounded-md text-base font-medium text-[var(--text-primary)] hover:text-[var(--text-accent)] hover:bg-gray-100"
+        >Marathon</Link>
 
         <!-- Auth buttons -->
         <div class="border-t border-gray-200 pt-4 pb-3 space-y-2">

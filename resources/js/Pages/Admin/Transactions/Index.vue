@@ -48,8 +48,11 @@
                                     <tr v-for="transaction in transactions.data" :key="transaction.id">
                                         <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-mono text-gray-500 sm:pl-6">{{ transaction.order_id.substring(0, 8) }}...</td>
                                         <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
-                                            <p>{{ transaction.user.name }}</p>
-                                            <p v-if="transaction.payable" class="text-xs text-gray-500">For: {{ transaction.payable.applicant_name }}</p>
+                                            <p>{{ transaction.user?.name || 'Guest User' }}</p>
+                                            <!-- BORESHO: Kagua kama 'payable' ipo na onyesha jina sahihi kulingana na aina ya muamala -->
+                                            <p v-if="transaction.payable" class="text-xs text-gray-500">
+                                                For: {{ transaction.payable.applicant_name || transaction.payable.full_name || 'N/A' }}
+                                            </p>
                                         </td>
                                         <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ transaction.amount }} {{ transaction.currency }}</td>
                                         <td class="whitespace-nowrap px-3 py-4 text-sm">

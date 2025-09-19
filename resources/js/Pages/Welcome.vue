@@ -12,6 +12,7 @@ import CountDownSection from '@/Components/Sections/CountdownSection.vue';
 import Testimonials from '@/Components/Sections/Testimonials.vue';
 import SponsorCallUpSection from '@/Components/Sections/SponsorshipCTASection.vue';
 import SuggestNomineeSection from '@/Components/Sections/SuggestNomineeSection.vue';
+import MarathonCTASection from '@/Components/Sections/MarathonCTASection.vue'; // NEW: Import Marathon Section
 
 defineOptions({
   layout: DefaultLayout,
@@ -57,6 +58,9 @@ defineProps({
     <CountDownSection
       v-if="settings?.voting_active && settings.voting_deadline"
       :end-date="settings.voting_deadline" />
+
+    <!-- NEW: Add Marathon Section -->
+    <MarathonCTASection />
 
     <CategorySlider
       v-if="categories && categories.data && categories.data.length > 0"

@@ -1,5 +1,5 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import {
@@ -13,7 +13,7 @@ import {
     PresentationChartLineIcon
 } from '@heroicons/vue/24/outline';
 
-defineOptions({ layout: AuthenticatedLayout });
+defineOptions({ layout: AdminLayout });
 
 const props = defineProps({
     stats: Object,

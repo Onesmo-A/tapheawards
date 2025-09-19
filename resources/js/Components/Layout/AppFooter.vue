@@ -49,6 +49,7 @@ const socialLinks = [
     <li><Link :href="route('categories.index')" class="transition-colors hover:text-red-400">Categories</Link></li>
     <li><Link :href="route('participate')" class="transition-colors hover:text-red-400">Participate</Link></li>
     <li><Link :href="route('tickets.index')" class="transition-colors hover:text-red-400">Get Tickets</Link></li>
+    <li><Link :href="route('marathon.register')" class="transition-colors hover:text-red-400">Marathon</Link></li>
     <li><Link :href="route('sponsors.index')" class="transition-colors hover:text-red-400">Sponsors</Link></li>
     <li><Link :href="route('nominees.suggest')" class="transition-colors hover:text-red-400">Pendekeza Mshiriki</Link>
 </li>

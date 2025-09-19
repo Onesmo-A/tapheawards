@@ -1,6 +1,7 @@
 <script setup>
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { computed, defineAsyncComponent } from 'vue';
+import { computed, defineAsyncComponent, onMounted } from 'vue';
+import { Chart, registerables } from 'chart.js';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import FlashMessage from '@/Components/FlashMessage.vue';
 import StatCard from '@/Components/StatCard.vue';
@@ -23,10 +24,13 @@ import {
   ArrowPathIcon as RefreshIcon 
 } from '@heroicons/vue/24/outline'
 
+// Form for resetting votes
 import { useForm } from '@inertiajs/vue3';
-
-const BarChart = defineAsyncComponent(() => import('@/Components/BarChart.vue'));
-const DoughnutChart = defineAsyncComponent(() => import('@/Components/DoughnutChart.vue'));
+import { Filler } from 'chart.js';
+onMounted(() => {
+  // Register the Filler plugin globally for Chart.js
+  Chart.register(Filler, ...registerables);
+});
 
 defineOptions({
   layout: AdminLayout,
@@ -39,6 +43,9 @@ const props = defineProps({
   dailyVotes: { type: Array, required: true },
   topNominees: { type: Array, required: true },
 });
+
+const BarChart = defineAsyncComponent(() => import('@/Components/BarChart.vue'));
+const DoughnutChart = defineAsyncComponent(() => import('@/Components/DoughnutChart.vue'));
 
 const page = usePage();
 const successMessage = computed(() => page.props.flash.success);
@@ -92,7 +99,6 @@ const topNomineesChartData = computed(() => ({
   }]
 }));
 
-// Form for resetting votes
 const form = useForm({});
 
 const resetVotes = () => {
@@ -184,6 +190,20 @@ const refreshData = () => {
       <StatCard title="Tickets Sold" :value="stats.tickets_sold" :href="route('admin.dashboard')" color="teal">
         <TicketIcon class="h-6 w-6" />
       </StatCard>
+
+      <!-- BORESHO: Ongeza kadi za Marathon -->
+      <StatCard title="Marathon Registrations" :value="stats.marathon_total" :href="route('admin.marathon.index')" color="blue">
+          <TicketIcon class="h-6 w-6" />
+      </StatCard>
+
+      <StatCard title="Marathon Completed" :value="stats.marathon_completed" :href="route('admin.marathon.index', { status: 'completed' })" color="green">
+          <CheckCircleIcon class="h-6 w-6" />
+      </StatCard>
+
+      <StatCard title="Marathon Pending" :value="stats.marathon_pending" :href="route('admin.marathon.index', { status: 'pending_payment' })" color="yellow">
+          <ApplicationIcon />
+      </StatCard>
+      <!-- Mwisho wa Boresho -->
     </div>
 
     <!-- Charts & Top Nominees -->

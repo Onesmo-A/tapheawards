@@ -4,9 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Models\NomineeApplication;
 use App\Models\Transaction;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use App\Models\MarathonRegistration; // BORESHO: Ongeza MarathonRegistration model
+use App\Mail\MarathonPaymentCompleted;
+use App\Mail\MarathonPaymentFailed;
+use App\Mail\NomineePaymentCompleted;
+use App\Mail\NomineePaymentFailed;
+use App\Notifications\NewMarathonRegistration; // BORESHO: Ongeza Notification ya Marathon
 
 class WebhookController extends Controller
 {
@@ -85,15 +92,41 @@ class WebhookController extends Controller
                         'payment_method' => $payload['channel'] ?? null,
                         'notes' => 'Webhook: Payment completed successfully.',
                     ]);
-                    $transaction->payable?->update(['status' => NomineeApplication::STATUS_PENDING_REVIEW]);
-                    Log::info('ZenoPay Webhook: DB Update - Transaction status updated to COMPLETED.', ['order_id' => $transaction->order_id, 'application_id' => $transaction->payable->id]);
+
+                    // BORESHO: Tambua aina ya malipo (Marathon au Nominee Application) na sasisha status ipasavyo
+                    if ($transaction->payable instanceof MarathonRegistration) {
+                        $transaction->payable->update(['status' => MarathonRegistration::STATUS_COMPLETED]);
+                        Log::info('ZenoPay Webhook: DB Update - Marathon Registration status updated to COMPLETED.', ['order_id' => $transaction->order_id, 'registration_id' => $transaction->payable_id]);
+                        // Tuma barua pepe kwa mshiriki
+                        if ($transaction->payable->email) {
+                            \Illuminate\Support\Facades\Mail::to($transaction->payable->email)->queue(new MarathonPaymentCompleted($transaction->payable));
+                        }
+                        // Tuma barua pepe kwa admin
+                        User::where('is_admin', true)->first()?->notify(new NewMarathonRegistration($transaction->payable));
+                    } elseif ($transaction->payable instanceof NomineeApplication) {
+                        $transaction->payable->update(['status' => NomineeApplication::STATUS_PENDING_REVIEW]);
+                        // Tuma barua pepe kwa mwombaji
+                        \Illuminate\Support\Facades\Mail::to($transaction->payable->applicant_email)->queue(new NomineePaymentCompleted($transaction->payable));
+                        Log::info('ZenoPay Webhook: DB Update - Nominee Application status updated to PENDING_REVIEW.', ['order_id' => $transaction->order_id, 'application_id' => $transaction->payable_id]);
+                    }
+
                 } elseif ($status === 'FAILED') {
                     $transaction->update([
                         'status' => Transaction::STATUS_FAILED,
                         'notes' => 'Webhook: Payment failed. Reason: ' . ($payload['message'] ?? 'Unknown'),
                     ]);
-                    $transaction->payable?->update(['status' => NomineeApplication::STATUS_PAYMENT_FAILED]);
-                    Log::info('ZenoPay Webhook: DB Update - Transaction status updated to FAILED.', ['order_id' => $transaction->order_id, 'application_id' => $transaction->payable->id]);
+                    // BORESHO: Sasisha status ya 'failed' kwa model husika
+                    $statusField = ($transaction->payable instanceof MarathonRegistration) ? MarathonRegistration::STATUS_PAYMENT_FAILED : NomineeApplication::STATUS_PAYMENT_FAILED;
+                    if ($transaction->payable) {
+                        $transaction->payable->update(['status' => $statusField]);
+                        // Tuma barua pepe ya malipo yaliyoshindikana
+                        if ($transaction->payable instanceof MarathonRegistration && $transaction->payable->email) {
+                            \Illuminate\Support\Facades\Mail::to($transaction->payable->email)->queue(new MarathonPaymentFailed($transaction->payable));
+                        } elseif ($transaction->payable instanceof NomineeApplication) {
+                            \Illuminate\Support\Facades\Mail::to($transaction->payable->applicant_email)->queue(new NomineePaymentFailed($transaction->payable));
+                        }
+                    }
+                    Log::info('ZenoPay Webhook: DB Update - Payable status updated to FAILED.', ['order_id' => $transaction->order_id, 'payable_id' => $transaction->payable_id]);
                 }
             });
             Log::info('ZenoPay Webhook: Process completed successfully. Sending 200 OK response.', ['order_id' => $orderId]);
