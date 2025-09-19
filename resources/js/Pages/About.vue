@@ -42,6 +42,36 @@ defineProps({
             <p class="mt-6 text-lg text-[var(--text-primary)] leading-8">
               Each year, we bring together healthcare leaders, medical practitioners, innovators, and key stakeholders to celebrate those who have demonstrated exceptional dedication, leadership, and contribution to improving health outcomes and advancing the healthcare system in Tanzania.
             </p>
+
+            <!-- BORESHO: Muundo mpya wa Testimonials -->
+            <div class="mt-12 space-y-8">
+              <!-- Testimonial 1 -->
+              <figure class="rounded-xl bg-gray-50 p-6 shadow-sm ring-1 ring-gray-900/5">
+                <blockquote class="text-gray-700">
+                  <p>“We are honored to welcome patients from across Africa who choose our hospitals for medical treatments and surgeries, a remarkable achievement in this sector.”</p>
+                </blockquote>
+                <figcaption class="mt-6 flex items-center gap-x-4">
+                  <img class="h-12 w-12 rounded-full bg-gray-200 object-cover" src="/images/testimonials/saad-mtambule.jpg" alt="Hon. Saad Mtambule">
+                  <div>
+                    <div class="font-semibold text-text-primary">Hon. Saad Mtambule</div>
+                    <div class="text-gray-600">District Commissioner, Kinondoni District</div>
+                  </div>
+                </figcaption>
+              </figure>
+              <!-- Testimonial 2 -->
+              <figure class="rounded-xl bg-gray-50 p-6 shadow-sm ring-1 ring-gray-900/5">
+                <blockquote class="text-gray-700">
+                  <p>“Participating in the Tanzania People’s Health Excellence (TAPHE) Awards offers more than just the chance to win trophies, it provides hospitals and individual professionals with significant public recognition and visibility.”</p>
+                </blockquote>
+                <figcaption class="mt-6 flex items-center gap-x-4">
+                  <img class="h-12 w-12 rounded-full bg-gray-200 object-cover" src="/images/testimonials/karim-haji.jpg" alt="Mr. Karim S. Haji">
+                  <div>
+                    <div class="font-semibold text-text-primary">Mr. Karim S. Haji</div>
+                    <div class="text-gray-600">Director - WICoL</div>
+                  </div>
+                </figcaption>
+              </figure>
+            </div>
           </div>
         </div>
       </div>

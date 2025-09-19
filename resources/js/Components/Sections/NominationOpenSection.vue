@@ -2,6 +2,11 @@
 import { ref } from 'vue';
 import NominationInfoModal from '@/Components/Modals/NominationInfoModal.vue';
 
+defineProps({
+    title: String,
+    dates: String,
+});
+
 const showModal = ref(false);
 </script>
 
@@ -17,10 +22,10 @@ const showModal = ref(false);
       <div class="text-center bg-white p-12 rounded-2xl shadow-2xl border border-gray-200">
 
         <!-- Heading -->
-        <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-black mb-6 drop-shadow-lg">
-          Nomination Applications Now Open!
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-black mb-8 drop-shadow-lg">
+          {{ title }}
         </h1>
-
+        <h3 class="mt-2 text-3xl font-bold tracking-tight text-text-primary sm:text-4xl mb-8 " >{{ dates }}</h3>
         <!-- Subheading / Description -->
         <p class="text-gray-700 text-lg mb-8 max-w-2xl mx-auto">
           Wahi sasa! Hii ni fursa yako ya kipekee kushiriki na kupewa heshima kwa juhudi zako.

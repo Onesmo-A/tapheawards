@@ -57,10 +57,16 @@ class WelcomeController extends Controller
 
         // NEW: Pata reels zilizochapishwa
         $reels = Reel::query()
-            ->whereNotNull('content') // FIX: Use the 'content' column which exists in the 'reels' table
+            ->where('is_active', true)
             ->latest()
             ->take(3) // Unaweza kubadilisha idadi
             ->get();
+
+            // BORESHO: Ongeza data ya testimonials
+            $testimonials = $this->getTestimonials();
+        } else {
+            $reels = collect();
+            $testimonials = collect();
         }
 
         return Inertia::render('Welcome', [
@@ -71,6 +77,9 @@ class WelcomeController extends Controller
             'settings' => [
                 'voting_active' => (bool) $settings->get('voting_active', true),
                 'voting_deadline' => $settings->get('voting_deadline'),
+                // BORESHO: Ongeza mipangilio ya nomination section
+                'nomination_open_title' => $settings->get('nomination_open_title', 'Nomination Applications Now Open!'),
+                'nomination_open_dates' => $settings->get('nomination_open_dates', '30 Aug - 3 Nov 2025'),
             ], 'updates' => $updates,
 
             // Hero slides for TAPHE Awards
@@ -109,6 +118,35 @@ class WelcomeController extends Controller
                 ],
             ],
             'reels' => $reels, // NEW: Tuma reels kwenye view
+            'testimonials' => $testimonials, // BORESHO: Tuma testimonials kwenye view
         ]);
+    }
+
+    /**
+     * BORESHO: Njia ya kupata data ya testimonials.
+     * Hii inaweza kuhamishiwa kwenye model au service baadaye.
+     */
+    private function getTestimonials()
+    {
+        return [
+            [
+                'id' => 1,
+                'body' => 'We are honored to welcome patients from across Africa who choose our hospitals for medical treatments and surgeries, a remarkable achievement in this sector.',
+                'author' => [
+                    'name' => 'Hon. Saad Mtambule',
+                    'role' => 'District Commissioner, Kinondoni District',
+                    'imageUrl' => '/images/testimonials/saad-mtambule.jpg', // Badilisha na picha halisi
+                ],
+            ],
+            [
+                'id' => 2,
+                'body' => 'Participating in the Tanzania People’s Health Excellence (TAPHE) Awards offers more than just the chance to win trophies, it provides hospitals and individual professionals with significant public recognition and visibility.',
+                'author' => [
+                    'name' => 'Mr. Karim S. Haji',
+                    'role' => 'Director - WICoL',
+                    'imageUrl' => '/images/testimonials/karim-haji.jpg', // Badilisha na picha halisi
+                ],
+            ],
+        ];
     }
 }

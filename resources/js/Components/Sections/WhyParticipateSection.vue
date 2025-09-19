@@ -13,10 +13,10 @@ const showModal = ref(false);
       <div class="text-center">
         <h2 class="text-base font-semibold leading-7 uppercase text-red-600">Why Participate?</h2>
         <p class="mt-2 text-4xl font-extrabold tracking-tight sm:text-5xl text-primary-gradient">
-          Tanzania Health Excellence Awards
+          TAPHE Awards
         </p>
         <p class="mt-6 max-w-2xl mx-auto text-lg leading-8 text-gray-600">
-          The Tanzania Health Excellence Awards celebrate individuals and organizations who are making outstanding contributions to the health sector.  
+          Tanzania Peaople'sHealth Excellence Awards celebrate individuals and organizations who are making outstanding contributions to the health sector.  
           From frontline healthcare workers to innovative medical institutions, this is your chance to shine nationally.
         </p>
       </div>
