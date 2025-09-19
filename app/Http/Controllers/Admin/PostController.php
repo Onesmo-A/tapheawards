@@ -17,16 +17,25 @@ class PostController extends Controller
      */
     public function index(Request $request)
     {
-        $posts = Post::query()
+        $posts = Post::query() // Anzisha query
             ->with('album:id,name') // Tumia jina sahihi la uhusiano 'album'
             ->when($request->input('search'), function ($query, $search) {
                 $query->where('title', 'like', "%{$search}%");
             })
             ->latest()
-            ->paginate(10)->withQueryString();
+            ->paginate(10)
+            ->withQueryString()
+            ->through(fn ($post) => [ // Badilisha data inayotumwa kwa kila post
+                'id' => $post->id,
+                'title' => $post->title,
+                'status' => $post->status,
+                'type' => $post->type,
+                'album' => $post->album,
+                'featured_image_url' => $post->featured_image ? Storage::url($post->featured_image) : null,
+            ]);
 
         return Inertia::render('Admin/Posts/Index', [
-            'posts' => $posts,
+            'posts' => $posts, // Tuma data iliyobadilishwa
             'filters' => $request->only(['search'])
         ]);
     }

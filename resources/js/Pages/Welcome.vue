@@ -4,12 +4,12 @@ import DefaultLayout from '@/Layouts/DefaultLayout.vue';
 import HeroSection from '@/Components/Sections/HeroSection.vue';
 import NominationOpenSection from '@/Components/Sections/NominationOpenSection.vue';
 import WhyParticipateSection from '@/Components/Sections/WhyParticipateSection.vue';
-import SponsorsSection from '@/Components/Sections/SponsorsSection.vue';
+import SponsorsSection from '@/Components/Sections/SponsorsSection.vue'; 
 import CategorySlider from '@/Components/Sections/CategorySlider.vue';
 import GallerySection from '@/Components/Sections/GallerySection.vue';
 import MapSection from '@/Components/Sections/MapSection.vue';
 import CountDownSection from '@/Components/Sections/CountdownSection.vue';
-import Testimonials from '@/Components/Sections/Testimonials.vue';
+import TestimonialSection from '@/Components/Sections/TestimonialSection.vue';
 import ReelsSection from '@/Components/Sections/ReelsSection.vue'; // NEW: Import Reels Section
 import SponsorCallUpSection from '@/Components/Sections/SponsorshipCTASection.vue';
 import SuggestNomineeSection from '@/Components/Sections/SuggestNomineeSection.vue';
@@ -27,6 +27,7 @@ defineProps({
    updates: Array,
   heroSlides: Array, // NEW
   reels: Array, // NEW: Ongeza reels prop
+  testimonials: Array, // BORESHO: Ongeza testimonials prop
 });
 </script>
 <template>
@@ -55,7 +56,10 @@ defineProps({
 
     <!-- Nomination Section -->
     <!-- TODO: Unaweza kuifanya hii section ionekane kwa condition, k.m. v-if="settings?.nomination_active" -->
-    <NominationOpenSection />
+    <NominationOpenSection
+        :title="settings.nomination_open_title"
+        :dates="settings.nomination_open_dates"
+    />
       <SponsorCallUpSection />
     <CountDownSection
       v-if="settings?.voting_active && settings.voting_deadline"
@@ -67,7 +71,10 @@ defineProps({
     <CategorySlider
       v-if="categories && categories.data && categories.data.length > 0"
       :categories="categories.data" />
- <Testimonials />
+
+    <!-- REKEBISHO: Pitisha data ya testimonials kwenye component -->
+    <TestimonialSection :testimonials="testimonials" />
+
     <!-- NEW: Add Reels Section -->
     <ReelsSection :reels="reels" />
 

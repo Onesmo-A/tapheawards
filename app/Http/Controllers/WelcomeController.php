@@ -77,9 +77,9 @@ class WelcomeController extends Controller
             'settings' => [
                 'voting_active' => (bool) $settings->get('voting_active', true),
                 'voting_deadline' => $settings->get('voting_deadline'),
-                // BORESHO: Ongeza mipangilio ya nomination section
-                'nomination_open_title' => $settings->get('nomination_open_title', 'Nomination Applications Now Open!'),
-                'nomination_open_dates' => $settings->get('nomination_open_dates', '30 Aug - 3 Nov 2025'),
+                // Ongeza mipangilio ya nomination section
+                'nomination_open_title' => $settings->get('nomination_open_title', 'Nomination Is Now Open'),
+                'nomination_open_dates' => $settings->get('nomination_open_dates', '15th July - 30th August 2024'),
             ], 'updates' => $updates,
 
             // Hero slides for TAPHE Awards
