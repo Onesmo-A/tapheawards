@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Cache;
 use App\Models\Category;
 use App\Models\Post;
 use App\Models\Nominee;
+use App\Models\Reel;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -53,6 +54,13 @@ class WelcomeController extends Controller
                 $categoryNominees = $nomineesByCategory->get($category->id, collect());
                 $category->setRelation('nominees', $categoryNominees->take(4));
             });
+
+        // NEW: Pata reels zilizochapishwa
+        $reels = Reel::query()
+            ->whereNotNull('content') // FIX: Use the 'content' column which exists in the 'reels' table
+            ->latest()
+            ->take(3) // Unaweza kubadilisha idadi
+            ->get();
         }
 
         return Inertia::render('Welcome', [
@@ -100,6 +108,7 @@ class WelcomeController extends Controller
                     ],
                 ],
             ],
+            'reels' => $reels, // NEW: Tuma reels kwenye view
         ]);
     }
 }

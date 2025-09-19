@@ -18,17 +18,16 @@ class PostController extends Controller
     public function index(Request $request)
     {
         $posts = Post::query()
-            ->with('galleryAlbum:id,name')
+            ->with('album:id,name') // Tumia jina sahihi la uhusiano 'album'
             ->when($request->input('search'), function ($query, $search) {
                 $query->where('title', 'like', "%{$search}%");
             })
             ->latest()
-            ->paginate(10)
-            ->withQueryString();
+            ->paginate(10)->withQueryString();
 
         return Inertia::render('Admin/Posts/Index', [
             'posts' => $posts,
-            'filters' => $request->only(['search']),
+            'filters' => $request->only(['search'])
         ]);
     }
 

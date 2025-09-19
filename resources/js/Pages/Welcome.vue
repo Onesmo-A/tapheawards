@@ -10,6 +10,7 @@ import GallerySection from '@/Components/Sections/GallerySection.vue';
 import MapSection from '@/Components/Sections/MapSection.vue';
 import CountDownSection from '@/Components/Sections/CountdownSection.vue';
 import Testimonials from '@/Components/Sections/Testimonials.vue';
+import ReelsSection from '@/Components/Sections/ReelsSection.vue'; // NEW: Import Reels Section
 import SponsorCallUpSection from '@/Components/Sections/SponsorshipCTASection.vue';
 import SuggestNomineeSection from '@/Components/Sections/SuggestNomineeSection.vue';
 import MarathonCTASection from '@/Components/Sections/MarathonCTASection.vue'; // NEW: Import Marathon Section
@@ -25,6 +26,7 @@ defineProps({
   settings: Object,
    updates: Array,
   heroSlides: Array, // NEW
+  reels: Array, // NEW: Ongeza reels prop
 });
 </script>
 <template>
@@ -66,6 +68,9 @@ defineProps({
       v-if="categories && categories.data && categories.data.length > 0"
       :categories="categories.data" />
  <Testimonials />
+    <!-- NEW: Add Reels Section -->
+    <ReelsSection :reels="reels" />
+
     <SuggestNomineeSection />
     <WhyParticipateSection />
     <SponsorsSection />
