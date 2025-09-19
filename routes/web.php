@@ -113,7 +113,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/invitations/export/pdf', [AdminInvitationController::class, 'exportPdf'])->name('invitations.export.pdf');
     Route::delete('/suggestions/{suggestion}', [AdminSuggestionController::class, 'destroy'])->name('suggestions.destroy');
     // Posts (Updates, Gallery, Events) Management
-    Route::resource('posts', \App\Http\Controllers\Admin\PostController::class);
+    Route::resource('posts', \App\Http\Controllers\Admin\PostController::class)->names('posts');
+    // Gallery Albums
+    Route::resource('gallery-albums', \App\Http\Controllers\Admin\GalleryAlbumController::class)->names('gallery-albums');
+    // Reels Management
+    Route::resource('reels', \App\Http\Controllers\Admin\ReelController::class)->except(['show'])->names('reels');
 
     // BORESHO: Admin Marathon Management
     Route::resource('marathon', \App\Http\Controllers\Admin\MarathonController::class)->only(['index', 'show'])->names('marathon');

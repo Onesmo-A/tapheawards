@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Response;
 
 class PostController extends Controller
@@ -16,10 +17,10 @@ class PostController extends Controller
         }
 
         // Ongeza URL kamili ya picha
-        $post->featured_image_url = $post->featured_image ? asset('storage/' . $post->featured_image) : null;
+        $post->featured_image_url = $post->featured_image ? Storage::url($post->featured_image) : null;
         if ($post->media_gallery) {
             $post->media_gallery = collect($post->media_gallery)->map(function ($path) {
-                return asset('storage/' . $path);
+                return Storage::url($path);
             })->all();
         }
 

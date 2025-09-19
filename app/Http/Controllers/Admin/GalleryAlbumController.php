@@ -74,7 +74,7 @@ class GalleryAlbumController extends Controller
     public function update(Request $request, GalleryAlbum $galleryAlbum)
     {
         $validated = $this->validateAlbum($request, $galleryAlbum->id);
-        
+
         $updateData = $validated;
         $updateData['slug'] = Str::slug($validated['name']);
 
@@ -83,6 +83,12 @@ class GalleryAlbumController extends Controller
                 Storage::disk('public')->delete($galleryAlbum->cover_image);
             }
             $updateData['cover_image'] = $request->file('cover_image')->store('album_covers', 'public');
+        }
+
+        // Ikiwa hakuna picha mpya na mtumiaji anataka kuondoa iliyopo
+        if ($request->input('remove_cover_image') && $galleryAlbum->cover_image) {
+            Storage::disk('public')->delete($galleryAlbum->cover_image);
+            $updateData['cover_image'] = null;
         }
 
         $galleryAlbum->update($updateData);

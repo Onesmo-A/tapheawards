@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Post;
+use App\Models\GalleryAlbum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -14,19 +15,20 @@ class PostController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $posts = Post::latest()->paginate(15)->through(fn ($post) => [
-            'id' => $post->id,
-            'title' => $post->title,
-            'slug' => $post->slug,
-            'type' => $post->type,
-            'status' => $post->status,
-            'published_at' => $post->published_at,
-        ]);
+        $posts = Post::query()
+            ->with('galleryAlbum:id,name')
+            ->when($request->input('search'), function ($query, $search) {
+                $query->where('title', 'like', "%{$search}%");
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('Admin/Posts/Index', [
             'posts' => $posts,
+            'filters' => $request->only(['search']),
         ]);
     }
 
@@ -35,7 +37,10 @@ class PostController extends Controller
      */
     public function create()
     {
-        return Inertia::render('Admin/Posts/Form');
+        return Inertia::render('Admin/Posts/Form', [
+            'post' => null,
+            'albums' => GalleryAlbum::where('is_published', true)->get(['id', 'name']),
+        ]);
     }
 
     /**
@@ -58,15 +63,24 @@ class PostController extends Controller
     }
 
     /**
+     * Display the specified resource.
+     */
+    public function show(Post $post)
+    {
+        // Redirect to edit page as we don't have a separate show view in admin
+        return redirect()->route('admin.posts.edit', $post);
+    }
+
+    /**
      * Show the form for editing the specified resource.
      */
     public function edit(Post $post)
     {
-        // Ongeza URL kamili ya picha ili ionekane kwenye fomu
         $post->featured_image_url = $post->featured_image ? Storage::url($post->featured_image) : null;
 
         return Inertia::render('Admin/Posts/Form', [
             'post' => $post,
+            'albums' => GalleryAlbum::where('is_published', true)->get(['id', 'name']),
         ]);
     }
 
@@ -77,18 +91,17 @@ class PostController extends Controller
     {
         $validated = $this->validatePost($request, $post->id);
 
-        $post->fill($validated);
-        $post->slug = Str::slug($validated['title']);
+        $updateData = $validated;
+        $updateData['slug'] = Str::slug($validated['title']);
 
         if ($request->hasFile('featured_image')) {
-            // Futa picha ya zamani kama ipo
             if ($post->featured_image) {
                 Storage::disk('public')->delete($post->featured_image);
             }
-            $post->featured_image = $request->file('featured_image')->store('post_images', 'public');
+            $updateData['featured_image'] = $request->file('featured_image')->store('post_images', 'public');
         }
 
-        $post->save();
+        $post->update($updateData);
 
         return redirect()->route('admin.posts.index')->with('success', 'Post updated successfully.');
     }
@@ -98,7 +111,6 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
-        // Futa picha iliyohifadhiwa
         if ($post->featured_image) {
             Storage::disk('public')->delete($post->featured_image);
         }
@@ -109,21 +121,19 @@ class PostController extends Controller
     }
 
     /**
-     * Reusable validation method.
+     * Validate the post request.
      */
     private function validatePost(Request $request, $postId = null): array
     {
-        $rules = [
-            'title' => 'required|string|max:255',
-            'excerpt' => 'nullable|string|max:500',
+        return $request->validate([
+            'title' => 'required|string|max:255|unique:posts,title,' . $postId,
+            'excerpt' => 'nullable|string|max:1000',
             'content' => 'nullable|string',
             'type' => 'required|in:update,gallery,event',
             'status' => 'required|in:draft,published',
-            'published_at' => 'nullable|date',
             'featured_image' => 'nullable|image|max:2048', // 2MB Max
-        ];
-
-        return $request->validate($rules);
+            'published_at' => 'nullable|date',
+            'gallery_album_id' => 'nullable|exists:gallery_albums,id',
+        ]);
     }
 }
-

@@ -16,7 +16,7 @@ const lightboxOpen = ref(false);
 const currentImage = ref('');
 
 const openLightbox = (post) => {
-  currentImage.value = `/storage/${post.featured_image}`;
+  currentImage.value = post.featured_image_url;
   lightboxOpen.value = true;
 };
 
@@ -45,8 +45,8 @@ const closeLightbox = () => {
       </div>
 
       <div class="mx-auto max-w-2xl text-center">
-        <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">{{ album.name }}</h2>
-        <p v-if="album.description" class="mt-4 text-lg leading-8 text-gray-300">{{ album.description }}</p>
+        <h2 class="text-3xl font-bold tracking-tight text-primary-gradient sm:text-4xl">{{ album.name }}</h2>
+        <p v-if="album.description" class="mt-4 text-lg leading-8 text-gray-600">{{ album.description }}</p>
       </div>
 
       <div class="mt-16 columns-1 gap-5 sm:columns-2 sm:gap-8 md:columns-3 lg:columns-4 [&>div:not(:first-child)]:mt-8">
@@ -56,7 +56,7 @@ const closeLightbox = () => {
           class="transform cursor-pointer rounded-lg overflow-hidden transition-transform duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-gold-500/20"
           @click="openLightbox(post)"
         >
-            <img :src="`/storage/${post.featured_image}`" :alt="post.title" class="w-full h-full object-cover" />
+            <img :src="post.featured_image_url" :alt="post.title" class="w-full h-full object-cover" loading="lazy" />
         </div>
       </div>
     </div>
@@ -64,6 +64,6 @@ const closeLightbox = () => {
 
   <!-- Lightbox Modal -->
   <div v-if="lightboxOpen" @click="closeLightbox" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 p-4 transition-opacity duration-300">
-    <img :src="currentImage" alt="Lightbox Image" class="max-h-full max-w-full rounded-lg" @click.stop />
+    <img :src="currentImage" alt="Lightbox Image" class="max-h-full max-w-full rounded-lg" @click.stop loading="eager" />
   </div>
 </template>

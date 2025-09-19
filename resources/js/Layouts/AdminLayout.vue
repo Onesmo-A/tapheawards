@@ -28,7 +28,9 @@ import {
     TicketIcon,
     UserCircleIcon,
     DocumentPlusIcon,
-    QueueListIcon
+    QueueListIcon, 
+    PhotoIcon,
+    VideoCameraIcon,
 } from '@heroicons/vue/24/outline';
 
 const page = usePage();
@@ -48,7 +50,9 @@ const menuItems = [
         children: [
             { name: 'Categories', route: 'admin.categories.index', icon: CategoryIcon, activePattern: 'admin.categories.*' },
             { name: 'Nominees', route: 'admin.nominees.index', icon: UserGroupIcon, activePattern: 'admin.nominees.*' },
+            { name: 'Gallery Albums', route: 'admin.gallery-albums.index', icon: PhotoIcon, activePattern: 'admin.gallery-albums.*' },
             { name: 'Posts', route: 'admin.posts.index', icon: NewspaperIcon, activePattern: 'admin.posts.*' },
+            { name: 'Reels', route: 'admin.reels.index', icon: VideoCameraIcon, activePattern: 'admin.reels.*' },
         ]
     },
     {
