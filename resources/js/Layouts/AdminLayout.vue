@@ -59,7 +59,7 @@ const menuItems = [
             { name: 'Applications', route: 'admin.applications.index', icon: DocumentTextIcon, activePattern: 'admin.applications.*' },
             { name: 'Transactions', route: 'admin.transactions.index', icon: TransactionIcon, activePattern: 'admin.transactions.*' },
             { name: 'Suggestions', route: 'admin.suggestions.index', icon: SuggestionIcon, activePattern: 'admin.suggestions.*' },
-            { name: 'Users', route: 'admin.users.index', icon: UserGroupIcon, activePattern: 'admin.users.*' }
+            { name: 'Users', route: 'admin.users.index', icon: UserGroupIcon, activePattern: 'admin.users.*' },
         ]
     },
     {

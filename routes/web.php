@@ -177,6 +177,7 @@ Route::get('/results/{year}/{category:slug}', [AwardsController::class, 'results
 Route::get('/news', [NewsController::class, 'index'])->name('news.index');
 
 Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery.index');
+Route::get('/gallery/{album:slug}', [GalleryController::class, 'show'])->name('gallery.show');
 Route::get('/events', [EventController::class, 'index'])->name('events.index');
 
 

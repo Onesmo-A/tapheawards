@@ -183,7 +183,7 @@ const refreshData = () => {
         <VoteIcon />
       </StatCard>
 
-      <StatCard title="Total Users" :value="stats.users" :href="route('admin.dashboard')" color="pink">
+      <StatCard title="Total Users" :value="stats.users" :href="route('admin.users.index')" color="pink">
         <UserIcon class="h-6 w-6" />
       </StatCard>
 

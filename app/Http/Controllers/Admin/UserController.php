@@ -9,21 +9,15 @@ use Inertia\Inertia;
 
 class UserController extends Controller
 {
+    /**
+     * Display a listing of the resource.
+     */
     public function index(Request $request)
     {
         $users = User::query()
-            ->when($request->input('search'), function ($query, $search) {
-                $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
-            })
-            ->when($request->input('role') === 'admin', function ($query) {
-                $query->where('is_admin', true);
-            })
-            ->when($request->input('role') === 'user', function ($query) {
-                $query->where('is_admin', false);
-            })
-            ->latest()
-            ->paginate(20)
+            ->filter($request->only('search', 'role'))
+            ->orderBy('name')
+            ->paginate(15)
             ->withQueryString();
 
         return Inertia::render('Admin/Users/Index', [

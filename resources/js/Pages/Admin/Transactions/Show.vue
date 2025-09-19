@@ -5,12 +5,12 @@
                 <!-- Header -->
                 <div class="bg-white shadow sm:rounded-lg">
                     <div class="px-4 py-5 sm:p-6">
-                        <div class="flex items-start justify-between">
+                        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                             <div>
                                 <p class="text-sm font-medium text-gray-500">Transaction Details</p>
                                 <h2 class="mt-1 text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:tracking-tight font-mono">{{ transaction.order_id }}</h2>
                             </div>
-                            <div class="ml-4 mt-0 flex-shrink-0">
+                            <div class="sm:ml-4 mt-0 flex-shrink-0">
                                 <span :class="statusClass(transaction.status)" class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset">
                                     {{ formatStatus(transaction.status) }}
                                 </span>
@@ -45,7 +45,7 @@
                                     </div>
                                      <div class="py-3 sm:grid sm:grid-cols-3 sm:gap-4">
                                         <dt class="text-sm font-medium text-gray-500">Notes</dt>
-                                        <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{{ transaction.notes || 'N/A' }}</dd>
+                                        <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0 break-words">{{ transaction.notes || 'N/A' }}</dd>
                                     </div>
                                 </dl>
                             </div>
@@ -60,7 +60,7 @@
                                 <dl class="divide-y divide-gray-200">
                                     <div class="py-3 sm:grid sm:grid-cols-3 sm:gap-4">
                                         <dt class="text-sm font-medium text-gray-500">User</dt>
-                                        <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{{ transaction.user.name }}</dd>
+                                        <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{{ transaction.user?.name || 'Guest User' }}</dd>
                                     </div>
                                     <div v-if="transaction.payable" class="py-3 sm:grid sm:grid-cols-3 sm:gap-4">
                                         <dt class="text-sm font-medium text-gray-500">For Application</dt>

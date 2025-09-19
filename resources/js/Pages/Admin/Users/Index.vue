@@ -128,13 +128,3 @@ watch([search, role], debounce(function ([searchValue, roleValue]) {
         </div>
     </div>
 </template>
-
-```
-
-#### d. Update Admin Sidebar
-
-Finally, let's add a link to the new User Management page in the admin sidebar layout.
-
-```diff
---- a/c:\xampp\htdocs\tapheawards\resources_restored\js\Layouts\AdminLayout.vue
-+++ b/c:\xampp\htdocs\tapheawards\resources_restored\js\Layouts\AdminLayout.vue

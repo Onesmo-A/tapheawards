@@ -1,76 +1,58 @@
 <script setup>
-import { ref } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import DefaultLayout from '@/Layouts/DefaultLayout.vue';
-import PageHeader from '@/Components/Layout/PageHeader.vue';
-import ImageModal from '@/Components/ImageModal.vue';
+import Pagination from '@/Components/Pagination.vue';
 
-defineOptions({ layout: DefaultLayout, });
-
-const props = defineProps({
-    title: String,
-    description: String,
-    galleryItems: Object,
+defineOptions({
+  layout: DefaultLayout,
 });
 
-const showingImage = ref(null);
-
-const showImage = (item) => {
-    showingImage.value = item;
-};
-
-const closeImageModal = () => {
-    showingImage.value = null;
-};
-
-const formatDate = (dateString) => {
-    if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: 'short',
-    });
-};
+defineProps({
+  albums: Object,
+  title: String,
+  description: String,
+});
 </script>
 
 <template>
-  <Head :title="title" />
+  <Head>
+    <title>{{ title }}</title>
+    <meta name="description" :content="description" />
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" :content="title" />
+    <meta property="og:description" :content="description" />
+    <meta property="og:image" content="/images/logo.png" />
+    <meta property="og:url" :content="route('gallery.index')" />
+    <meta property="twitter:card" content="summary_large_image" />
+  </Head>
 
-    <PageHeader 
-        :title="title"
-        :subtitle="description"
-    />
+  <div class="bg-background-section pt-24 sm:pt-32">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <div class="mx-auto max-w-2xl text-center">
+        <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">{{ title }}</h2>
+        <p class="mt-2 text-lg leading-8 text-gray-300">{{ description }}</p>
+      </div>
 
-    <main class="bg-background-section">
-        <div class="py-16 sm:py-24">
-            <div class="mx-auto max-w-7xl px-6 lg:px-8">
-                <div v-if="galleryItems && galleryItems.data.length > 0" class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                    <div 
-                        v-for="item in galleryItems.data" 
-                        :key="item.id" 
-                        @click="showImage(item)" 
-                        class="group relative aspect-w-1 aspect-h-1 cursor-pointer overflow-hidden rounded-lg bg-gray-200 dark:bg-gray-800 shadow-lg"
-                    >
-                        <img :src="item.featured_image_url" :alt="item.title" class="h-full w-full object-cover object-center transition-all duration-300 ease-in-out group-hover:scale-110 group-hover:brightness-75" />
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                        <div class="absolute bottom-0 left-0 p-3 w-full">
-                            <time class="text-xs font-medium text-white bg-black bg-opacity-40 rounded px-1.5 py-0.5 transition-opacity duration-300 opacity-0 group-hover:opacity-100">{{ formatDate(item.published_at) }}</time>
-                            <p class="text-sm font-semibold text-white mt-1 truncate transition-transform duration-300 transform translate-y-4 group-hover:translate-y-0">{{ item.title }}</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div v-else class="text-center text-gray-500 dark:text-gray-400 py-16">
-                    <p class="text-lg">Hakuna picha zilizochapishwa bado.</p>
-                    <p class="mt-2">Tafadhali rudi tena baadae.</p>
-                </div>
-            </div>
-        </div>
-    </main>
+      <div class="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-20 lg:mx-0 lg:max-w-none lg:grid-cols-3">
+        <article v-for="album in albums.data" :key="album.id" class="group relative isolate flex flex-col justify-end overflow-hidden rounded-2xl bg-gray-900 px-8 pb-8 pt-80 sm:pt-48 lg:pt-80 shadow-lg">
+          <img :src="album.cover_image" :alt="album.name" class="absolute inset-0 -z-10 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+          <div class="absolute inset-0 -z-10 bg-gradient-to-t from-gray-900 via-gray-900/60"></div>
+          <div class="absolute inset-0 -z-10 rounded-2xl ring-1 ring-inset ring-gray-900/10"></div>
 
-    <ImageModal 
-        :show="showingImage !== null" 
-        :image-url="showingImage?.featured_image_url" 
-        :alt-text="showingImage?.title"
-        @close="closeImageModal"
-    />
+          <h3 class="mt-3 text-lg font-semibold leading-6 text-white">
+            <Link :href="route('gallery.show', album.slug)">
+              <span class="absolute inset-0"></span>
+              {{ album.name }}
+            </Link>
+          </h3>
+          <p v-if="album.description" class="mt-2 line-clamp-2 text-sm leading-6 text-gray-300">{{ album.description }}</p>
+        </article>
+      </div>
+
+      <!-- Pagination -->
+      <div v-if="albums.links.length > 3" class="mt-16">
+        <Pagination :links="albums.links" />
+      </div>
+    </div>
+  </div>
 </template>
