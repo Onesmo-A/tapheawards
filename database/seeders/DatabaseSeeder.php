@@ -13,7 +13,8 @@ class DatabaseSeeder extends Seeder
     {
         // Only run WinnerSeeder
         $this->call([
-            WinnerSeeder::class,
+            // WinnerSeeder::class,
+            TicketTypeSeeder::class,
         ]);
     }
 }

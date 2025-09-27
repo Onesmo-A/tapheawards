@@ -1,8 +1,8 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
-import AuthenticatedLayout from '@/Layouts/AAAAAuthenticatedLayout.vue';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
 
-defineOptions({ layout: AuthenticatedLayout });
+defineOptions({ layout: AdminLayout });
 
 const props = defineProps({
     applications: Object, // BORESHO: Data ya Paginator ni Object, sio Array
@@ -46,7 +46,7 @@ const statusDetails = (status) => {
             <!-- Header -->
             <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
                 <div>
-                    <h1 class="text-3xl font-bold tracking-tight text-gray-900">Maombi Yangu</h1>
+                    <h1 class="text-3xl font-bold tracking-tight text-white">Maombi Yangu</h1>
                     <p class="mt-2 text-sm text-gray-600">Tazama historia na hali ya maombi yako yote ya tuzo.</p>
                 </div>
                 <div class="mt-4 md:mt-0">

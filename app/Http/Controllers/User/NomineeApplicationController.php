@@ -5,7 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Category;
-use App\Models\NomineeApplication;
+use App\Models\NomineeApplication; // BORESHO: Ongeza notisi mpya
 use App\Notifications\NewNomineeApplication;
 use App\Jobs\InitiateZenoPayPayment;
 use Illuminate\Http\Request;
@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use App\Notifications\ApplicationSubmitted;
 use Inertia\Response as InertiaResponse;
 
 class NomineeApplicationController extends Controller
@@ -142,12 +143,13 @@ class NomineeApplicationController extends Controller
                 // Dispatch the job to handle payment initiation in the background
                 InitiateZenoPayPayment::dispatch($application->transaction);
 
-                // BORESHO: Tuma notisi kwa admin ndani ya try-catch kuzuia error kama email haipo
+                // BORESHO: Tuma notisi kwa mwombaji kumjulisha ombi limepokelewa
                 try {
-                    User::where('is_admin', true)->first()?->notify(new NewNomineeApplication($application));
+                    $request->user()->notify(new ApplicationSubmitted($application));
                 } catch (\Exception $e) {
-                    // Log kosa la email bila kumzuia mtumiaji
-                    Log::error('Failed to send new application notification email: ' . $e->getMessage());
+                    // Log kosa la kutuma email kwa mwombaji bila kumzuia
+                    Log::error('Failed to send application submitted notification to user.', 
+                        ['user_id' => $request->user()->id, 'application_id' => $application->id, 'error' => $e->getMessage()]);
                 }
 
                 return $application;

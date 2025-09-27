@@ -1,8 +1,12 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
 import Stepper from '@/Components/Stepper.vue';
-import AuthenticatedLayout from '@/Layouts/AAAAAuthenticatedLayout.vue';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { ChevronRightIcon } from '@heroicons/vue/24/solid';
+
+defineOptions({
+    layout: AdminLayout
+});
 
 defineProps({
     categoryGroups: Array,
@@ -18,13 +22,9 @@ const steps = [
 <template>
     <Head title="Anzisha Maombi - Chagua Tuzo" />
 
-    <AuthenticatedLayout>
-        <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Anzisha Maombi ya Tuzo</h2>
-        </template>
-
-        <div class="py-12">
-            <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-12">
+        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <Stepper :steps="steps" class="mb-8" />
 
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
@@ -53,6 +53,6 @@ const steps = [
                     </div>
                 </div>
             </div>
-        </div>
-    </AuthenticatedLayout>
+        </div> 
+    </div>
 </template>

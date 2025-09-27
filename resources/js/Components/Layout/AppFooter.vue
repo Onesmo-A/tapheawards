@@ -105,7 +105,7 @@ const socialLinks = [
             rel="noopener" 
             class="font-semibold text-red-500 hover:underline"
           >
-            Native Technology Ltd | +255 743 331 626
+            Native Technology | +255 743 331 626
           </a>
         </p>
       </div>

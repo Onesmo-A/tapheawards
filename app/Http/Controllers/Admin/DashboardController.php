@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\Ticket;
+use App\Models\TicketPurchase;
 use App\Models\Post;
 use App\Models\MarathonRegistration; // BORESHO: Ongeza MarathonRegistration model
 use App\Models\Nominee;
@@ -46,7 +48,12 @@ class DashboardController extends Controller
         ];
 
         // BORESHO: Ongeza takwimu tuli (static) kwa ajili ya tiketi
-        $stats['tickets_sold'] = 0; // Weka 0 kwa sasa
+        // BORESHO: Pata takwimu halisi za tiketi
+        $stats['tickets_sold'] = TicketPurchase::where('status', TicketPurchase::STATUS_COMPLETED)->sum('quantity');
+        $stats['tickets_revenue'] = TicketPurchase::where('status', TicketPurchase::STATUS_COMPLETED)->sum('total_amount');
+        // REKEBISHO: Taarifa ya 'checked_in_at' ipo kwenye jedwali la 'tickets', sio 'ticket_purchases'.
+        // Tunatumia 'whereHas' na 'whereNotNull' kwenye uhusiano wa 'tickets' ili kupata idadi sahihi.
+        $stats['tickets_checked_in'] = Ticket::whereNotNull('checked_in_at')->count();
 
         // Get categories with the sum of votes from their nominees
         // BORESHO: Hakikisha tunapata kategoria za tuzo tu (child categories) na sio makundi makuu.

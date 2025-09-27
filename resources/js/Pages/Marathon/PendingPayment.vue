@@ -50,8 +50,12 @@ const checkPaymentStatus = async () => {
 };
 
 onMounted(() => {
-    checkPaymentStatus();
-    intervalId = setInterval(checkPaymentStatus, 8000);
+    // BORESHO: Chelewesha ukaguzi wa kwanza ili kumpa mtumiaji muda wa kupokea STK push.
+    // Anza kuangalia status baada ya sekunde 8.
+    setTimeout(() => {
+        checkPaymentStatus(); // Fanya ukaguzi wa kwanza
+        intervalId = setInterval(checkPaymentStatus, 10000); // Endelea kuangalia kila baada ya sekunde 10
+    }, 60000);
 });
 
 onUnmounted(() => {

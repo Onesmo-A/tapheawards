@@ -13,15 +13,15 @@ class DashboardController extends Controller
      */
     public function index(): Response
     {
-        // BORESHO: Pata takwimu halisi kwa ajili ya dashboard ya mtumiaji.
+        // Pata mtumiaji aliyeingia
+        $user = auth()->user();
+
+        // Pata takwimu za maombi ya mtumiaji huyu pekee.
         $stats = [
-            // BORESHO: Hesabu jumla ya kategoria za tuzo zinazopokea maombi.
-            // Hizi ni kategoria ndogo (zina parent_id) na ziko 'active'.
-            'award_categories' => Category::where('status', 'active')->whereNotNull('parent_id')->count(),
-            // Hesabu maombi yote yaliyokubaliwa.
-            'approved_applications' => NomineeApplication::where('status', NomineeApplication::STATUS_APPROVED)->count(),
-            // Hesabu maombi yote yaliyokataliwa.
-            'rejected_applications' => NomineeApplication::where('status', NomineeApplication::STATUS_REJECTED)->count(),
+            // Hesabu maombi yaliyokubaliwa ya mtumiaji huyu.
+            'approved_applications' => $user->nomineeApplications()->where('status', NomineeApplication::STATUS_APPROVED)->count(),
+            // Hesabu maombi yaliyokataliwa ya mtumiaji huyu.
+            'rejected_applications' => $user->nomineeApplications()->where('status', NomineeApplication::STATUS_REJECTED)->count(),
         ];
 
         // Inarejesha component ya 'Dashboard/Index' na kutuma takwimu kama 'props'.

@@ -7,6 +7,7 @@ const props = defineProps({
     href: String,
     active: Boolean,
     item: Object,
+    sidebarOpen: { type: Boolean, default: true },
     isSubmenu: { type: Boolean, default: false }, // Ongeza prop hii
 });
 
@@ -44,36 +45,22 @@ const toggleSubmenu = () => {
 
 <template>
     <div>
-        <component
-            :is="hasChildren ? 'button' : (href === '#' ? 'button' : Link)"
-            :href="href !== '#' ? href : null"
-            @click="toggleSubmenu" class="w-full text-left flex items-center rounded-lg transition-colors duration-200"
+        <!-- REKEBISHO: Rahisisha component, ondoa mantiki ya kujirudia. Sasa inashughulikia linki moja tu. -->
+        <Link
+            :href="href"
+            class="w-full text-left flex items-center rounded-lg transition-colors duration-200"
             :class="[
-                isSubmenu && href
-                    ? 'p-2 text-sm' // Classes za submenu
-                    : 'p-2', // Classes za menu kuu (kama inatumika)
-                active || isSubmenuActive
-                    ? (isSubmenu ? 'text-gold-400 font-semibold' : 'bg-gold-500/10 text-gold-300')
-                    : 'text-gray-400 hover:text-white',
+                isSubmenu ? 'py-2 px-2 text-sm' : 'py-3 px-4',
+                !sidebarOpen && !isSubmenu ? 'px-2 justify-center' : '',
+                active ? (isSubmenu ? 'text-gold-400 font-semibold' : 'text-white bg-gray-800') : 'text-gray-400 hover:bg-gray-800 hover:text-white',
                 item.disabled ? 'opacity-50 cursor-not-allowed' : ''
             ]"
             :disabled="item.disabled"
-            :title="item.disabled ? 'Tayari una ombi linaloendelea' : ''"
+            :title="item.disabled ? 'Tayari una ombi linaloendelea' : (!sidebarOpen ? item.name : '')"
         >
-            <!-- REKEBISHO: Tumia 'item.icon' moja kwa moja kwa sababu ni component iliyopitishwa -->
-            <component :is="item.icon" class="h-5 w-5 mr-3 flex-shrink-0 text-gray-500" :class="{'text-gold-400': active || isSubmenuActive}" />
-            <span class="flex-1">{{ item.name }}</span>
-            <ChevronDownIcon v-if="hasChildren" class="h-5 w-5 transition-transform duration-300" :class="{ 'rotate-180': isSubmenuOpen }" />
-        </component>
-
-        <div v-if="hasChildren && isSubmenuOpen" class="mt-2 pl-6 space-y-2">
-            <SidebarLink
-                v-for="child in item.children"
-                :key="child.name"
-                :href="route(child.route)"
-                :active="route().current(child.route + '*')"
-                :item="child"
-            />
-        </div>
+            <component :is="item.icon" class="h-6 w-6 flex-shrink-0" :class="[active ? 'text-gold-400' : 'text-gray-500', sidebarOpen ? 'w-6' : 'w-7']" />
+            <span class="ml-4 flex-1" v-show="sidebarOpen">{{ item.name }}</span>
+            <span v-if="item.notification" class="ml-auto w-2 h-2 rounded-full bg-gold-500" v-show="sidebarOpen"></span>
+        </Link>
     </div>
 </template>

@@ -22,11 +22,12 @@ import {
     TrophyIcon,
     DocumentTextIcon,
     CurrencyDollarIcon as TransactionIcon,
-    Cog6ToothIcon as CogIcon,
+    Cog6ToothIcon as CogIcon, // BORESHO: Ongeza TicketIcon
     LightBulbIcon as SuggestionIcon,
     NewspaperIcon,
     TicketIcon,
     UserCircleIcon,
+    AdjustmentsHorizontalIcon,
     DocumentPlusIcon,
     QueueListIcon, 
     PhotoIcon,
@@ -72,6 +73,19 @@ const menuItems = [
         icon: TicketIcon,
         children: [],
         activePattern: 'admin.marathon.*'
+    },
+    {
+        name: 'Tickets',
+        icon: TicketIcon,
+        key: 'tickets',
+        children: [
+            { name: 'Ticket Types', route: 'admin.ticket-types.index', icon: AdjustmentsHorizontalIcon, activePattern: 'admin.ticket-types.*' },
+            { name: 'Dashboard', route: 'admin.tickets.dashboard', icon: DashboardIcon, activePattern: 'admin.tickets.dashboard' },
+            { name: 'Create Tickets', route: 'admin.tickets.create', icon: DocumentPlusIcon, activePattern: 'admin.tickets.create' },
+            { name: 'Scan Ticket', route: 'admin.tickets.scan', icon: h(TicketIcon, { class: 'transform rotate-90' }), activePattern: 'admin.tickets.scan' },
+        ],
+        // BORESHO: Badilisha jina la menyu kuu na panga upya linki za ndani
+        // 'Aina za Tiketi' sasa ni ya kwanza, ikifuatiwa na 'Dashboard' na 'Scan'
     },
     {
         name: 'Voting',
@@ -192,9 +206,8 @@ onUnmounted(() => {
                 <div v-if="$slots.header" class="mb-6">
                     <slot name="header" />
                 </div>
-                <div class="bg-gray-800/50 border border-gold-500/10 shadow-2xl overflow-hidden sm:rounded-2xl p-6">
-                    <slot />
-                </div>
+                <!-- REKEBISHO: Ondoa kontena la nje ili kuruhusu kurasa za ndani zijipangilie zenyewe -->
+                <slot />
             </main>
         </div>
 

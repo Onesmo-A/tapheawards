@@ -1,7 +1,7 @@
 <script setup>
 import { Head, useForm } from '@inertiajs/vue3';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
-import GuestLayout from '@/Layouts/GuestLayout.vue';
+import DefaultLayout from '@/Layouts/DefaultLayout.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
@@ -10,6 +10,10 @@ import TextareaInput from '@/Components/TextareaInput.vue';
 import FlashMessage from '@/Components/FlashMessage.vue';
 import vSelect from 'vue-select';
 import 'vue-select/dist/vue-select.css';
+
+defineOptions({
+    layout: DefaultLayout,
+});
 
 const props = defineProps({
     title: String,
@@ -57,9 +61,9 @@ const instagramUrl = 'https://www.instagram.com/taphe_awards';
         <meta name="twitter:description" content="Pendekeza shujaa wa afya unayemjua. Jaza fomu na utambue mchango wao katika kuboresha sekta ya afya Tanzania." />
         <meta name="twitter:image" content="https://tapheawards.co.tz/images/share-thumbnail.png" />
     </Head>
-    <GuestLayout>
-        <div class="py-12 bg-background-section">
-            <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+    
+    <div class="py-12 pt-32 md:pt-40">
+        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 md:p-8">
                     <div class="text-center mb-8">
                         <h1 class="text-3xl font-bold text-accent drop-shadow-title">{{ title }}</h1>
@@ -121,9 +125,8 @@ const instagramUrl = 'https://www.instagram.com/taphe_awards';
                         </div>
                     </form>
                 </div>
-            </div>
         </div>
-    </GuestLayout>
+    </div>
 </template>
 <style>
 /* Hii itahakikisha clear & dropdown icons ziko mwishoni kulia */

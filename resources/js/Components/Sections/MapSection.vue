@@ -39,18 +39,18 @@
                     <div class="rounded-xl border border-[var(--accent-primary)]/20 bg-background-main p-8 shadow-lg">
                         <h3 class="mb-4 text-3xl font-bold text-text-primary">Event Launch Venue</h3>
                         <p class="text-xl font-semibold text-text-accent">
-                            KingJada Hotel
+                            King Jada Hotel
                         </p>
                         <p class="mt-2 text-text-secondary">Morocco Square Building, Dar es Salaam</p>
 
                         <div class="mt-8 space-y-4 border-t border-[var(--accent-primary)]/20 pt-6">
                             <div>
                                 <h4 class="font-bold text-text-primary">Date</h4>
-                                <p class="text-text-secondary">October 1st, 2025</p>
+                                <p class="text-text-secondary">September 12nd, 2025</p>
                             </div>
                             <div>
                                 <h4 class="font-bold text-text-primary">Time</h4>
-                                <p class="text-text-secondary">7:00 PM - Late</p>
+                                <p class="text-text-secondary">6:00 PM - Late</p>
                             </div>
                             <div>
                                 <h4 class="font-bold text-text-primary">Dress Code</h4>

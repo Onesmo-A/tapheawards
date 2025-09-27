@@ -3,6 +3,12 @@ import { Head, Link } from '@inertiajs/vue3';
 import AppHeader from '@/Components/Layout/AppHeader.vue';
 import AppFooter from '@/Components/Layout/AppFooter.vue';
 import PageHeader from '@/Components/Layout/PageHeader.vue';
+import DefaultLayout from '@/Layouts/DefaultLayout.vue';
+
+defineOptions({
+  layout: DefaultLayout,
+});
+
 
 defineProps({
   title: String,
@@ -10,7 +16,7 @@ defineProps({
 </script>
 
 <template>
-  <Head :title="title" />
+  <Head :title="title" class=" pt-24 sm:pt-32 "/>
   <AppHeader />
 
   <main>

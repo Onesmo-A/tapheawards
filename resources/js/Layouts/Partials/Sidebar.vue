@@ -85,18 +85,20 @@ const isSubmenuActive = (item) => {
                         </component>
 
                         <div v-if="item.children.length" v-show="openSubMenu === item.key && (sidebarOpen || mobileSidebarOpen)" class="pl-8 pr-2 py-2 space-y-1 bg-gray-900/50 rounded-b-lg transition-all duration-300">
-                            <!-- REKEBISHO: Tumia SidebarLink component ili kuonyesha icons za submenu -->
+                            <!-- REKEBISHO: Ondoa mantiki ya kujirudia kutoka SidebarLink na weka hapa moja kwa moja -->
                             <SidebarLink v-for="child in item.children" :key="child.name"
-                                         :href="child.is_external ? route(child.route) : route(child.route)"
+                                         :href="child.route ? route(child.route) : '#'"
                                          :active="route().current(child.activePattern)"
                                          :item="child"
-                                         :is-submenu="true" />
+                                         :is-submenu="true"
+                                         :sidebar-open="sidebarOpen || mobileSidebarOpen"
+                            />
                         </div>
                     </div>
                 </template>
                 <!-- Regular User Menu -->
                 <template v-else>
-                    <!-- REKEBISHO: Tumia SidebarLink na pitisha item object nzima -->
+                    
                     <SidebarLink v-for="item in userMenu"
                                  :key="item.name"
                                  :href="item.route ? route(item.route) : '#'"

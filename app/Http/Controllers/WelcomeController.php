@@ -80,6 +80,14 @@ class WelcomeController extends Controller
                 // Ongeza mipangilio ya nomination section
                 'nomination_open_title' => $settings->get('nomination_open_title', 'Nomination Is Now Open'),
                 'nomination_open_dates' => $settings->get('nomination_open_dates', '15th July - 30th August 2024'),
+                // BORESHO: Ongeza data ya timeline
+                'timeline' => [
+                    ['title' => $settings->get('timeline_step1_title', 'Public Suggestions'), 'date' => $settings->get('timeline_step1_date', 'Aug 30 - Sep 15')],
+                    ['title' => $settings->get('timeline_step2_title', 'Nominee Applications'), 'date' => $settings->get('timeline_step2_date', 'Sep 16 - Oct 10')],
+                    ['title' => $settings->get('timeline_step3_title', 'Marathon & Health Expo'), 'date' => $settings->get('timeline_step3_date', 'Oct 25')],
+                    ['title' => $settings->get('timeline_step4_title', 'Awards Gala Night'), 'date' => $settings->get('timeline_step4_date', 'Nov 03')],
+                    ['title' => $settings->get('timeline_step5_title', 'Winners Announcement'), 'date' => $settings->get('timeline_step5_date', 'Nov 10')],
+                ]
             ], 'updates' => $updates,
 
             // Hero slides for TAPHE Awards
@@ -101,10 +109,10 @@ class WelcomeController extends Controller
                     ],
                 ],
                 [
-                    'title' => 'Innovation • Impact • Integrity',
+                    'title' => 'Innovation, Postive Impact, Integrity',
                     'description' => 'Recognizing innovation, positive impact, and integrity in healthcare leadership and service delivery.',
                     'buttons' => [
-                        [ 'text' => 'Learn About Criteria', 'link' => '/criteria', 'primary' => true ],
+                        [ 'text' => 'Suggesstion Nominee', 'link' => '/suggest-nominee', 'primary' => true ],
                         [ 'text' => 'More About TAPHE', 'link' => '/about', 'primary' => false ],
                     ],
                 ],
@@ -112,7 +120,7 @@ class WelcomeController extends Controller
                     'title' => 'Join the Celebration',
                     'description' => 'Be part of the national awards event celebrating Tanzania’s healthcare champions.',
                     'buttons' => [
-                        [ 'text' => 'RSVP for Event', 'link' => '/event', 'primary' => true ],
+                        [ 'text' => 'Register for Marathon', 'link' => '/marathon/register', 'primary' => true ],
                         [ 'text' => 'See Past Winners', 'link' => '/awards', 'primary' => false ],
                     ],
                 ],

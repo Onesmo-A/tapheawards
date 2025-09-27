@@ -59,6 +59,7 @@ defineProps({
     <NominationOpenSection
         :title="settings.nomination_open_title"
         :dates="settings.nomination_open_dates"
+        :timeline="settings.timeline"
     />
       <SponsorCallUpSection />
     <CountDownSection
@@ -72,8 +73,7 @@ defineProps({
       v-if="categories && categories.data && categories.data.length > 0"
       :categories="categories.data" />
 
-    <!-- REKEBISHO: Pitisha data ya testimonials kwenye component -->
-    <TestimonialSection :testimonials="testimonials" />
+    
 
     <!-- NEW: Add Reels Section -->
     <ReelsSection :reels="reels" />
@@ -83,5 +83,7 @@ defineProps({
     <SponsorsSection />
       <GallerySection  :updates="updates"/>
     <MapSection />
+    <!-- REKEBISHO: Pitisha data ya testimonials kwenye component -->
+    <TestimonialSection :testimonials="testimonials" />
   </main>
 </template>

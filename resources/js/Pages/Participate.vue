@@ -3,6 +3,12 @@ import { Head } from '@inertiajs/vue3';
 import AppHeader from '@/Components/Layout/AppHeader.vue';
 import AppFooter from '@/Components/Layout/AppFooter.vue';
 import PageHeader from '@/Components/Layout/PageHeader.vue';
+import DefaultLayout from '@/Layouts/DefaultLayout.vue';
+
+defineOptions({
+  layout: DefaultLayout,
+});
+
 
 defineProps({
   title: String,
@@ -15,7 +21,7 @@ defineProps({
   <AppHeader />
 
   <main>
-    <PageHeader :title="title" />
+    <PageHeader :title="title"class="pt-24 sm:pt-32" />
 
     <section class="bg-white py-20 sm:py-32 text-gray-900">
       <div class="max-w-7xl mx-auto px-6 lg:px-8">

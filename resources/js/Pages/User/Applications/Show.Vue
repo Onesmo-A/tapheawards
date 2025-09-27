@@ -1,10 +1,10 @@
 <script setup>
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import AuthenticatedLayout from '@/Layouts/AAAAAuthenticatedLayout.vue';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { ArrowLeftIcon, PrinterIcon, ArrowPathIcon, CheckCircleIcon, ExclamationTriangleIcon, ClockIcon } from '@heroicons/vue/24/solid';
 import { computed } from 'vue';
 
-defineOptions({ layout: AuthenticatedLayout });
+defineOptions({ layout: AdminLayout });
 
 const props = defineProps({
     application: Object,

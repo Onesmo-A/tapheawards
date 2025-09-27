@@ -1,11 +1,15 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Mail\TicketPaymentCompleted;
+use App\Models\TicketPurchase;
 
 use App\Models\NomineeApplication;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use App\Notifications\NewTicketPurchase;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Models\MarathonRegistration; // BORESHO: Ongeza MarathonRegistration model
@@ -13,6 +17,7 @@ use App\Mail\MarathonPaymentCompleted;
 use App\Mail\MarathonPaymentFailed;
 use App\Mail\NomineePaymentCompleted;
 use App\Mail\NomineePaymentFailed;
+use App\Notifications\NewNomineeApplication;
 use App\Notifications\NewMarathonRegistration; // BORESHO: Ongeza Notification ya Marathon
 
 class WebhookController extends Controller
@@ -107,7 +112,17 @@ class WebhookController extends Controller
                         $transaction->payable->update(['status' => NomineeApplication::STATUS_PENDING_REVIEW]);
                         // Tuma barua pepe kwa mwombaji
                         \Illuminate\Support\Facades\Mail::to($transaction->payable->applicant_email)->queue(new NomineePaymentCompleted($transaction->payable));
-                        Log::info('ZenoPay Webhook: DB Update - Nominee Application status updated to PENDING_REVIEW.', ['order_id' => $transaction->order_id, 'application_id' => $transaction->payable_id]);
+                        Log::info('ZenoPay Webhook: DB Update - Nominee Application status updated to PENDING_REVIEW.', ['order_id' => $transaction->order_id, 'application_id' => $transaction->payable_id]); // Tuma barua pepe kwa mwombaji
+                        // BORESHO: Tuma notisi kwa admin sasa, baada ya malipo kukamilika
+                        User::where('is_admin', true)->first()?->notify(new NewNomineeApplication($transaction->payable));
+                    } elseif ($transaction->payable instanceof TicketPurchase) { // BORESHO: Shughulikia malipo ya tiketi
+                        $purchase = $transaction->payable;
+                        $purchase->update(['status' => TicketPurchase::STATUS_COMPLETED]);
+                        Log::info('ZenoPay Webhook: DB Update - Ticket Purchase status updated to COMPLETED.', ['order_id' => $transaction->order_id, 'purchase_id' => $purchase->id]);
+
+                        // Tuma barua pepe kwa mnunuaji na notisi kwa admin
+                        Mail::to($purchase->purchaser_email)->queue(new TicketPaymentCompleted($purchase));
+                        User::where('is_admin', true)->first()?->notify(new NewTicketPurchase($purchase));
                     }
 
                 } elseif ($status === 'FAILED') {
@@ -116,14 +131,18 @@ class WebhookController extends Controller
                         'notes' => 'Webhook: Payment failed. Reason: ' . ($payload['message'] ?? 'Unknown'),
                     ]);
                     // BORESHO: Sasisha status ya 'failed' kwa model husika
-                    $statusField = ($transaction->payable instanceof MarathonRegistration) ? MarathonRegistration::STATUS_PAYMENT_FAILED : NomineeApplication::STATUS_PAYMENT_FAILED;
                     if ($transaction->payable) {
-                        $transaction->payable->update(['status' => $statusField]);
                         // Tuma barua pepe ya malipo yaliyoshindikana
                         if ($transaction->payable instanceof MarathonRegistration && $transaction->payable->email) {
+                            $transaction->payable->update(['status' => MarathonRegistration::STATUS_PAYMENT_FAILED]);
                             \Illuminate\Support\Facades\Mail::to($transaction->payable->email)->queue(new MarathonPaymentFailed($transaction->payable));
                         } elseif ($transaction->payable instanceof NomineeApplication) {
+                            $transaction->payable->update(['status' => NomineeApplication::STATUS_PAYMENT_FAILED]);
                             \Illuminate\Support\Facades\Mail::to($transaction->payable->applicant_email)->queue(new NomineePaymentFailed($transaction->payable));
+                        } elseif ($transaction->payable instanceof TicketPurchase) {
+                            $transaction->payable->update(['status' => TicketPurchase::STATUS_FAILED]);
+                            // TODO: Send a "Ticket Payment Failed" email to the buyer.
+                            Log::info('Ticket payment failed email should be sent here.', ['purchase_id' => $transaction->payable_id]);
                         }
                     }
                     Log::info('ZenoPay Webhook: DB Update - Payable status updated to FAILED.', ['order_id' => $transaction->order_id, 'payable_id' => $transaction->payable_id]);

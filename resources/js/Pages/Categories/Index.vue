@@ -3,7 +3,6 @@ import { Head, router, Link } from '@inertiajs/vue3';
 import { defineAsyncComponent, ref, watch } from 'vue';
 import DefaultLayout from '@/Layouts/DefaultLayout.vue';
 import AppHeader from '@/Components/Layout/AppHeader.vue';
-import AppFooter from '@/Components/Layout/AppFooter.vue';
 import debounce from 'lodash/debounce';
 
 const CategoryCard = defineAsyncComponent(() => import('@/Components/Sections/CategoryCard.vue'));
@@ -138,8 +137,6 @@ watch(search, debounce(value => {
       </div>
     </div>
   </main>
-
-  <AppFooter />
 </DefaultLayout>
 </template>
 

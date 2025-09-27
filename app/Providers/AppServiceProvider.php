@@ -49,10 +49,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Hii ni kwa ajili ya mazingira ya production (kwenye server halisi)
         // Inahakisha link zote (routes, assets) zinatumia https
-        if ($this->app->environment('local')) {
-            URL::forceScheme('https');
-        }
-        elseif ($this->app->environment('production')) {
+        if ($this->app->environment('production')) {
             URL::forceScheme('https');
         }
     }

@@ -68,7 +68,7 @@ class MarathonController extends Controller
             $registration = MarathonRegistration::create([
                 'full_name' => $request->full_name,
                 'email' => $request->email,
-                'phone_number' => $request->phone_number,
+                'phone_number' => $normalizedPhone, // REKEBISHO: Hifadhi namba iliyosafishwa
                 'unique_code' => 'TAPHE25-' . strtoupper(Str::random(6)),
                 'status' => 'pending_payment',
                 'gender' => $request->gender,
@@ -193,12 +193,16 @@ class MarathonController extends Controller
 
         // Safisha namba ya simu
         $normalizedPhone = (string) Str::of($validated['phone_number'])
-            ->replace(' ', '')->replace('+', '');
+            ->replace(' ', '')
+            ->replace('+', '');
+
         if (Str::startsWith($normalizedPhone, '0')) {
             $normalizedPhone = '255' . substr($normalizedPhone, 1);
+        } elseif (strlen($normalizedPhone) === 9 && (Str::startsWith($normalizedPhone, '7') || Str::startsWith($normalizedPhone, '6'))) {
+            $normalizedPhone = '255' . $normalizedPhone;
         }
 
-        // Tafuta usajili wa hivi karibuni zaidi kwa kutumia namba hiyo
+        // Tafuta usajili wa hivi karibuni zaidi kwa kutumia namba halisi iliyoingizwa na mtumiaji
         $registration = MarathonRegistration::where('phone_number', $normalizedPhone)
             ->latest()
             ->first();
@@ -213,9 +217,49 @@ class MarathonController extends Controller
         }
 
         if (in_array($registration->status, [MarathonRegistration::STATUS_PENDING_PAYMENT, MarathonRegistration::STATUS_PAYMENT_FAILED])) {
-            return redirect()->route('marathon.pending', ['order_id' => $registration->transaction->order_id]);
+            // BORESHO: Mpeleke kwenye ukurasa wa kujaribu kulipa tena
+            return redirect()->route('marathon.retry-payment', ['order_id' => $registration->transaction->order_id]);
         }
 
         return back()->withErrors(['phone_number' => 'Hali ya usajili wako hairuhusu muamala huu.'])->withInput();
+    }
+
+    // BORESHO: Method ya kuonyesha ukurasa wa kulipia tena
+    public function showRetryPaymentPage($order_id)
+    {
+        $transaction = Transaction::where('order_id', $order_id)->firstOrFail();
+        $registration = $transaction->payable;
+
+        // Hakikisha transaction hii ni ya marathon
+        abort_if(!($registration instanceof MarathonRegistration), 404);
+
+        return Inertia::render('Marathon/RetryPayment', [
+            'registration' => $registration->only('full_name', 'phone_number'),
+            'transaction' => $transaction->only('order_id', 'amount'),
+        ]);
+    }
+
+    // BORESHO: Method ya kuanzisha malipo upya
+    public function processRetryPayment(Request $request)
+    {
+        $validated = $request->validate(['order_id' => 'required|exists:transactions,order_id']);
+        $transaction = Transaction::where('order_id', $validated['order_id'])->firstOrFail();
+
+        // BORESHO MUHIMU: Tengeneza Order ID mpya kwa kila jaribio la kulipa tena.
+        // Hii inazuia kosa la "order id already exists" kutoka ZenoPay.
+        $transaction->update([
+            'order_id' => (string) Str::uuid(),
+        ]);
+
+        // Anzisha malipo tena
+        $paymentService = new ZenoPaymentService();
+        $response = $paymentService->initiatePayment($transaction);
+
+        if (!$response) {
+            return Redirect::back()->with('error', 'Imeshindwa kuanzisha malipo. Tafadhali hakikisha namba yako ni sahihi na jaribu tena.');
+        }
+
+        // Mwelekeze kwenye ukurasa wa kusubiri
+        return redirect()->route('marathon.pending', ['order_id' => $transaction->fresh()->order_id]);
     }
 }

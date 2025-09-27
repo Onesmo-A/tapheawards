@@ -56,7 +56,7 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="relative h-screen flex items-center justify-center overflow-hidden text-white font-sans pt-20 md:pt-28 pb-12"
+    class="relative h-screen flex items-center justify-center overflow-hidden text-white font-sans pt-20 md:pt-28 pb-0 md:pb-16 md:pb-0 mt-12 md:mt-0"
     @mouseenter="stop"
     @mouseleave="start"
   >

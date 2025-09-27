@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue';
-import { Head, useForm } from '@inertiajs/vue3';
-import AuthenticatedLayout from '@/Layouts/AAAAAuthenticatedLayout.vue';
+import { Head, useForm, Link } from '@inertiajs/vue3';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
 import Stepper from '@/Components/Stepper.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextareaInput from '@/Components/TextareaInput.vue';
@@ -9,6 +9,7 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import InputError from '@/Components/InputError.vue';
 import TextInput from '@/Components/TextInput.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
+import FileInput from '@/Components/FileInput.vue';
 import ConfirmationModal from '@/Components/ConfirmationModal.vue';
 
 const props = defineProps({
@@ -76,9 +77,9 @@ const submit = () => {
 <template>
     <Head :title="`Jaza Fomu - ${selectedCategory.name}`" />
 
-    <AuthenticatedLayout>
+    <AdminLayout>
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Anzisha Maombi ya Tuzo</h2>
+            <h3 class="text-white text-xl font-semibold leading-tight">Anzisha Maombi ya Tuzo</h3>
         </template>
 
         <div class="py-12">
@@ -231,5 +232,5 @@ const submit = () => {
                 </PrimaryButton>
             </template>
         </ConfirmationModal>
-    </AuthenticatedLayout>
+    </AdminLayout>
 </template>

@@ -42,7 +42,7 @@ class NewNomineeApplication extends Notification implements ShouldQueue
         return (new MailMessage)
                     ->subject('Ombi Jipya la Ushiriki Limepokelewa')
                     ->greeting('Habari Admin,')
-                    ->line('Umepokea ombi jipya la ushiriki ambalo limelipiwa kikamilifu na linasubiri kupitiwa.')
+                    ->line('Umepokea ombi jipya la ushiriki ambalo sasa limelipiwa kikamilifu na linasubiri kupitiwa.')
                     ->line('**Jina la Mwombaji:** ' . $this->application->applicant_name)
                     ->line('**Kategoria:** ' . $this->application->category->name)
                     ->action('Angalia Ombi', $adminUrl)

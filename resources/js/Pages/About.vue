@@ -3,6 +3,12 @@ import { Head } from '@inertiajs/vue3';
 import AppHeader from '@/Components/Layout/AppHeader.vue';
 import AppFooter from '@/Components/Layout/AppFooter.vue';
 import PageHeader from '@/Components/Layout/PageHeader.vue';
+import DefaultLayout from '@/Layouts/DefaultLayout.vue';
+
+defineOptions({
+  layout: DefaultLayout,
+});
+
 
 defineProps({
   title: String,
@@ -16,16 +22,21 @@ defineProps({
 
   <main>
     <!-- Page Header with Breadcrumb -->
-    <PageHeader :title="title" />
+    <PageHeader :title="title" class=" pt-24 sm:pt-32 " />
 
     <!-- About Content Section -->
-    <section class="py-20 sm:py-32 bg-[var(--background-section)]">
+    <section class="py-20 sm:py-32 bg-[var(--background-section)] a">
       <div class="max-w-7xl mx-auto px-6 lg:px-8">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <!-- Left Image -->
           <div class="group">
+           
             <img src="/images/about-us.jpg" alt="Health Awards Event" 
                  class="rounded-xl shadow-primary-glow border-2 border-[var(--accent-primary)] group-hover:shadow-primary-glow transition-shadow duration-300">
+          
+            <img src="/images/about-us2.jpg" alt="Health Awards Event" 
+                 class="rounded-xl shadow-primary-glow border-2 border-[var(--accent-primary)] group-hover:shadow-primary-glow transition-shadow duration-300 mt-8">
+          
           </div>
           
           <!-- Right Content -->

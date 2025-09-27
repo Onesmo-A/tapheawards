@@ -44,7 +44,7 @@ const submit = () => {
 
                 <form @submit.prevent="submit">
                     <div>
-                        <InputLabel for="email" value="Barua Pepe (Email)" class="text-gray-300" />
+                        <InputLabel for="email" value="Barua Pepe (Email)" class="text-white" />
 
                         <TextInput
                             id="email"

@@ -4,7 +4,7 @@
     <div v-if="reels && reels.length > 0" class="bg-gray-900 py-12 sm:py-16">
         <div class="mx-auto max-w-7xl px-6 lg:px-8">
             <div class="mx-auto max-w-2xl text-center">
-                <h2 class="text-3xl font-bold tracking-tight text-gold-400 sm:text-4xl">TAPHE Reels</h2>
+                <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">Release and TAPHE Reels</h2>
                 <p class="mt-2 text-lg leading-8 text-gray-300">Tazama matukio muhimu na ya kusisimua kupitia reels zetu za Instagram.</p>
             </div>
             <Splide :options="splideOptions" aria-labelledby="reels-heading" class="mt-16">

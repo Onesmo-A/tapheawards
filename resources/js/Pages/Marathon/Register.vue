@@ -1,7 +1,6 @@
 <script setup>
 import { Head, useForm, Link } from '@inertiajs/vue3';
 import DefaultLayout from '@/Layouts/DefaultLayout.vue';
-import PageHeader from '@/Components/Layout/PageHeader.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
@@ -85,7 +84,7 @@ const raceTypes = ['21km', '10km', '5km'];
                 <form @submit.prevent="submit" class="space-y-6">
                      <!-- Personal Information -->
                     <div>
-                        <h4 class="text-lg font-semibold text-gray-700 dark:text-gray-300 border-b pb-2 mb-4">Taarifa Binafsi</h4>
+                        <h4 class="text-lg font-semibold border-b pb-2 mb-4">Taarifa Binafsi</h4>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <InputLabel for="full_name" value="Jina Kamili" />
