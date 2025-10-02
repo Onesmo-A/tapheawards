@@ -15,6 +15,7 @@ use App\Http\Controllers\TicketController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\MarathonController;
+use App\Http\Controllers\SponsorshipInquiryController;
 
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
@@ -183,6 +184,9 @@ Route::get('/categories/{category:slug}', [CategoryController::class, 'show'])->
 
 // Sponsors
 Route::get('/sponsors', [PageController::class, 'sponsors'])->name('sponsors.index');
+// BORESHO: Route ya kuhifadhi maombi ya udhamini
+Route::post('/sponsorship-inquiries', [SponsorshipInquiryController::class, 'store'])->name('sponsorship.inquire');
+
 
 // Awards Pages (legacy or other routes)
 Route::get('/awards', [AwardsController::class, 'index'])->name('awards.index');
@@ -236,37 +240,3 @@ Route::post('/nominees/{nominee}/vote', [VoteController::class, 'store'])
 // Imehamishwa hapa chini ili kuepuka mgongano na routes zingine
 Route::get('/posts/{post:slug}', [PostController::class, 'show'])->name('posts.show');
 
-
-
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Redirect;
-use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Route as RouteFacade;
-
-// ================== ROUTE YA MUDA KWA AJILI YA MAJARIBIO ==================
-// Hii itakuruhusu kuigiza malipo yaliyokamilika kwa ajili ya ununuzi wa tiketi.
-// Kumbuka kuifuta baada ya kumaliza majaribio.
-// Route::get('/test/complete-ticket-purchase/{purchase}', function (\App\Models\TicketPurchase $purchase) {
-//     if ($purchase->status === 'completed') {
-//         return "This ticket purchase (ID: {$purchase->id}) is already completed.";
-//     }
-
-//     try {
-//         DB::transaction(function () use ($purchase) {
-//             // 1. Sasisha transaction iwe 'completed'
-//             if ($purchase->mainTransaction) {
-//                 $purchase->mainTransaction->update(['status' => 'completed']);
-//             }
-
-//             // 2. Sasisha ununuzi wenyewe uwe 'completed'
-//             // Hii itasababisha 'booted()' method kwenye TicketPurchase model kuitwa
-//             // na kutengeneza tiketi pamoja na kutuma email.
-//             $purchase->update(['status' => 'completed']);
-//         });
-
-//         return "SUCCESS! Ticket purchase ID: {$purchase->id} has been marked as completed. Check your email for the tickets.";
-
-//     } catch (\Exception $e) {
-//         return "ERROR: Failed to complete purchase. " . $e->getMessage();
-//     }
-// })->name('test.complete.ticket');

@@ -43,7 +43,7 @@ class TicketPaymentCompleted extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'emails.tickets.payment_completed',
+            view: 'emails.ticket_payment_completed',
         );
     }
 

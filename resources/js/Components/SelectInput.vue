@@ -2,9 +2,7 @@
 import { onMounted, ref } from 'vue';
 
 defineProps({
-    modelValue: [String, Number],
-    options: Array, // Array of objects { value: '', label: '' }
-    placeholder: String,
+    modelValue: [String, Number, null],
 });
 
 defineEmits(['update:modelValue']);
@@ -27,9 +25,7 @@ defineExpose({ focus: () => input.value.focus() });
         @change="$emit('update:modelValue', $event.target.value)"
         ref="input"
     >
-        <option v-if="placeholder" :value="null" disabled>{{ placeholder }}</option>
-        <option v-for="option in options" :key="option.value" :value="option.value">
-            {{ option.label }}
-        </option>
+        <!-- BORESHO: Tumia <slot /> ili kuruhusu component ya juu (parent) itoe <option> zake yenyewe -->
+        <slot />
     </select>
 </template>

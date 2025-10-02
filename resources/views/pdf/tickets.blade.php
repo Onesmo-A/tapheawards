@@ -239,7 +239,7 @@
                 <!-- BORESHO: Tarehe, Muda, na Eneo vimepangwa kwenye safu moja (column) -->
                 <p><img src="{{ $calendarIconBase64 }}" alt="Date" style="vertical-align: middle; margin-right: 8px;"> Saturday, 14th Dec 2025</p>
                 <p><img src="{{ $clockIconBase64 }}" alt="Time" style="vertical-align: middle; margin-right: 8px;"> 06:00 PM</p>
-                <p><img src="{{ $locationIconBase64 }}" alt="Location" style="vertical-align: middle; margin-right: 8px;"> Karimu Hall, Dar es Salaam</p>
+                <p><img src="{{ $locationIconBase64 }}" alt="Location" style="vertical-align: middle; margin-right: 8px;"> King Jada Hotel, Dar es Salaam</p>
             </div>
             @if (!empty($otherSponsorLogos))
             <div class="sponsors-footer">

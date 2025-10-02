@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\TicketPurchase;
+use Illuminate\Http\JsonResponse;
 use App\Models\TicketType;
 use App\Models\Transaction;
 use App\Services\ZenoPaymentService;
@@ -200,7 +201,7 @@ class TicketController extends Controller
     /**
      * Endpoint ya AJAX kwa ajili ya kufuatilia status ya malipo.
      */
-    public function checkStatus(Request $request): JsonResponse
+    public function checkStatus(Request $request): \Illuminate\Http\JsonResponse
     {
         $validated = $request->validate(['order_id' => 'required|string|exists:transactions,order_id']);
 

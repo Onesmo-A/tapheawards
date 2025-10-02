@@ -175,10 +175,23 @@ const deleteCategory = (category) => {
   </div>
 </template>
 
-<style scoped>
-.text-gold-gradient {
-  background: linear-gradient(to right, #D4AF37, #FFD700);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+
+ <style>
+/*
+  BORESHO: Mtindo maalum wa scrollbar kwa mandhari ya giza.
+  Hii inalenga vivinjari vinavyotumia WebKit (Chrome, Edge, Safari) na itarekebisha
+  muonekano wa horizontal scrollbar kwenye jedwali.
+*/
+::-webkit-scrollbar {
+  width: 12px; /* Upana wa vertical scrollbar */
+  height: 12px; /* Urefu wa horizontal scrollbar */
+}
+::-webkit-scrollbar-track {
+  background: #1f2937; /* Rangi ya usuli wa eneo la scrollbar (gray-800) */
+}
+::-webkit-scrollbar-thumb {
+  background-color: #4b5563; /* Rangi ya scrollbar yenyewe (gray-600) */
+  border-radius: 6px;
+  border: 3px solid #1f2937; /* Nafasi kuzunguka scrollbar (gray-800) */
 }
 </style>

@@ -1,13 +1,40 @@
 <script setup>
 import { Head } from '@inertiajs/vue3';
+import axios from 'axios';
+import { ref } from 'vue';
 import DefaultLayout from '@/Layouts/DefaultLayout.vue';
 import PageHeader from '@/Components/Layout/PageHeader.vue';
 import { useSponsors } from '@/Composables/useSponsors';
 import { CheckCircleIcon } from '@heroicons/vue/24/solid';
+import { useToast } from 'vue-toastification';
 
 defineOptions({
   layout: DefaultLayout,
 });
+
+const toast = useToast();
+const processingTier = ref(null);
+
+const handleSponsorshipClick = async (tier) => {
+    // Zuia kubonyeza mara nyingi
+    if (processingTier.value) return;
+    processingTier.value = tier.tier;
+
+    try {
+        // Tuma data kwenda backend kimyakimya
+        await axios.post(route('sponsorship.inquire'), {
+            tier: tier.tier,
+            price: tier.price,
+        });
+    } catch (error) {
+        console.error('Could not log sponsorship inquiry:', error);
+        toast.error('A small issue occurred, but we are still redirecting you.');
+    } finally {
+        // Fungua WhatsApp link baada ya kumaliza, iwe imefanikiwa au la
+        window.open(tier.cta, '_blank');
+        processingTier.value = null;
+    }
+};
 
 // Data ya viwango vya udhamini na gradients za kisasa
 const sponsorshipTiers = [
@@ -183,10 +210,14 @@ const { sponsors } = useSponsors();
               </li>
             </ul>
           </div>
-          <a :href="tier.cta" target="_blank"
-             :class="[tier.style.button, 'mt-6 py-3 px-6 rounded-lg text-center text-sm sm:text-base transition-all duration-300']">
-            Contact Us
-          </a>
+          <button
+             @click="handleSponsorshipClick(tier)"
+             :class="[tier.style.button, 'mt-6 py-3 px-6 rounded-lg text-center text-sm sm:text-base transition-all duration-300 disabled:opacity-50']"
+             :disabled="processingTier === tier.tier"
+          >
+            <span v-if="processingTier === tier.tier">Processing...</span>
+            <span v-else>Contact Us</span>
+          </button>
         </div>
       </div>
     </div>
