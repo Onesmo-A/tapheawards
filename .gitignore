@@ -1,0 +1,63 @@
+# Environment files
+.env
+.env.*.local
+!.env.example
+.zip
+
+# Logs
+*.log
+/storage/logs/*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE / Editor folders and files
+/.idea/
+/.vscode/
+/.phpactor.json
+/.phpunit.cache
+/.phpunit.result.cache
+/.fleet/
+/.nova/
+/.zed/
+/auth.json
+
+# Node modules and build files
+/node_modules/
+/public/build/
+/public/hot/
+/public/storage
+
+# Laravel storage and cache
+/storage/*.key
+/storage/pail
+/bootstrap/cache/*.php
+
+# Composer vendor folder
+/vendor/
+
+# Tests (optional)
+# /tests/
+
+# Database
+/database/*.sqlite
+/database/seeds/*.sql
+
+# Homestead files
+Homestead.json
+Homestead.yaml
+
+# Exclude unneeded files from export (ZIP/archive)
+/.github export-ignore
+CHANGELOG.md export-ignore
+.styleci.yml export-ignore
+/tests/ export-ignore
+/node_modules/ export-ignore
+/vendor/ export-ignore
+/public/build/ export-ignore
+/public/hot/ export-ignore
+/public/storage export-ignore
+/.idea/ export-ignore
+/.vscode/ export-ignore
+*.zip export-ignore
