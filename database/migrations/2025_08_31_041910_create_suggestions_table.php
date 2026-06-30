@@ -12,11 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('suggestions', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('suggested_nominee_name');
             $table->string('suggested_nominee_phone')->nullable();
             $table->string('suggested_nominee_workplace')->nullable();
-            $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
+            $table->foreignUuid('category_id')->constrained('categories')->onDelete('cascade');
             $table->text('reason');
             $table->string('suggester_name')->nullable();
             $table->string('suggester_email')->nullable();

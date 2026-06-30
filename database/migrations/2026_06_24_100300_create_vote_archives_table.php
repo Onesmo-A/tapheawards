@@ -9,10 +9,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('vote_archives', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('season_award_id')->nullable()->constrained('season_awards')->nullOnDelete();
-            $table->foreignId('category_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignId('nominee_id')->nullable()->constrained()->nullOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('season_award_id')->nullable()->constrained('season_awards')->nullOnDelete();
+            $table->foreignUuid('category_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignUuid('nominee_id')->nullable()->constrained()->nullOnDelete();
             $table->unsignedInteger('votes_count')->default(0);
             $table->timestamp('archived_at')->nullable()->index();
             $table->text('notes')->nullable();

@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('reels', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('type'); // e.g., 'image', 'youtube', 'instagram'
             $table->text('content'); // URL for image or embed code for video
             $table->timestamps();

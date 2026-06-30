@@ -9,9 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('vote_attempt_logs', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('nominee_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignId('category_id')->nullable()->constrained()->nullOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('nominee_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignUuid('category_id')->nullable()->constrained()->nullOnDelete();
             $table->string('status', 30)->index();
             $table->string('reason', 255)->nullable();
             $table->string('ip_address', 45)->nullable();

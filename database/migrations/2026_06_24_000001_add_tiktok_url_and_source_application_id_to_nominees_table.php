@@ -17,7 +17,7 @@ return new class extends Migration
             }
 
             if (!Schema::hasColumn('nominees', 'source_application_id')) {
-                $table->foreignId('source_application_id')
+                $table->foreignUuid('source_application_id')
                     ->nullable()
                     ->after('tiktok_url')
                     ->constrained('nominee_applications')

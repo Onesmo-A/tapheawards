@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::table('nominee_applications', function (Blueprint $table) {
             // Ongeza safu ya kuhifadhi ID ya admin aliyefanya mapitio.
             // Inahusiana na jedwali la 'users'.
-            $table->foreignId('reviewed_by')->nullable()->after('status')->constrained('users')->onDelete('set null');
+            $table->foreignUuid('reviewed_by')->nullable()->after('status')->constrained('users')->onDelete('set null');
 
             // Ongeza safu ya kuhifadhi muda ambao mapitio yalifanyika.
             $table->timestamp('reviewed_at')->nullable()->after('reviewed_by');

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('votes', function (Blueprint $table) {
             // 1. Ongeza category_id (isiyokuwa null) ili tuweze kuweka kizuizi sahihi
-            $table->foreignId('category_id')->after('nominee_id')->constrained()->onDelete('cascade');
+            $table->foreignUuid('category_id')->after('nominee_id')->constrained()->onDelete('cascade');
 
             // 2. Ondoa kizuizi cha kipekee (unique index) kisicho sahihi
             $table->dropUnique('votes_multi_factor_hash_unique');

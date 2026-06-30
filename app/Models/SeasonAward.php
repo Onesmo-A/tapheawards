@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\HasUuids;
+
 use Illuminate\Database\Eloquent\Model;
 use function App\Helpers\public_storage_url;
 
 class SeasonAward extends Model
 {
+    use HasUuids;
     protected $fillable = [
         'year',
         'theme',

@@ -9,9 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('nominee_applications', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('category_id')->constrained()->onDelete('cascade');
+            $table->uuid('id')->primary();
+            $table->foreignUuid('user_id')->constrained()->onDelete('cascade');
+            $table->foreignUuid('category_id')->constrained()->onDelete('cascade');
             $table->string('applicant_name');
             $table->string('applicant_phone');
             $table->string('applicant_email');

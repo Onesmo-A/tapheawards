@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('ticket_types', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('name'); // Mfano: "Regular", "VIP", "VVIP Table"
             $table->text('description')->nullable();
             $table->decimal('price', 10, 2);

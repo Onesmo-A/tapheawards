@@ -10,7 +10,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('sponsors', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('name');
             $table->string('tier')->nullable();
             $table->text('description')->nullable();
@@ -45,6 +45,7 @@ return new class extends Migration
 
         foreach ($seedSponsors as $index => $sponsor) {
             DB::table('sponsors')->insert(array_merge($sponsor, [
+                'id' => (string) \Illuminate\Support\Str::uuid(),
                 'tier' => 'Supporter',
                 'is_active' => true,
                 'sort_order' => $index + 1,

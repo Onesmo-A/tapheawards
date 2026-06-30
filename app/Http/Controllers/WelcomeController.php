@@ -243,4 +243,64 @@ class WelcomeController extends Controller
             ],
         ];
     }
+
+    /**
+     * Expose welcome data as JSON for the React SPA.
+     */
+    public function getApiData(): \Illuminate\Http\JsonResponse
+    {
+        $updates = Post::query()
+            ->where('type', 'update')
+            ->where('status', 'published')
+            ->latest('published_at')
+            ->take(3)
+            ->get()
+            ->map(fn ($post) => [
+                'id' => $post->id,
+                'slug' => $post->slug,
+                'title' => $post->title,
+                'excerpt' => $post->excerpt,
+                'featured_image_url' => $post->featured_image ? public_storage_url($post->featured_image) : null,
+            ]);
+
+        $settings = Cache::remember('app_settings', 3600, fn () => Setting::all()->pluck('value', 'key'));
+
+        $categories = Category::with(['nominees' => function($query) {
+            $query->where('is_suspended', false);
+        }])->withCount('nominees')->latest()->get();
+
+        $reels = Reel::query()
+            ->where('is_active', true)
+            ->latest()
+            ->take(3)
+            ->get();
+
+        $testimonials = $this->getTestimonials();
+
+        return response()->json([
+            'status' => 'success',
+            'title' => 'Home',
+            'description' => 'Celebrating excellence, innovation, and integrity in Tanzania healthcare sector.',
+            'categories' => CategoryResource::collection($categories),
+            'settings' => [
+                'voting_active' => (bool) $settings->get('voting_active', true),
+                'voting_deadline' => $settings->get('voting_deadline'),
+                'show_visitor_statistics' => (bool) $settings->get('show_visitor_statistics', true),
+                'nomination_open_title' => $settings->get('nomination_open_title', 'Nomination Is Now Open'),
+                'nomination_open_dates' => $settings->get('nomination_open_dates', '15th July - 30th August 2024'),
+                'timeline' => [
+                    ['title' => $settings->get('timeline_step1_title', 'Public Suggestions'), 'date' => $settings->get('timeline_step1_date', 'Aug 30 - Sep 15')],
+                    ['title' => $settings->get('timeline_step2_title', 'Nominee Applications'), 'date' => $settings->get('timeline_step2_date', 'Sep 16 - Oct 10')],
+                    ['title' => $settings->get('timeline_step3_title', 'Marathon & Health Expo'), 'date' => $settings->get('timeline_step3_date', 'Oct 25')],
+                    ['title' => $settings->get('timeline_step4_title', 'Awards Gala Night'), 'date' => $settings->get('timeline_step4_date', 'Nov 03')],
+                    ['title' => $settings->get('timeline_step5_title', 'Winners Announcement'), 'date' => $settings->get('timeline_step5_date', 'Nov 10')],
+                ],
+            ],
+            'updates' => $updates,
+            'heroSlides' => $this->buildHeroSlides($settings),
+            'reels' => $reels,
+            'testimonials' => $testimonials,
+            'visitorStatistics' => $this->buildVisitorStatistics(),
+        ]);
+    }
 }

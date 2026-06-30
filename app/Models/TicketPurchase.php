@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Traits\HasUuids;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,7 +14,7 @@ use Illuminate\Support\Str;
 
 class TicketPurchase extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUuids;
 
     const STATUS_PENDING_PAYMENT = 'pending_payment';
     const STATUS_COMPLETED = 'completed';

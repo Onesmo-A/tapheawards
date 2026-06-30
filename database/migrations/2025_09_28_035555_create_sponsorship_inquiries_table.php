@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('sponsorship_inquiries', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('tier');
             $table->string('price');
             $table->string('status')->default('new'); // e.g., new, contacted

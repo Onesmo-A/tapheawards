@@ -12,12 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tickets', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('ticket_purchase_id')->constrained()->onDelete('cascade');
+            $table->uuid('id')->primary();
+            $table->foreignUuid('ticket_purchase_id')->constrained()->onDelete('cascade');
             $table->string('ticket_code')->unique(); // Mfano: TKT-A9B3C7D1E8F2
             $table->string('qr_code_path')->nullable(); // Njia ya picha ya QR code
             $table->timestamp('checked_in_at')->nullable(); // Muda alipoingia
-            $table->foreignId('checked_in_by')->nullable()->constrained('users')->onDelete('set null'); // Admin aliyeskani
+            $table->foreignUuid('checked_in_by')->nullable()->constrained('users')->onDelete('set null'); // Admin aliyeskani
             $table->timestamps();
         });
     }

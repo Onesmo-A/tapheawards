@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Traits\HasUuids;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,7 +12,7 @@ use function App\Helpers\public_storage_url;
 
 class Category extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUuids;
 
     /**
      * The accessors to append to the model's array form.

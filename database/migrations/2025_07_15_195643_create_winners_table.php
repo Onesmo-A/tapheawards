@@ -9,9 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('winners', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('nominee_id')->constrained()->onDelete('cascade');
-            $table->foreignId('category_id')->constrained()->onDelete('cascade');
+            $table->uuid('id')->primary();
+            $table->foreignUuid('nominee_id')->constrained()->onDelete('cascade');
+            $table->foreignUuid('category_id')->constrained()->onDelete('cascade');
             $table->year('year');
             $table->integer('position')->default(1);
             $table->timestamp('award_ceremony_date')->nullable();

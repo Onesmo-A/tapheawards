@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('posts', function (Blueprint $table) {
-            $table->foreignId('gallery_album_id')
+            $table->foreignUuid('gallery_album_id')
                   ->nullable()
                   ->constrained('gallery_albums')
                   ->onDelete('set null')

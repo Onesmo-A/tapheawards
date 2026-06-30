@@ -4,8 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- Hapa ndipo Inertia itaweka title yako. Jina la app linatumika kama fallback. -->
-        <title inertia>{{ config('app.name', 'TAPHE Awards') }}</title>
+    <title>{{ config('app.name', 'TAPHE Awards') }}</title>
 
     <!-- Favicons -->
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
@@ -19,12 +18,12 @@
     <meta name="msapplication-TileColor" content="#cd0707ff">
     <meta name="msapplication-config" content="/browserconfig.xml">
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    <!-- Google Fonts for Premium Red & White Aesthetic -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-    <!-- ================== MABORESHO YA SEO ================== -->
-    <!-- Maelezo ya Jumla -->
+    <!-- SEO Meta Tags -->
     <meta name="description" content="Tanzania Peoples Health Excellence Awards (TAPHE Awards) inatambua na kuenzi mchango wa wataalamu, taasisi, na mashirika katika sekta ya afya nchini Tanzania.">
 
     <!-- Open Graph / Facebook / WhatsApp -->
@@ -40,12 +39,11 @@
     <meta property="twitter:description" content="Tanzania Peoples Health Excellence Awards (TAPHE Awards) inatambua na kuenzi mchango wa wataalamu, taasisi, na mashirika katika sekta ya afya nchini Tanzania.">
     <meta property="twitter:image" content="https://tapheawards.co.tz/images/logo.png">
 
-    <!-- Scripts -->
-    @routes
-    @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
-    @inertiaHead
+    <!-- Scripts and Styles -->
+    @viteReactRefresh
+    @vite(['resources/js/app.tsx', 'resources/css/app.css'])
   </head>
-  <body class="font-sans antialiased">
-    @inertia
+  <body class="bg-[#F9FAFB] text-slate-800 antialiased font-sans">
+    <div id="root"></div>
   </body>
 </html>

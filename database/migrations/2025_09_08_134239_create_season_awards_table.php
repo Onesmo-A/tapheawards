@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('season_awards', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->year('year')->unique();
             $table->string('theme')->nullable();
             $table->text('description')->nullable();

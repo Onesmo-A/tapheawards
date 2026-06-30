@@ -14,7 +14,7 @@ return new class extends Migration
 public function up(): void
 {
     Schema::create('guest_invitations', function (Blueprint $table) {
-        $table->id();
+        $table->uuid('id')->primary();
         $table->uuid('uuid')->unique(); // Kwa ajili ya URL ya kipekee
         $table->string('guest_name'); // Jina la mgeni
         $table->string('guest_title')->nullable(); // Cheo cha mgeni (k.m. Mkurugenzi, Mheshimiwa)

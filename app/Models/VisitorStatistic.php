@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\HasUuids;
+
 use Illuminate\Database\Eloquent\Model;
 
 class VisitorStatistic extends Model
 {
+    use HasUuids;
     public $timestamps = false;
 
     protected $fillable = [

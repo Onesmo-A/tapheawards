@@ -18,8 +18,8 @@ class VoteObserver
      */
     public function created(Vote $vote): void
     {
-        // Kura mpya ikitengenezwa, ongeza hesabu ya kura kwenye mshiriki husika.
-        $vote->nominee()->increment('votes_count');
+        // Kura mpya ikitengenezwa, ongeza hesabu ya kura kwenye mshiriki husika kwa thamani ya votes_count.
+        $vote->nominee()->increment('votes_count', $vote->votes_count ?? 1);
     }
 
     /**
@@ -31,6 +31,6 @@ class VoteObserver
     public function deleted(Vote $vote): void
     {
         // Kura ikifutwa, punguza hesabu. Hii ni muhimu kwa usahihi wa data.
-        $vote->nominee()->decrement('votes_count');
+        $vote->nominee()->decrement('votes_count', $vote->votes_count ?? 1);
     }
 }

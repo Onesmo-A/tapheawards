@@ -17,6 +17,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\RateLimiter;
 
+use App\Services\OTP\OtpManager;
+use App\Services\Payments\PaymentManager;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -24,7 +27,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(OtpManager::class, function ($app) {
+            return new OtpManager($app);
+        });
+
+        $this->app->singleton(PaymentManager::class, function ($app) {
+            return new PaymentManager($app);
+        });
     }
 
     /**

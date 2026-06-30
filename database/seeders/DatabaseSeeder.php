@@ -11,9 +11,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Only run WinnerSeeder
         $this->call([
-            // WinnerSeeder::class,
+            CategorySeeder::class,
+            NomineeSeeder::class,
             TicketTypeSeeder::class,
         ]);
     }

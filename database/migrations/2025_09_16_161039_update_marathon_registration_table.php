@@ -9,8 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('marathon_registrations', function (Blueprint $table) {
-            // 1. Fanya user_id iweze kuwa NULL (optional)
-            $table->unsignedBigInteger('user_id')->nullable()->change();
+            // 1. Fanya user_id iweze kuwa NULL (optional) - bypassed for SQLite compatibility
+            // $table->uuid('user_id')->nullable()->change();
 
             // 2. Ongeza safu ya unique_code kwa ajili ya namba ya ushiriki
             $table->string('unique_code')->unique()->after('id');
@@ -29,7 +29,7 @@ return new class extends Migration
                 'payment_gateway_reference',
                 'payment_notes'
             ]);
-            $table->unsignedBigInteger('user_id')->nullable(false)->change();
+            // $table->uuid('user_id')->nullable(false)->change();
         });
     }
 };

@@ -9,10 +9,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('transactions', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
+            $table->uuid('id')->primary();
+            $table->foreignUuid('user_id')->nullable()->constrained()->onDelete('set null');
             $table->uuid('order_id')->unique(); // Kitambulisho cha kipekee tunachotuma Zeno
-            $table->morphs('payable'); // Hii itaunda `payable_id` na `payable_type` (e.g., NomineeApplication, TicketOrder)
+            $table->uuidMorphs('payable'); // Hii itaunda `payable_id` na `payable_type` (e.g., NomineeApplication, TicketOrder)
             $table->string('gateway_reference')->nullable()->index(); // Reference kutoka Zeno (transid)
             $table->decimal('amount', 10, 2);
             $table->string('currency', 3)->default('TZS');

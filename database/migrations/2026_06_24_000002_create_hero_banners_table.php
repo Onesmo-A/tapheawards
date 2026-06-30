@@ -10,7 +10,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('hero_banners', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('eyebrow')->nullable();
             $table->string('badge')->nullable();
             $table->string('title');
@@ -40,6 +40,7 @@ return new class extends Migration
 
         DB::table('hero_banners')->insert([
             [
+                'id' => (string) \Illuminate\Support\Str::uuid(),
                 'eyebrow' => 'Official TAPHE Awards',
                 'badge' => 'Slide 01',
                 'title' => 'Tanzania People\'s Health Excellence Awards',
@@ -55,6 +56,7 @@ return new class extends Migration
                 'updated_at' => $now,
             ],
             [
+                'id' => (string) \Illuminate\Support\Str::uuid(),
                 'eyebrow' => 'Healthcare Heroes',
                 'badge' => 'Slide 02',
                 'title' => 'Vote for Your Health Heroes',
@@ -70,6 +72,7 @@ return new class extends Migration
                 'updated_at' => $now,
             ],
             [
+                'id' => (string) \Illuminate\Support\Str::uuid(),
                 'eyebrow' => 'Impact & Innovation',
                 'badge' => 'Slide 03',
                 'title' => 'Innovation, Positive Impact, Integrity',
@@ -85,6 +88,7 @@ return new class extends Migration
                 'updated_at' => $now,
             ],
             [
+                'id' => (string) \Illuminate\Support\Str::uuid(),
                 'eyebrow' => 'Join the Celebration',
                 'badge' => 'Slide 04',
                 'title' => 'Celebrate the People Transforming Healthcare',
