@@ -48,6 +48,18 @@ if (!function_exists('App\Helpers\public_storage_url')) {
             $path = substr($path, 8);
         }
 
-        return Storage::disk('public')->url($path);
+        $url = Storage::disk('public')->url($path);
+
+        try {
+            if (!app()->runningInConsole() && request()->hasHeader('host')) {
+                $parsedUrl = parse_url($url);
+                $pathAndQuery = ($parsedUrl['path'] ?? '') . (isset($parsedUrl['query']) ? '?' . $parsedUrl['query'] : '');
+                return request()->schemeAndHttpHost() . $pathAndQuery;
+            }
+        } catch (\Throwable $e) {
+            // Fallback to static URL
+        }
+
+        return $url;
     }
 }

@@ -23,7 +23,7 @@ class SponsorController extends Controller
         $validated = $this->validateSponsor($request);
 
         if ($request->hasFile('logo')) {
-            $validated['logo_path'] = $request->file('logo')->store('sponsors', 'public');
+            $validated['logo_path'] = \App\Services\ImageOptimizer::optimizeAndStore($request->file('logo'), 'sponsors');
         }
 
         Sponsor::create($validated);
@@ -40,7 +40,7 @@ class SponsorController extends Controller
                 Storage::disk('public')->delete($sponsor->logo_path);
             }
 
-            $validated['logo_path'] = $request->file('logo')->store('sponsors', 'public');
+            $validated['logo_path'] = \App\Services\ImageOptimizer::optimizeAndStore($request->file('logo'), 'sponsors');
         } else {
             unset($validated['logo_path']);
         }

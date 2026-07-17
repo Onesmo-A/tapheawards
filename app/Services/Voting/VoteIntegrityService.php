@@ -15,6 +15,8 @@ class VoteIntegrityService
      */
     public function generateHash(Vote $vote): string
     {
+        $timestamp = $vote->voted_at ?? $vote->created_at;
+
         // Concatenate key fields that must not be altered
         $data = implode('|', [
             (string) $vote->id,
@@ -23,7 +25,7 @@ class VoteIntegrityService
             (string) $vote->transaction_id,
             (string) $vote->phone_number,
             (int) $vote->votes_count,
-            $vote->voted_at ? $vote->voted_at->toIso8601String() : now()->toIso8601String(),
+            $timestamp ? $timestamp->toIso8601String() : '',
         ]);
 
         // Generate HMAC-SHA256 signature using APP_KEY as secret
@@ -38,6 +40,10 @@ class VoteIntegrityService
      */
     public function sign(Vote $vote): bool
     {
+        if (!$vote->voted_at) {
+            $vote->voted_at = now();
+        }
+
         $vote->integrity_hash = $this->generateHash($vote);
         return $vote->save();
     }

@@ -54,24 +54,30 @@ export default function CustomCursor() {
     <div className="hidden md:block pointer-events-none fixed inset-0 z-[99999]">
       {/* Center Dot */}
       <motion.div
-        className="custom-cursor-dot"
+        className="fixed left-0 top-0 w-2.5 h-2.5 rounded-full bg-[#D90429] shadow-[0_0_10px_rgba(217,4,41,0.8)]"
         style={{
           x: mouseX,
           y: mouseY,
+          translateX: '-50%',
+          translateY: '-50%',
         }}
       />
       {/* Outer Spring Ring */}
       <motion.div
-        className="custom-cursor-ring flex items-center justify-center font-outfit text-[7px] font-black tracking-widest text-white pointer-events-none"
+        className="fixed left-0 top-0 flex items-center justify-center rounded-full border border-white/20 bg-black/0 font-outfit text-[7px] font-black tracking-widest text-white pointer-events-none shadow-[0_0_20px_rgba(217,4,41,0.12)]"
         animate={{
-          scale: hovered ? 1.6 : 1,
-          borderColor: hovered ? 'rgba(255, 51, 51, 0.8)' : 'rgba(168, 28, 28, 0.4)',
-          backgroundColor: hovered ? 'rgba(168, 28, 28, 0.15)' : 'rgba(0, 0, 0, 0)',
+          scale: hovered ? 1.25 : 1,
+          borderColor: hovered ? 'rgba(255, 51, 51, 0.85)' : 'rgba(168, 28, 28, 0.4)',
+          backgroundColor: hovered ? 'rgba(168, 28, 28, 0.18)' : 'rgba(0, 0, 0, 0)',
+          width: hovered ? 72 : 56,
+          height: hovered ? 72 : 56,
         }}
         transition={{ duration: 0.15, ease: 'easeOut' }}
         style={{
           x: ringX,
           y: ringY,
+          translateX: '-50%',
+          translateY: '-50%',
         }}
       >
         {cursorText}
@@ -79,3 +85,4 @@ export default function CustomCursor() {
     </div>
   );
 }
+

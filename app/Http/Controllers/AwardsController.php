@@ -76,16 +76,56 @@ class AwardsController extends Controller
 
     public function winners()
     {
-        $winners = Winner::with(['nominee.category'])
-            ->latest()
-            ->paginate(12);
+        $settings = Cache::remember('app_settings', 3600, function () {
+            return \App\Models\Setting::all()->pluck('value', 'key');
+        });
 
-        return Inertia::render('Awards/Winners', [
-            'winners' => WinnerResource::collection($winners),
-            'pageInfo' => [
-                'title' => 'Award Winners',
-                'description' => 'Meet our distinguished award winners'
-            ]
+        $showWinners = (bool) ($settings->get('show_winners') ?? false);
+        if (!$showWinners) {
+            return response()->json([
+                'status' => 'disabled',
+                'message' => 'Voting results are not publicly available yet. Stay tuned!'
+            ]);
+        }
+
+        $winners = Winner::with(['category', 'nominee'])
+            ->orderBy('year', 'desc')
+            ->get()
+            ->map(function ($winner) {
+                $categoryNominees = \App\Models\Nominee::where('category_id', $winner->category_id)
+                    ->orderBy('votes_count', 'desc')
+                    ->get();
+
+                $totalCategoryVotes = $categoryNominees->sum('votes_count');
+
+                $nomineesList = $categoryNominees->map(function ($nom) use ($totalCategoryVotes) {
+                    $pct = $totalCategoryVotes > 0 ? round(($nom->votes_count / $totalCategoryVotes) * 100) : 0;
+                    return [
+                        'name' => $nom->name,
+                        'votes' => (int) $nom->votes_count,
+                        'percentage' => $pct
+                    ];
+                });
+
+                return [
+                    'id' => $winner->id,
+                    'year' => $winner->year,
+                    'category_name' => $winner->category?->name ?? 'N/A',
+                    'category_description' => $winner->category?->description ?? '',
+                    'nominee' => $winner->nominee ? [
+                        'id' => $winner->nominee->id,
+                        'name' => $winner->nominee->name,
+                        'bio' => $winner->nominee->bio,
+                        'image_url' => $winner->nominee->image_url,
+                        'votes_count' => (int) $winner->nominee->votes_count,
+                    ] : null,
+                    'nominees' => $nomineesList
+                ];
+            });
+
+        return response()->json([
+            'status' => 'success',
+            'winners' => $winners
         ]);
     }
 

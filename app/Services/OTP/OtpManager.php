@@ -31,4 +31,30 @@ class OtpManager extends Manager
     {
         return new BeemOtpDriver($this->container['config']->get('otp.drivers.beem'));
     }
+
+    /**
+     * Create Africa's Talking OTP Driver.
+     */
+    protected function createAfricastalkingDriver(): Drivers\AfricasTalkingOtpDriver
+    {
+        return new Drivers\AfricasTalkingOtpDriver($this->container['config']->get('otp.drivers.africastalking'));
+    }
+
+    /**
+     * Create NextSMS OTP Driver.
+     */
+    protected function createNextsmsDriver(): Drivers\NextSmsOtpDriver
+    {
+        return new Drivers\NextSmsOtpDriver($this->container['config']->get('otp.drivers.nextsms'));
+    }
+
+    /**
+     * Create UltraMsg OTP Driver.
+     */
+    protected function createUltramsgDriver(): Drivers\UltramsgOtpDriver
+    {
+        return new Drivers\UltramsgOtpDriver($this->container['config']->get('otp.drivers.ultramsg'));
+    }
 }
+
+

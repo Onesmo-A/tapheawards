@@ -49,8 +49,9 @@ return [
         // 'application_fee' => env('NOMINATION_APPLICATION_FEE', 100000), // Kiasi katika TZS (e.g., 10000 = TZS 100,000)
 
         // Webhook URL
-        'webhook_url' => env('APP_URL') . '/api/webhooks/zenopay',
+        'webhook_url' => env('APP_URL') . '/api/v1/webhooks/zenopay',
         'ips' => env('ZENOPAY_IPS', '196.13.129.2,41.223.134.226,64.227.9.159'),
     ],
 
 ];
+

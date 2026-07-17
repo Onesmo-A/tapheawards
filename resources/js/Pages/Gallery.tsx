@@ -3,12 +3,12 @@ import { Award, Image as ImageIcon, Sparkles, Star, Camera, X, ZoomIn } from 'lu
 import { motion, AnimatePresence } from 'framer-motion';
 
 const galleryPhotos = [
-  { title: 'TAPHE Gala Banquet 2025', image: '/images/about-us.jpg', type: 'gala' },
-  { title: 'Excellence Summit Panel', image: '/images/about-us2.jpg', type: 'summits' },
-  { title: 'Charity Marathon Run', image: '/images/marathon-promo.jpg', type: 'marathon' },
-  { title: 'Board Evaluation Meeting', image: '/images/sponsorship-promo.jpg', type: 'summits' },
-  { title: 'Gala Banquet Arena', image: '/images/ticket-bg.jpg', type: 'gala' },
-  { title: 'TAPHE Awards Ceremony', image: '/images/past_winners.png', type: 'gala' }
+  { title: 'TAPHE Gala Banquet 2025', image: '/images/about-us.webp', type: 'gala' },
+  { title: 'Excellence Summit Panel', image: '/images/about-us2.webp', type: 'summits' },
+  { title: 'Charity Marathon Run', image: '/images/marathon-promo.webp', type: 'marathon' },
+  { title: 'Board Evaluation Meeting', image: '/images/sponsorship-promo.webp', type: 'summits' },
+  { title: 'Gala Banquet Arena', image: '/images/ticket-bg.webp', type: 'gala' },
+  { title: 'TAPHE Awards Ceremony', image: '/images/past_winners.webp', type: 'gala' }
 ];
 
 export default function Gallery() {
@@ -20,7 +20,7 @@ export default function Gallery() {
   );
 
   return (
-    <div className="min-h-screen bg-[#030303] text-white selection:bg-[#D90429] selection:text-white bg-mesh pt-24 pb-20 select-none">
+    <div className="min-h-screen bg-[#030303] text-white selection:bg-[#D90429] selection:text-white bg-mesh pt-24 pb-20">
       
       {/* Ambient glowing spotlight background */}
       <div className="absolute top-10 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#D90429]/10 rounded-full blur-[100px] pointer-events-none z-0" />

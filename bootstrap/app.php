@@ -1,5 +1,6 @@
 <?php
-
+use App\Http\Middleware\HandleAppearance;
+use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -29,8 +30,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // Ongeza alias ya 'admin' hapa
         $middleware->alias([
             'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
+            'admin.role' => \App\Http\Middleware\EnsureAdminHasRole::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();
+

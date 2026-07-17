@@ -83,7 +83,7 @@ class NomineeController extends Controller
 
         if ($request->hasFile('image')) {
             // Hifadhi picha mpya kwenye 'public' disk.
-            $imagePath = $request->file('image')->store('nominees', 'public');
+            $imagePath = \App\Services\ImageOptimizer::optimizeAndStore($request->file('image'), 'nominees');
         }
 
         // Rekebisho: Unda Nominee kwa usahihi ukitumia fields zinazotarajiwa na Model.
@@ -138,7 +138,7 @@ class NomineeController extends Controller
                 Storage::disk('public')->delete($nominee->image_path);
             }
             // Hifadhi picha mpya kwenye 'public' disk.
-            $updateData['image_path'] = $request->file('image')->store('nominees', 'public');
+            $updateData['image_path'] = \App\Services\ImageOptimizer::optimizeAndStore($request->file('image'), 'nominees');
         }
 
         $nominee->update($updateData);

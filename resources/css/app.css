@@ -69,7 +69,7 @@
 
 .bg-mesh {
   background-color: #030303;
-  background-image: 
+  background-image:
     radial-gradient(at 10% 20%, rgba(219, 4, 41, 0.06) 0px, transparent 50%),
     radial-gradient(at 90% 10%, rgba(255, 61, 87, 0.03) 0px, transparent 40%),
     radial-gradient(at 50% 80%, rgba(219, 4, 41, 0.04) 0px, transparent 50%);
@@ -77,9 +77,12 @@
 
 /* 6. Dynamic Floating Trophy Animation */
 @keyframes float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-8px);
   }
@@ -104,6 +107,7 @@
   0% {
     transform: translateX(0);
   }
+
   100% {
     transform: translateX(-50%);
   }
@@ -117,4 +121,32 @@
 
 .animate-marquee:hover {
   animation-play-state: paused;
+}
+
+/* Custom webkit styles for dark-theme datetime picker indicators */
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Global scrollable modals fix for laptops and small viewports */
+.fixed.inset-0[class*="z-50"].flex.items-center.justify-center,
+.fixed.inset-0[class*="z-40"].flex.items-center.justify-center,
+.fixed.inset-0[class*="z-50"].flex.items-end.justify-center,
+.fixed.inset-0[class*="z-40"].flex.items-end.justify-center {
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+}
+
+.fixed.inset-0[class*="z-50"].flex.items-center.justify-center>*,
+.fixed.inset-0[class*="z-40"].flex.items-center.justify-center>*,
+.fixed.inset-0[class*="z-50"].flex.items-end.justify-center>*,
+.fixed.inset-0[class*="z-40"].flex.items-end.justify-center>* {
+  margin: auto !important;
 }

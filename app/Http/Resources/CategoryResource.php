@@ -30,13 +30,12 @@ class CategoryResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'description' => $this->description,
-            'parent_id' => $this->parent_id,
+            'category_group_id' => $this->category_group_id,
+            'group_name' => $this->group?->name,
             'image_url' => $this->image_url,
             'status' => $this->status,
             'voting_enabled' => $this->voting_enabled,
             'nominees_count' => $this->whenCounted('nominees'),
-            'children' => CategoryResource::collection($this->whenLoaded('children')),
-            // Hii ndiyo njia sahihi ya kujumuisha data za washiriki
             'nominees' => NomineeResource::collection($this->whenLoaded('nominees')),
         ];
     }

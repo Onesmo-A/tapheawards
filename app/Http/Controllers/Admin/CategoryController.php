@@ -93,7 +93,7 @@ class CategoryController extends Controller
     $category->status = $validated['status'];
 
     if ($request->hasFile('image')) {
-        $category->image_path = $request->file('image')->store('categories', 'public');
+        $category->image_path = \App\Services\ImageOptimizer::optimizeAndStore($request->file('image'), 'categories');
     }
 
     $category->save();
@@ -153,7 +153,7 @@ class CategoryController extends Controller
             if ($category->image_path) {
                 \Storage::disk('public')->delete($category->image_path);
             }
-            $category->image_path = $request->file('image')->store('categories', 'public');
+            $category->image_path = \App\Services\ImageOptimizer::optimizeAndStore($request->file('image'), 'categories');
         }
 
         $category->save();

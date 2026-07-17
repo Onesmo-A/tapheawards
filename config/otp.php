@@ -28,5 +28,24 @@ return [
             'sender_id' => env('BEEM_SENDER_ID', 'INFO'),
             'url' => 'https://api.beem.africa/v1/send',
         ],
+
+        'africastalking' => [
+            'username' => env('AFRICASTALKING_USERNAME', 'sandbox'),
+            'api_key' => env('AFRICASTALKING_API_KEY'),
+            'from' => env('AFRICASTALKING_FROM'),
+        ],
+
+        'nextsms' => [
+            'username' => env('NEXTSMS_USERNAME'),
+            'password' => env('NEXTSMS_PASSWORD'),
+            'sender_id' => env('NEXTSMS_SENDER_ID', 'N-SMS'),
+            'use_test_mode' => env('NEXTSMS_USE_TEST_MODE', false),
+        ],
+
+        'ultramsg' => [
+            'instance_id' => env('ULTRAMSG_INSTANCE_ID'),
+            'token' => env('ULTRAMSG_TOKEN'),
+        ],
     ],
 ];
+

@@ -36,18 +36,62 @@ class VoteController extends Controller
      */
     public function getPackages(): JsonResponse
     {
-        $packages = [];
-        foreach (self::VOTE_PACKAGES as $votes => $price) {
-            $packages[] = [
-                'votes' => $votes,
-                'price' => $price,
-                'label' => "$votes Kura = " . number_format($price) . " TZS"
-            ];
+        try {
+            $packages = \App\Models\VotePackage::where('is_active', true)
+                ->orderBy('sort_order')
+                ->orderBy('votes')
+                ->get()
+                ->map(function ($pkg) {
+                    return [
+                        'votes' => $pkg->votes,
+                        'price' => $pkg->price,
+                        'label' => $pkg->label,
+                        'sub' => $pkg->sub
+                    ];
+                });
+            
+            if ($packages->isEmpty()) {
+                $packages = collect(self::VOTE_PACKAGES)->map(function ($price, $votes) {
+                    return [
+                        'votes' => $votes,
+                        'price' => $price,
+                        'label' => "$votes Vote" . ($votes > 1 ? 's' : ''),
+                        'sub' => $votes === 1 ? 'Single test vote' : "$votes Votes Package"
+                    ];
+                })->values();
+            }
+        } catch (\Exception $e) {
+            $packages = collect(self::VOTE_PACKAGES)->map(function ($price, $votes) {
+                return [
+                    'votes' => $votes,
+                    'price' => $price,
+                    'label' => "$votes Vote" . ($votes > 1 ? 's' : ''),
+                    'sub' => $votes === 1 ? 'Single test vote' : "$votes Votes Package"
+                ];
+            })->values();
         }
 
         return response()->json([
             'status' => 'success',
             'packages' => $packages
+        ]);
+    }
+
+    /**
+     * Get Proof-of-Work challenge for OTP request.
+     */
+    public function getChallenge(Request $request): JsonResponse
+    {
+        $ip = $request->ip();
+        $challenge = Str::random(32);
+        
+        // Cache the challenge for this IP for 10 minutes
+        Cache::put('pow_challenge_' . $ip, $challenge, now()->addMinutes(10));
+        
+        return response()->json([
+            'status' => 'success',
+            'challenge' => $challenge,
+            'difficulty' => 4, // Number of leading zeros required
         ]);
     }
 
@@ -59,10 +103,61 @@ class VoteController extends Controller
         $request->validate([
             'phone' => ['required', 'string', 'regex:/^(?:255|0)[67]\d{8}$/'],
             'channel' => 'required|string|in:sms,whatsapp',
+            'pow_nonce' => 'required|string',
+            'challenge' => 'required|string',
         ]);
 
         $phone = $request->input('phone');
         $channel = $request->input('channel');
+        $powNonce = $request->input('pow_nonce');
+        $clientChallenge = $request->input('challenge');
+        $ip = $request->ip();
+
+        // 1. Verify Challenge
+        $cachedChallenge = Cache::get('pow_challenge_' . $ip);
+        if (!$cachedChallenge || $cachedChallenge !== $clientChallenge) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Challenge imepitwa na wakati au si halali. Tafadhali pakia upya ukurasa.'
+            ], 422);
+        }
+
+        // 2. Verify Proof of Work (SHA-256 starts with 4 zeros)
+        $hash = hash('sha256', $clientChallenge . $powNonce);
+        if (!str_starts_with($hash, '0000')) {
+            Log::warning("Proof of work failed for IP: $ip, Phone: $phone");
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Uthibitishaji wa usalama (Proof of Work) umeshindikana. Inaonekana ombi hili limetengenezwa na mfumo wa roboti.'
+            ], 422);
+        }
+
+        // 3. Phone rate limit (max 3 OTP requests per phone per hour)
+        $phoneLimitKey = 'otp_limit_phone_' . $phone;
+        $phoneRequests = (int) Cache::get($phoneLimitKey, 0);
+        if ($phoneRequests >= 3) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Namba hii imezidi kikomo cha maombi ya OTP kwa saa hii. Tafadhali jaribu tena baadae.'
+            ], 429);
+        }
+
+        // 4. IP rate limit (max 10 OTP requests per IP per hour)
+        $ipLimitKey = 'otp_limit_ip_' . $ip;
+        $ipRequests = (int) Cache::get($ipLimitKey, 0);
+        if ($ipRequests >= 10) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Mtandao wako umezidi kikomo cha maombi ya OTP kwa saa hii. Tafadhali jaribu tena baadae.'
+            ], 429);
+        }
+
+        // Increment rate limits
+        Cache::put($phoneLimitKey, $phoneRequests + 1, now()->addHour());
+        Cache::put($ipLimitKey, $ipRequests + 1, now()->addHour());
+
+        // Consume challenge
+        Cache::forget('pow_challenge_' . $ip);
 
         // Generate 6 digit OTP
         $otp = (string) rand(100000, 999999);
@@ -128,7 +223,7 @@ class VoteController extends Controller
 
         return response()->json([
             'status' => 'error',
-            'message' => 'Namba ya siri uliyoweka sio sahihi au imepitwa na wakati.'
+            'message' => 'Your OTP is Expired'
         ], 422);
     }
 
@@ -137,9 +232,18 @@ class VoteController extends Controller
      */
     public function initiatePaidVote(Request $request): JsonResponse
     {
+        try {
+            $dbPackages = \App\Models\VotePackage::where('is_active', true)->pluck('price', 'votes')->toArray();
+        } catch (\Exception $e) {
+            $dbPackages = [];
+        }
+
+        $packages = !empty($dbPackages) ? $dbPackages : self::VOTE_PACKAGES;
+        $allowedVoteCounts = array_keys($packages);
+
         $request->validate([
             'nominee_id' => 'required|uuid|exists:nominees,id',
-            'votes_count' => 'required|integer|in:' . implode(',', array_keys(self::VOTE_PACKAGES)),
+            'votes_count' => 'required|integer|in:' . implode(',', $allowedVoteCounts),
             'phone_provider' => 'required|string|in:mpesa,tigopesa,airtelmoney,halopesa',
             'payment_phone' => ['required', 'string', 'regex:/^(?:255|0)[67]\d{8}$/'],
             'voter_token' => 'required|string',
@@ -168,7 +272,7 @@ class VoteController extends Controller
         }
 
         $votesCount = (int) $request->input('votes_count');
-        $expectedAmount = self::VOTE_PACKAGES[$votesCount];
+        $expectedAmount = $packages[$votesCount];
 
         // Create Vote Order
         $order = VoteOrder::create([
@@ -213,7 +317,9 @@ class VoteController extends Controller
         return response()->json([
             'status' => 'success',
             'order_id' => $order->id,
+            'vote_order_id' => $order->id,
             'transaction_id' => $transaction->id,
+            'transaction_order_id' => $transaction->order_id,
             'message' => 'Ombi la malipo limetengenezwa. Tafadhali weka PIN kwenye simu yako kukamilisha malipo.'
         ]);
     }
@@ -230,3 +336,4 @@ class VoteController extends Controller
         ]);
     }
 }
+

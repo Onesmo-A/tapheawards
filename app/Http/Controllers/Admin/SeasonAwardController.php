@@ -23,7 +23,7 @@ class SeasonAwardController extends Controller
         $validated = $this->validateSeason($request);
 
         if ($request->hasFile('cover_image')) {
-            $validated['cover_image_path'] = $request->file('cover_image')->store('season-awards', 'public');
+            $validated['cover_image_path'] = \App\Services\ImageOptimizer::optimizeAndStore($request->file('cover_image'), 'season-awards');
         }
 
         SeasonAward::create($validated);
@@ -40,7 +40,7 @@ class SeasonAwardController extends Controller
                 Storage::disk('public')->delete($seasonAward->cover_image_path);
             }
 
-            $validated['cover_image_path'] = $request->file('cover_image')->store('season-awards', 'public');
+            $validated['cover_image_path'] = \App\Services\ImageOptimizer::optimizeAndStore($request->file('cover_image'), 'season-awards');
         } else {
             unset($validated['cover_image_path']);
         }

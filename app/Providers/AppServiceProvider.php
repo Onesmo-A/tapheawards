@@ -63,5 +63,10 @@ class AppServiceProvider extends ServiceProvider
         if ($this->app->environment('production') && str_starts_with((string) config('app.url'), 'https://')) {
             URL::forceScheme('https');
         }
+
+        // Use custom UUID Personal Access Token model
+        \Laravel\Sanctum\Sanctum::usePersonalAccessTokenModel(
+            \App\Models\Sanctum\PersonalAccessToken::class
+        );
     }
 }

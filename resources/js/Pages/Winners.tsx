@@ -1,88 +1,6 @@
-import React, { useState } from 'react';
-import { Award, Search, Sparkles, Star, Building, Users, X, ShieldCheck, TrendingUp } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Award, Search, Sparkles, Star, Building, Users, X, ShieldCheck, Loader2, Trophy } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-
-const seasonsData = {
-  '2025': [
-    { 
-      name: 'Bochi Hospital', 
-      category: 'Best Private Hospital of the Year', 
-      desc: 'Honored for standardizing advanced patient logistics and establishing rapid local clinical response guidelines.', 
-      image: '/images/hero/slide-1.png',
-      nominees: [
-        { name: 'Bochi Hospital', percentage: 54, votes: 58320 },
-        { name: 'Regency Medical Centre', percentage: 29, votes: 31320 },
-        { name: 'Bochi Poly Clinic', percentage: 17, votes: 18360 }
-      ]
-    },
-    { 
-      name: 'Dr. Sarah Joseph', 
-      category: 'Medical Researcher of the Year', 
-      desc: 'Recognized for local epidemiologic studies supporting pediatric centers in Tanzania.', 
-      image: '/images/hero/slide-2.png',
-      nominees: [
-        { name: 'Dr. Sarah Joseph', percentage: 48, votes: 32640 },
-        { name: 'Dr. Kelvin Temu', percentage: 35, votes: 23800 },
-        { name: 'Prof. Maria Kway', percentage: 17, votes: 11560 }
-      ]
-    },
-    { 
-      name: 'Muhimbili Medical Lab', 
-      category: 'Health Innovator of the Year', 
-      desc: 'Honored for implementing rapid digital diagnostic reports and database tools.', 
-      image: '/images/hero/slide-3.png',
-      nominees: [
-        { name: 'Muhimbili Medical Lab', percentage: 60, votes: 72000 },
-        { name: 'Bugando Lab System', percentage: 25, votes: 30000 },
-        { name: 'Selian ICT Desk', percentage: 15, votes: 18000 }
-      ]
-    }
-  ],
-  '2024': [
-    { 
-      name: 'Aga Khan Hospital', 
-      category: 'Outstanding Oncology Care', 
-      desc: 'Recognized for scaling regional oncology diagnostic access and cancer support initiatives.', 
-      image: '/images/ticket-bg.jpg',
-      nominees: [
-        { name: 'Aga Khan Hospital', percentage: 52, votes: 93600 },
-        { name: 'Ocean Road Cancer Institute', percentage: 48, votes: 86400 }
-      ]
-    },
-    { 
-      name: 'Prof. Joseph Rutabanzibwa', 
-      category: 'Lifetime Medical Achievement', 
-      desc: 'Awarded for decades of surgical education and training of local practitioners.', 
-      image: '/images/sponsorship-promo.jpg',
-      nominees: [
-        { name: 'Prof. Joseph Rutabanzibwa', percentage: 74, votes: 111000 },
-        { name: 'Dr. Frank Minja', percentage: 26, votes: 39000 }
-      ]
-    }
-  ],
-  '2023': [
-    { 
-      name: 'KCMC Referral Hospital', 
-      category: 'Best Public Facility Support', 
-      desc: 'Honored for rural healthcare coverage and community clinical outreach camps.', 
-      image: '/images/marathon-promo.jpg',
-      nominees: [
-        { name: 'KCMC Referral Hospital', percentage: 58, votes: 87000 },
-        { name: 'Benjamin Mkapa Hospital', percentage: 42, votes: 63000 }
-      ]
-    },
-    { 
-      name: 'Dr. Faraja Msemwa', 
-      category: 'Community Health Advocate', 
-      desc: 'Recognized for developing local vaccine distribution networks in southern regions.', 
-      image: '/images/about-us2.jpg',
-      nominees: [
-        { name: 'Dr. Faraja Msemwa', percentage: 51, votes: 40800 },
-        { name: 'Sister Lucy Massawe', percentage: 49, votes: 39200 }
-      ]
-    }
-  ]
-};
 
 const getCategoryIcon = (category: string) => {
   const lower = category.toLowerCase();
@@ -96,17 +14,93 @@ const getCategoryIcon = (category: string) => {
 };
 
 export default function Winners() {
-  const [selectedSeason, setSelectedSeason] = useState<'2025' | '2024' | '2023'>('2025');
+  const [winners, setWinners] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [disabled, setDisabled] = useState(false);
+  const [disabledMessage, setDisabledMessage] = useState('');
+  const [selectedSeason, setSelectedSeason] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedWinnerStats, setSelectedWinnerStats] = useState<any | null>(null);
 
-  const currentWinners = seasonsData[selectedSeason].filter((winner) => 
+  useEffect(() => {
+    fetch('/api/v1/awards/winners')
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'disabled') {
+          setDisabled(true);
+          setDisabledMessage(data.message || 'Voting results are not publicly available yet.');
+        } else if (data.status === 'success') {
+          const list = data.winners || [];
+          setWinners(list);
+          // Auto select latest season year
+          const years = Array.from(new Set(list.map((w: any) => String(w.year)))).sort((a, b) => Number(b) - Number(a)) as string[];
+          if (years.length > 0) {
+            setSelectedSeason(years[0]);
+          } else {
+            setSelectedSeason('2026');
+          }
+        }
+      })
+      .catch(err => console.error("Error loading winners:", err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Group winners dynamically by season year
+  const seasonsData: Record<string, any[]> = {};
+  winners.forEach((w: any) => {
+    const yr = String(w.year);
+    if (!seasonsData[yr]) {
+      seasonsData[yr] = [];
+    }
+    if (w.nominee) {
+      seasonsData[yr].push({
+        id: w.id,
+        name: w.nominee.name,
+        category: w.category_name,
+        desc: w.nominee.bio || w.category_description || 'Healthcare quality and service excellence laureate.',
+        image: w.nominee.image_url || '/images/logo.webp',
+        nominees: w.nominees || []
+      });
+    }
+  });
+
+  const availableSeasons = Object.keys(seasonsData).sort((a, b) => Number(b) - Number(a));
+  const activeSeason = selectedSeason || availableSeasons[0] || '2026';
+
+  const currentWinners = (seasonsData[activeSeason] || []).filter((winner) => 
     winner.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
     winner.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const totalLaureatesCount = winners.length;
+  const certifiedReportsCount = winners.length;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#030303] flex items-center justify-center">
+        <Loader2 className="w-10 h-10 animate-spin text-[#D90429]" />
+      </div>
+    );
+  }
+
+  if (disabled) {
+    return (
+      <div className="min-h-screen bg-[#030303] text-white selection:bg-[#D90429] selection:text-white bg-mesh pt-32 pb-20 flex items-center justify-center">
+        <div className="max-w-md mx-auto px-6 text-center space-y-6">
+          <div className="w-16 h-16 bg-[#D90429]/10 border border-[#D90429]/20 text-[#D90429] rounded-3xl flex items-center justify-center mx-auto animate-pulse">
+            <Trophy className="w-8 h-8" />
+          </div>
+          <h1 className="text-3xl font-outfit font-black uppercase tracking-tight text-white">Results Coming Soon</h1>
+          <p className="text-xs text-white/50 leading-relaxed font-light">
+            {disabledMessage}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-[#030303] text-white selection:bg-[#D90429] selection:text-white bg-mesh pt-24 pb-20 select-none">
+    <div className="min-h-screen bg-[#030303] text-white selection:bg-[#D90429] selection:text-white bg-mesh pt-24 pb-20">
       
       {/* Spotlight blur */}
       <div className="absolute top-10 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#D90429]/10 rounded-full blur-[100px] pointer-events-none z-0" />
@@ -130,17 +124,17 @@ export default function Winners() {
           <div className="grid grid-cols-3 gap-4 w-full lg:w-auto shrink-0 lg:mt-4">
             <div className="p-4 px-6 rounded-2xl glass-panel bg-white/[0.01] border border-white/5 text-left space-y-1">
               <span className="text-[8px] font-black uppercase text-white/40 tracking-wider">Seasons</span>
-              <div className="text-lg font-black text-[#D90429] font-outfit">3</div>
+              <div className="text-lg font-black text-[#D90429] font-outfit">{availableSeasons.length || 1}</div>
               <p className="text-[9px] text-white/50 leading-tight">Archives</p>
             </div>
             <div className="p-4 px-6 rounded-2xl glass-panel bg-white/[0.01] border border-[#D90429]/20 text-left space-y-1 shadow-[0_0_15px_rgba(217,4,41,0.05)]">
               <span className="text-[8px] font-black uppercase text-white/40 tracking-wider">Winners</span>
-              <div className="text-lg font-black text-[#D90429] font-outfit">7</div>
+              <div className="text-lg font-black text-[#D90429] font-outfit">{totalLaureatesCount}</div>
               <p className="text-[9px] text-white/50 leading-tight">Laureates</p>
             </div>
             <div className="p-4 px-6 rounded-2xl glass-panel bg-white/[0.01] border border-white/5 text-left space-y-1">
               <span className="text-[8px] font-black uppercase text-white/40 tracking-wider">Audits</span>
-              <div className="text-lg font-black text-[#D90429] font-outfit">7</div>
+              <div className="text-lg font-black text-[#D90429] font-outfit">{certifiedReportsCount}</div>
               <p className="text-[9px] text-white/50 leading-tight">Certified Reports</p>
             </div>
           </div>
@@ -149,20 +143,24 @@ export default function Winners() {
         {/* Filter Toolbar (Seasons & Search) */}
         <div className="flex flex-col md:flex-row gap-4 items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-3xl backdrop-blur-xl">
           {/* Season Switcher Tabs */}
-          <div className="flex gap-2 w-full md:w-auto">
-            {(['2025', '2024', '2023'] as const).map((season) => (
-              <button
-                key={season}
-                onClick={() => setSelectedSeason(season)}
-                className={`px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-wider transition-all duration-300 border ${
-                  selectedSeason === season
-                    ? 'bg-[#D90429] border-[#D90429]/20 text-white shadow-lg shadow-[#D90429]/10'
-                    : 'bg-white/5 border-white/5 text-white/60 hover:text-white hover:bg-white/10'
-                }`}
-              >
-                Season {season}
-              </button>
-            ))}
+          <div className="flex gap-2 w-full md:w-auto overflow-x-auto scrollbar-none">
+            {availableSeasons.length === 0 ? (
+              <span className="px-5 py-2.5 text-[10px] font-black uppercase text-white/30 tracking-wider">No Archive Seasons</span>
+            ) : (
+              availableSeasons.map((season) => (
+                <button
+                  key={season}
+                  onClick={() => setSelectedSeason(season)}
+                  className={`px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-wider transition-all duration-300 border ${
+                    activeSeason === season
+                      ? 'bg-[#D90429] border-[#D90429]/20 text-white shadow-lg shadow-[#D90429]/10'
+                      : 'bg-white/5 border-white/5 text-white/60 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  Season {season}
+                </button>
+              ))
+            )}
           </div>
 
           {/* Search Box */}
@@ -183,7 +181,7 @@ export default function Winners() {
           <AnimatePresence mode="wait">
             {currentWinners.map((winner, idx) => (
               <motion.div
-                key={`${selectedSeason}-${winner.name}`}
+                key={`${activeSeason}-${winner.name}`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
@@ -193,12 +191,20 @@ export default function Winners() {
               >
                 <div>
                   {/* Photo container */}
-                  <div className="relative h-56 bg-gradient-to-br from-white/5 to-white/10 overflow-hidden">
-                    <img 
-                      src={winner.image} 
-                      alt={winner.name} 
-                      className="w-full h-full object-cover filter brightness-[0.7] group-hover:scale-105 transition-transform duration-500"
-                    />
+                  <div className="relative h-56 bg-gradient-to-br from-white/5 to-white/10 overflow-hidden flex items-center justify-center">
+                    {winner.image ? (
+                      <img 
+                        src={winner.image} 
+                        alt={winner.name} 
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = '/images/logo.webp';
+                        }}
+                        className="w-full h-full object-cover filter brightness-[0.7] group-hover:scale-105 transition-transform duration-500 bg-[#0b0b0b]"
+                      />
+                    ) : (
+                      <Users className="w-16 h-16 text-white/10" />
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                     
                     {/* Floating badge */}
@@ -220,7 +226,7 @@ export default function Winners() {
                       <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[#D90429]">
                         {getCategoryIcon(winner.category)}
                       </div>
-                      <span className="text-[10px] font-black uppercase text-[#D90429] tracking-wider font-outfit">
+                      <span className="text-[10px] font-black uppercase text-[#D90429] tracking-wider font-outfit truncate max-w-[200px]">
                         {winner.category}
                       </span>
                     </div>
@@ -234,7 +240,7 @@ export default function Winners() {
                   <div className="flex items-center gap-2">
                     <Sparkles className="w-3.5 h-3.5 text-yellow-500" />
                     <span className="text-[9px] font-bold text-white/45 uppercase tracking-wider">
-                      Season {selectedSeason} Excellence Laureate
+                      Season {activeSeason} Excellence Laureate
                     </span>
                   </div>
                   <span className="text-[9px] font-black text-[#D90429] uppercase tracking-wider group-hover:underline">View Audit Stats →</span>
@@ -269,7 +275,7 @@ export default function Winners() {
               initial={{ scale: 0.95, y: 15 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 15 }}
-              className="relative z-10 w-full max-w-lg bg-[#0c0c0c] border border-white/10 rounded-[32px] p-6 space-y-6 select-none overflow-hidden text-left"
+              className="relative z-10 w-full max-w-lg bg-[#0c0c0c] border border-white/10 rounded-[32px] p-6 space-y-6 overflow-hidden text-left"
             >
               <div className="absolute -left-12 -top-12 w-32 h-32 bg-[#D90429]/5 rounded-full blur-[40px] pointer-events-none" />
 
@@ -285,7 +291,7 @@ export default function Winners() {
               <div className="space-y-1">
                 <span className="text-[9px] font-bold text-[#D90429] uppercase tracking-widest font-outfit">Audited Season Results</span>
                 <h3 className="text-base font-black text-white uppercase">{selectedWinnerStats.category}</h3>
-                <p className="text-[10px] text-white/40 uppercase">Season {selectedSeason} Archives</p>
+                <p className="text-[10px] text-white/40 uppercase font-mono">Season {activeSeason} Archives</p>
               </div>
 
               {/* Audited integrity check card */}

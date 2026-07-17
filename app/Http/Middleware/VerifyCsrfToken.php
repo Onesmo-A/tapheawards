@@ -12,6 +12,6 @@ class VerifyCsrfToken extends Middleware
      * @var array<int, string>
      */
     protected $except = [
-        'api/webhooks/*', // Hii inaruhusu webhook zote zinazoanzia na /webhooks/
+        'api/v1/webhooks/*', // Hii inaruhusu webhook zote zinazoanzia na /api/v1/webhooks/
     ];
 }

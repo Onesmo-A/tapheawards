@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\CategoryResource;
 use App\Models\Category;
+use App\Models\CategoryGroup;
 use App\Models\Setting;
 use App\Services\Voting\VoteSessionService;
 use Illuminate\Support\Facades\Cache;
@@ -51,19 +52,15 @@ class CategoryController extends Controller
     public function index(Request $request): Response
     {
         $search = trim((string) $request->input('search', ''));
-        $searchPhrase = mb_strtolower(preg_replace('/\s+/', ' ', $search));
         $searchTerms = collect(preg_split('/\s+/', mb_strtolower($search), -1, PREG_SPLIT_NO_EMPTY))
             ->filter()
             ->unique()
             ->values();
 
-        // Chagua makundi makuu (yale hayana mzazi)
-        $categoryGroups = Category::query()
-            ->where('status', 'active') // 1. Onyesha makundi makuu yaliyo 'active' tu
-            ->whereNull('parent_id')
-            // Pakia tuzo zilizo chini yake (children) na hesabu washiriki kwa kila tuzo
-            ->with(['children' => function ($query) use ($searchTerms) {
-                $query->where('status', 'active') // 2. Pakia tuzo zilizo 'active' tu
+        $categoryGroups = CategoryGroup::query()
+            ->where('status', 'active')
+            ->with(['categories' => function ($query) use ($searchTerms) {
+                $query->where('status', 'active')
                       ->withCount(['nominees' => function ($nomineeQuery) {
                           $nomineeQuery->where('is_suspended', false);
                       }])
@@ -74,123 +71,17 @@ class CategoryController extends Controller
                       })
                       ->orderBy('name', 'asc');
             }])
-            // 3. Hakikisha kundi kuu linaonekana tu kama lina tuzo (children) zilizo 'active'
-            ->whereHas('children', function ($query) {
+            ->whereHas('categories', function ($query) {
                 $query->where('status', 'active');
             })
-            // Ongeza uwezo wa kutafuta kwenye makundi makuu na tuzo zake
-            ->when($searchTerms->isNotEmpty(), function ($query) use ($searchTerms, $searchPhrase) {
-                $query->where(function (Builder $rootQuery) use ($searchTerms, $searchPhrase) {
-                    $matchCategory = function (Builder $builder, string $termLike): void {
-                        $builder->whereRaw('LOWER(CONCAT_WS(" ", name, slug, COALESCE(description, ""))) LIKE ?', [$termLike])
-                            ->orWhereHas('children', function (Builder $childQuery) use ($termLike): void {
-                                $childQuery->where('status', 'active')
-                                    ->where(function (Builder $nested) use ($termLike): void {
-                                        $nested->whereRaw('LOWER(CONCAT_WS(" ", name, slug, COALESCE(description, ""))) LIKE ?', [$termLike])
-                                            ->orWhereHas('nominees', function (Builder $nomineeQuery) use ($termLike): void {
-                                                $nomineeQuery->where('is_suspended', false)
-                                                    ->where(function (Builder $nomineeMatch) use ($termLike): void {
-                                                        $nomineeMatch->whereRaw('LOWER(CONCAT_WS(" ", name, COALESCE(bio, ""))) LIKE ?', [$termLike])
-                                                            ->orWhereRaw('LOWER(name) LIKE ?', [$termLike])
-                                                            ->orWhereRaw('LOWER(COALESCE(bio, "")) LIKE ?', [$termLike]);
-                                                    });
-                                            });
-                                    });
-                            });
-                    };
-
-                    if (filled($searchPhrase)) {
-                        $rootQuery->orWhere(function (Builder $phraseQuery) use ($matchCategory, $searchPhrase): void {
-                            $matchCategory($phraseQuery, "%{$searchPhrase}%");
-                        });
-                    }
-
-                    foreach ($searchTerms as $term) {
-                        $termLike = "%{$term}%";
-
-                        $rootQuery->orWhere(function (Builder $termQuery) use ($matchCategory, $termLike): void {
-                            $matchCategory($termQuery, $termLike);
-                        });
-                    }
-                });
-            })
-            ->orderBy('name', 'asc') // Panga makundi makuu kwa herufi
-            ->paginate(10) // Weka pagination kwenye makundi makuu
+            ->orderBy('name', 'asc')
+            ->paginate(10)
             ->withQueryString();
 
-        if ($searchTerms->isNotEmpty()) {
-            $categoryGroups->getCollection()->transform(function (Category $category) use ($searchTerms, $searchPhrase) {
-                $matchesHaystack = function (string $haystack) use ($searchTerms, $searchPhrase): bool {
-                    if ($searchPhrase !== '' && str_contains($haystack, $searchPhrase)) {
-                        return true;
-                    }
-
-                    foreach ($searchTerms as $term) {
-                        if ($term !== '' && str_contains($haystack, $term)) {
-                            return true;
-                        }
-                    }
-
-                    return false;
-                };
-
-                if ($category->relationLoaded('children')) {
-                    $filteredChildren = $category->children->filter(function (Category $child) use ($matchesHaystack) {
-                        $childHaystack = mb_strtolower(trim(implode(' ', array_filter([
-                            $child->name ?? '',
-                            $child->slug ?? '',
-                            $child->description ?? '',
-                        ]))));
-
-                        if ($matchesHaystack($childHaystack)) {
-                            return true;
-                        }
-
-                        return $child->relationLoaded('nominees') && $child->nominees->contains(function ($nominee) use ($matchesHaystack) {
-                            $nomineeHaystack = mb_strtolower(trim(implode(' ', array_filter([
-                                $nominee->name ?? '',
-                                $nominee->bio ?? '',
-                            ]))));
-
-                            return $matchesHaystack($nomineeHaystack);
-                        });
-                    })->values();
-
-                    $category->setRelation('children', $filteredChildren);
-                }
-
-                return $category;
-            })->filter(function (Category $category) use ($searchTerms, $searchPhrase) {
-                $categoryHaystack = mb_strtolower(trim(implode(' ', array_filter([
-                    $category->name ?? '',
-                    $category->slug ?? '',
-                    $category->description ?? '',
-                ]))));
-
-                if ($searchPhrase !== '' && str_contains($categoryHaystack, $searchPhrase)) {
-                    return true;
-                }
-
-                foreach ($searchTerms as $term) {
-                    if ($term !== '' && str_contains($categoryHaystack, $term)) {
-                        return true;
-                    }
-                }
-
-                if ($category->children->isNotEmpty()) {
-                    return true;
-                }
-
-                return false;
-            })->values();
-        }
-
         $stats = [
-            'groups' => Category::query()->whereNull('parent_id')->where('status', 'active')->count(),
-            'awards' => Category::query()->whereNotNull('parent_id')->where('status', 'active')->count(),
-            'nominees' => Category::query()
-                ->whereNotNull('parent_id')
-                ->where('status', 'active')
+            'groups'   => CategoryGroup::where('status', 'active')->count(),
+            'awards'   => Category::where('status', 'active')->count(),
+            'nominees' => Category::where('status', 'active')
                 ->withCount('nominees')
                 ->get()
                 ->sum('nominees_count'),
@@ -198,8 +89,8 @@ class CategoryController extends Controller
 
         return Inertia::render('Categories/Index', [
             'categoryGroups' => CategoryResource::collection($categoryGroups),
-            'filters' => $request->only(['search']),
-            'stats' => $stats,
+            'filters'        => $request->only(['search']),
+            'stats'          => $stats,
         ]);
     }
 }

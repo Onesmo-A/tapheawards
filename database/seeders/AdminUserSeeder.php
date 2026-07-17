@@ -4,19 +4,20 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use App\Models\User;
+use App\Models\AdminUser;
 
 class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
-        User::updateOrCreate(
-            ['email' => 'awards@businessawards.co.tz'], // email ya kipekee
+        AdminUser::updateOrCreate(
+            ['email' => 'info@tapheawards.co.tz'],
             [
-                'name' => 'Admin User',
-                'password' => Hash::make('awards@businessawards.co.tz'), // weka nenosiri lenye usalama
-                'is_admin' => true, // hakikisha ni admin
-                'email_verified_at' => now(),
+                'name' => 'TAPHE Secretariat Admin',
+                'phone' => '255749562993',
+                'password' => Hash::make('secretariat@taphe'),
+                'role' => 'super_admin',
+                'is_active' => true,
             ]
         );
     }

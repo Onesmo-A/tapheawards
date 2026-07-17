@@ -28,7 +28,7 @@ class BeemOtpDriver implements OtpDriverInterface
     {
         // Normalise phone number to 255XXXXXXXXX
         $formattedPhone = $this->formatPhoneNumber($phone);
-        $message = "Code yako ya siri ya kupiga kura TAPHE Awards ni: $code. Usishiriki na mtu yeyote. Inatumika kwa dakika 5 tu.";
+        $message = "Your TAPHE OTP is:: $code. Usishiriki na mtu yeyote. Inatumika kwa dakika 5 tu.";
 
         // Support channel parameter
         if ($channel === 'whatsapp') {
@@ -41,10 +41,16 @@ class BeemOtpDriver implements OtpDriverInterface
         }
 
         try {
-            $response = Http::withHeaders([
+            $request = Http::withHeaders([
                 'Authorization' => 'Basic ' . base64_encode($this->apiKey . ':' . $this->secretKey),
                 'Content-Type' => 'application/json',
-            ])->post($this->url, [
+            ]);
+
+            if (app()->environment('local')) {
+                $request = $request->withoutVerifying();
+            }
+
+            $response = $request->post($this->url, [
                 'source_addr' => $this->senderId,
                 'schedule_time' => '',
                 'message' => $message,

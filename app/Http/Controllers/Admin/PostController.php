@@ -63,7 +63,7 @@ class PostController extends Controller
         $post->slug = Str::slug($validated['title']);
 
         if ($request->hasFile('featured_image')) {
-            $post->featured_image = $request->file('featured_image')->store('post_images', 'public');
+            $post->featured_image = \App\Services\ImageOptimizer::optimizeAndStore($request->file('featured_image'), 'post_images');
         }
 
         $post->save();
@@ -107,7 +107,7 @@ class PostController extends Controller
             if ($post->featured_image) {
                 Storage::disk('public')->delete($post->featured_image);
             }
-            $updateData['featured_image'] = $request->file('featured_image')->store('post_images', 'public');
+            $updateData['featured_image'] = \App\Services\ImageOptimizer::optimizeAndStore($request->file('featured_image'), 'post_images');
         }
 
         $post->update($updateData);

@@ -84,9 +84,8 @@ class PageController extends Controller
         // Hii ndiyo njia sahihi na rahisi zaidi kulingana na ombi lako.
         $awardCategories = Category::query()
             ->where('status', 'active')      // 1. Hakikisha kategoria iko hai (active).
-            ->whereNotNull('parent_id')     // 2. Hakikisha ni kategoria ndogo (ya tuzo, siyo kundi kuu).
-            ->orderBy('name', 'asc')        // 3. Panga kwa herufi (A-Z).
-            ->get(['id', 'name']);          // 4. Chagua 'id' na 'name' pekee.
+            ->orderBy('name', 'asc')        // 2. Panga kwa herufi (A-Z).
+            ->get(['id', 'name']);          // 3. Chagua 'id' na 'name' pekee.
 
               // Debug hapa - itaonyesha categories kwenye browser na kusimamisha script
     // dd($awardCategories);

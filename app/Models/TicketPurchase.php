@@ -61,7 +61,7 @@ class TicketPurchase extends Model
         try {
             for ($i = 0; $i < $this->quantity; $i++) {
                 $this->tickets()->create([
-                    'ticket_code' => 'TKT-' . strtoupper(Str::random(12)),
+                    'ticket_code' => Ticket::generateSecureCode(),
                 ]);
             }
             Log::info("Successfully generated {$this->quantity} tickets for purchase ID: {$this->id}");

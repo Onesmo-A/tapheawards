@@ -29,7 +29,7 @@ class HeroBannerController extends Controller
         $validated = $this->validateBanner($request);
 
         if ($request->hasFile('image')) {
-            $validated['image_path'] = $request->file('image')->store('hero-banners', 'public');
+            $validated['image_path'] = \App\Services\ImageOptimizer::optimizeAndStore($request->file('image'), 'hero-banners', 1600);
         }
 
         HeroBanner::create($validated);
@@ -46,7 +46,7 @@ class HeroBannerController extends Controller
                 Storage::disk('public')->delete($heroBanner->image_path);
             }
 
-            $validated['image_path'] = $request->file('image')->store('hero-banners', 'public');
+            $validated['image_path'] = \App\Services\ImageOptimizer::optimizeAndStore($request->file('image'), 'hero-banners', 1600);
         } else {
             unset($validated['image_path']);
         }

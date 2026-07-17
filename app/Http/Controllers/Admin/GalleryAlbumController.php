@@ -48,7 +48,7 @@ class GalleryAlbumController extends Controller
         $album->slug = Str::slug($validated['name']);
 
         if ($request->hasFile('cover_image')) {
-            $album->cover_image = $request->file('cover_image')->store('album_covers', 'public');
+            $album->cover_image = \App\Services\ImageOptimizer::optimizeAndStore($request->file('cover_image'), 'album_covers');
         }
 
         $album->save();
@@ -83,7 +83,7 @@ class GalleryAlbumController extends Controller
             if ($galleryAlbum->cover_image) {
                 Storage::disk('public')->delete($galleryAlbum->cover_image);
             }
-            $updateData['cover_image'] = $request->file('cover_image')->store('album_covers', 'public');
+            $updateData['cover_image'] = \App\Services\ImageOptimizer::optimizeAndStore($request->file('cover_image'), 'album_covers');
         }
 
         // Ikiwa hakuna picha mpya na mtumiaji anataka kuondoa iliyopo

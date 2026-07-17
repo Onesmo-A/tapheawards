@@ -33,9 +33,7 @@ class SitemapController extends Controller
             ];
         }
 
-        // 2. Ongeza kurasa za kategoria (dynamic pages)
-        // Tunachukua tuzo (children categories) ambazo ziko 'active'
-        $categories = Category::where('status', 'active')->whereNotNull('parent_id')->get();
+        $categories = Category::where('status', 'active')->get();
         foreach ($categories as $category) {
             $urls[] = [
                 'loc' => route('categories.show', $category->slug),

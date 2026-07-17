@@ -26,7 +26,7 @@ Thumbs.db
 # Node modules and build files
 /node_modules/
 /public/build/
-/public/hot/
+/public/hot
 /public/storage
 
 # Laravel storage and cache
@@ -56,8 +56,9 @@ CHANGELOG.md export-ignore
 /node_modules/ export-ignore
 /vendor/ export-ignore
 /public/build/ export-ignore
-/public/hot/ export-ignore
+/public/hot export-ignore
 /public/storage export-ignore
 /.idea/ export-ignore
 /.vscode/ export-ignore
 *.zip export-ignore
+

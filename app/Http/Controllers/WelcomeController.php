@@ -74,6 +74,11 @@ class WelcomeController extends Controller
                 'show_visitor_statistics' => (bool) $settings->get('show_visitor_statistics', true),
                 'nomination_open_title' => $settings->get('nomination_open_title', 'Nomination Is Now Open'),
                 'nomination_open_dates' => $settings->get('nomination_open_dates', '15th July - 30th August 2024'),
+                'countdown_enabled' => (bool) $settings->get('countdown_enabled', false),
+                'countdown_start_date' => $settings->get('countdown_start_date'),
+                'countdown_start_label' => $settings->get('countdown_start_label', 'Online Voting Opens In'),
+                'countdown_target_date' => $settings->get('countdown_target_date'),
+                'countdown_label' => $settings->get('countdown_label', 'Online Voting Closes In'),
                 'timeline' => [
                     ['title' => $settings->get('timeline_step1_title', 'Public Suggestions'), 'date' => $settings->get('timeline_step1_date', 'Aug 30 - Sep 15')],
                     ['title' => $settings->get('timeline_step2_title', 'Nominee Applications'), 'date' => $settings->get('timeline_step2_date', 'Sep 16 - Oct 10')],
@@ -265,7 +270,7 @@ class WelcomeController extends Controller
 
         $settings = Cache::remember('app_settings', 3600, fn () => Setting::all()->pluck('value', 'key'));
 
-        $categories = Category::with(['nominees' => function($query) {
+        $categories = Category::with(['group', 'nominees' => function($query) {
             $query->where('is_suspended', false);
         }])->withCount('nominees')->latest()->get();
 
@@ -288,6 +293,13 @@ class WelcomeController extends Controller
                 'show_visitor_statistics' => (bool) $settings->get('show_visitor_statistics', true),
                 'nomination_open_title' => $settings->get('nomination_open_title', 'Nomination Is Now Open'),
                 'nomination_open_dates' => $settings->get('nomination_open_dates', '15th July - 30th August 2024'),
+                'countdown_enabled' => (bool) $settings->get('countdown_enabled', false),
+                'countdown_start_date' => $settings->get('countdown_start_date'),
+                'countdown_start_label' => $settings->get('countdown_start_label', 'Online Voting Opens In'),
+                'countdown_target_date' => $settings->get('countdown_target_date'),
+                'countdown_label' => $settings->get('countdown_label', 'Online Voting Closes In'),
+                'otp_sms_enabled' => (bool) $settings->get('otp_sms_enabled', true),
+                'otp_whatsapp_enabled' => (bool) $settings->get('otp_whatsapp_enabled', true),
                 'timeline' => [
                     ['title' => $settings->get('timeline_step1_title', 'Public Suggestions'), 'date' => $settings->get('timeline_step1_date', 'Aug 30 - Sep 15')],
                     ['title' => $settings->get('timeline_step2_title', 'Nominee Applications'), 'date' => $settings->get('timeline_step2_date', 'Sep 16 - Oct 10')],

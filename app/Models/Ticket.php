@@ -24,6 +24,25 @@ class Ticket extends Model
         'checked_in_at' => 'datetime',
     ];
 
+    public static function generateSecureCode(): string
+    {
+        $random = strtoupper(\Illuminate\Support\Str::random(10));
+        $signature = substr(hash_hmac('sha256', $random, config('app.key')), 0, 6);
+        return 'TKT-' . $random . '-' . strtoupper($signature);
+    }
+
+    public static function verifyCode(string $code): bool
+    {
+        $parts = explode('-', $code);
+        if (count($parts) !== 3 || $parts[0] !== 'TKT') {
+            return false;
+        }
+        $random = $parts[1];
+        $signature = $parts[2];
+        $expectedSignature = strtoupper(substr(hash_hmac('sha256', $random, config('app.key')), 0, 6));
+        return hash_equals($expectedSignature, $signature);
+    }
+
     public function ticketPurchase(): BelongsTo
     {
         return $this->belongsTo(TicketPurchase::class);

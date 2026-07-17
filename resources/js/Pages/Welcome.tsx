@@ -1,41 +1,41 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchWelcomeData, setSelectedCategory, Category } from '../store/slices/categorySlice';
 import { setActiveNominee } from '../store/slices/voteSlice';
-import VoteModal from './Nominees/VoteModal';
 import GalleryCard from './Components/GalleryCard';
 import Footer from './Components/Footer';
-import { 
-  Award, Loader2, Sparkles, Heart, Users, ChevronRight, 
-  Instagram, Facebook, ArrowRight, ShieldCheck, CheckCircle, 
-  Calendar, MapPin, Mail, Phone, Ticket, Send, Building, Star, X
+import {
+  Award, Loader2, Sparkles, Heart, Users, ChevronRight,
+  Instagram, Facebook, ArrowRight, ShieldCheck, CheckCircle,
+  Calendar, MapPin, Mail, Phone, Ticket, Send, Building, Star, X,
+  Copy, Share2, QrCode
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const sponsorLogos = [
-  '/images/sponsors/GANZI.png',
-  '/images/sponsors/jeziOriginal.png',
-  '/images/sponsors/MAGARI.png',
-  '/images/sponsors/main-sponsor.png',
-  '/images/sponsors/MAKUNDUCHI.png',
-  '/images/sponsors/mama-viwanja.png',
-  '/images/sponsors/MQ.png',
-  '/images/sponsors/NIVES_TRENDS.png',
-  '/images/sponsors/PRO-SHARE.png',
-  '/images/sponsors/PWEZA-BEACH.png',
-  '/images/sponsors/PWEZA.png',
-  '/images/sponsors/RAMA.png',
-  '/images/sponsors/simuhadhiYako.png',
-  '/images/sponsors/sponsor2.png',
-  '/images/sponsors/SPONSORS-BAR.png',
-  '/images/sponsors/SPONSORS-CROWN-MEDIA.png',
-  '/images/sponsors/SPONSORS-DOLLY.png',
-  '/images/sponsors/SPONSORS-GAZEM.png',
-  '/images/sponsors/SPONSORS-jay.png',
-  '/images/sponsors/SPONSORS-STOCK.png',
-  '/images/sponsors/SPONSORS1.png',
-  '/images/sponsors/SPONSORSkim.png'
+  '/images/sponsors/GANZI.webp',
+  '/images/sponsors/jeziOriginal.webp',
+  '/images/sponsors/MAGARI.webp',
+  '/images/sponsors/main-sponsor.webp',
+  '/images/sponsors/MAKUNDUCHI.webp',
+  '/images/sponsors/mama-viwanja.webp',
+  '/images/sponsors/MQ.webp',
+  '/images/sponsors/NIVES_TRENDS.webp',
+  '/images/sponsors/PRO-SHARE.webp',
+  '/images/sponsors/PWEZA-BEACH.webp',
+  '/images/sponsors/PWEZA.webp',
+  '/images/sponsors/RAMA.webp',
+  '/images/sponsors/simuhadhiYako.webp',
+  '/images/sponsors/sponsor2.webp',
+  '/images/sponsors/SPONSORS-BAR.webp',
+  '/images/sponsors/SPONSORS-CROWN-MEDIA.webp',
+  '/images/sponsors/SPONSORS-DOLLY.webp',
+  '/images/sponsors/SPONSORS-GAZEM.webp',
+  '/images/sponsors/SPONSORS-jay.webp',
+  '/images/sponsors/SPONSORS-STOCK.webp',
+  '/images/sponsors/SPONSORS1.webp',
+  '/images/sponsors/SPONSORSkim.webp'
 ];
 
 const pastWinners = [
@@ -43,34 +43,35 @@ const pastWinners = [
     name: 'Bochi Hospital',
     award: 'Best Private Hospital of the Year',
     description: 'Recognized for world-class patient-centric clinical delivery and state-of-the-art diagnostic facilities.',
-    image: '/images/hero/slide-1.png'
+    image: '/images/hero/slide-1.webp'
   },
   {
     name: 'Dr. Sarah Joseph',
     award: 'Best Medical Researcher of the Year',
     description: 'Awarded for pioneering research in local epidemiological studies supporting Tanzanian community clinics.',
-    image: '/images/hero/slide-2.png'
+    image: '/images/hero/slide-2.webp'
   },
   {
     name: 'Muhimbili Medical Lab',
     award: 'Health Innovator of the Year',
     description: 'Honored for introducing scalable digital diagnostics processing and rapid local response protocols.',
-    image: '/images/hero/slide-3.png'
+    image: '/images/hero/slide-3.webp'
   }
 ];
 
 const galleryItems = [
-  { title: 'TAPHE Gala Banquet 2025', image: '/images/about-us.jpg', type: 'wide' },
-  { title: 'Excellence Summit Panel', image: '/images/about-us2.jpg', type: 'tall' },
-  { title: 'Charity Marathon Run', image: '/images/marathon-promo.jpg', type: 'square' },
-  { title: 'Board Evaluation Meeting', image: '/images/sponsorship-promo.jpg', type: 'tall' },
-  { title: 'Gala Banquet Arena', image: '/images/ticket-bg.jpg', type: 'wide' },
-  { title: 'TAPHE Awards Ceremony', image: '/images/past_winners.png', type: 'square' }
+  { title: 'TAPHE Gala Banquet 2025', image: '/images/about-us.webp', type: 'wide' },
+  { title: 'Excellence Summit Panel', image: '/images/about-us2.webp', type: 'tall' },
+  { title: 'Charity Marathon Run', image: '/images/marathon-promo.webp', type: 'square' },
+  { title: 'Board Evaluation Meeting', image: '/images/sponsorship-promo.webp', type: 'tall' },
+  { title: 'Gala Banquet Arena', image: '/images/ticket-bg.webp', type: 'wide' },
+  { title: 'TAPHE Awards Ceremony', image: '/images/past_winners.webp', type: 'square' }
 ];
 
 export default function Welcome() {
   const dispatch = useAppDispatch();
-  const { categories, loading, error, selectedCategory } = useAppSelector((state) => state.categories);
+  const navigate = useNavigate();
+  const { categories, loading, error, selectedCategory, settings } = useAppSelector((state) => state.categories);
   const { activeNominee } = useAppSelector((state) => state.voting);
 
   const [activeStep, setActiveStep] = useState(1);
@@ -78,27 +79,94 @@ export default function Welcome() {
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [showCopyToast, setShowCopyToast] = useState(false);
+  const [qrCodeData, setQrCodeData] = useState<{ url: string; name: string } | null>(null);
+
+  const getCategoryShareUrl = (catId: number) => {
+    return `${window.location.origin}/categories?category=${catId}`;
+  };
+
+  const handleCopyLink = (cat: Category) => {
+    const url = getCategoryShareUrl(cat.id);
+    navigator.clipboard.writeText(url).then(() => {
+      setShowCopyToast(true);
+      setTimeout(() => setShowCopyToast(false), 3000);
+    });
+  };
+
+  const handleNativeShare = (cat: Category) => {
+    const url = getCategoryShareUrl(cat.id);
+    if (navigator.share) {
+      navigator.share({
+        title: cat.name,
+        text: `Vote for nominees in the category "${cat.name}" on TAPHE Awards!`,
+        url: url,
+      }).catch(console.error);
+    } else {
+      handleCopyLink(cat);
+    }
+  };
+
+  const handleShowQrCode = (cat: Category) => {
+    const url = getCategoryShareUrl(cat.id);
+    setQrCodeData({ url, name: cat.name });
+  };
 
   // Countdown timer logic
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [countdownState, setCountdownState] = useState<'upcoming' | 'active' | 'ended'>('ended');
+  const [currentLabel, setCurrentLabel] = useState('');
 
   useEffect(() => {
-    const target = new Date('2026-11-15T23:59:59').getTime();
-    const interval = setInterval(() => {
+    if (!settings?.countdown_target_date) {
+      setCountdownState('ended');
+      return;
+    }
+    
+    const start = settings.countdown_start_date ? new Date(settings.countdown_start_date).getTime() : 0;
+    const target = new Date(settings.countdown_target_date).getTime();
+    
+    if (isNaN(target)) {
+      setCountdownState('ended');
+      return;
+    }
+
+    const updateTime = () => {
       const now = new Date().getTime();
-      const diff = target - now;
-      if (diff <= 0) {
-        clearInterval(interval);
-      } else {
+      
+      // If we have a start date and now is BEFORE start date:
+      if (start > 0 && now < start) {
+        setCountdownState('upcoming');
+        setCurrentLabel(settings.countdown_start_label || 'Online Voting Opens In');
+        const diff = start - now;
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
         const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((diff % (1000 * 60)) / 1000);
         setTimeLeft({ days, hours, minutes, seconds });
+      } else {
+        // Now is AFTER start date (or start date not set)
+        const diff = target - now;
+        if (diff <= 0) {
+          setCountdownState('ended');
+          setCurrentLabel(settings.countdown_label || 'Online Voting Closes In');
+          setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        } else {
+          setCountdownState('active');
+          setCurrentLabel(settings.countdown_label || 'Online Voting Closes In');
+          const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+          setTimeLeft({ days, hours, minutes, seconds });
+        }
       }
-    }, 1000);
+    };
+
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [settings?.countdown_start_date, settings?.countdown_target_date, settings?.countdown_start_label, settings?.countdown_label]);
 
   // Monitor screen size for mobile overlay check
   useEffect(() => {
@@ -117,7 +185,7 @@ export default function Welcome() {
     const handleScroll = () => {
       const scrollPos = window.scrollY;
       const height = window.innerHeight;
-      
+
       if (scrollPos < height * 0.8) {
         setActiveStep(1);
       } else if (scrollPos >= height * 0.8 && scrollPos < height * 1.8) {
@@ -176,7 +244,7 @@ export default function Welcome() {
         <Award className="w-16 h-16 text-[#D90429] mb-4 animate-pulse" />
         <h3 className="text-xl font-bold font-outfit text-white">Connection Interrupted</h3>
         <p className="text-xs text-white/55 mt-2 max-w-sm leading-relaxed">{error || 'Unable to retrieve awards details from the server.'}</p>
-        <button 
+        <button
           onClick={() => dispatch(fetchWelcomeData())}
           className="mt-6 px-6 py-2.5 bg-[#D90429] hover:bg-[#B00020] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all duration-300 shadow-md shadow-[#D90429]/15 border border-[#D90429]/20"
         >
@@ -189,10 +257,10 @@ export default function Welcome() {
   const displayedCategories = categories.slice(0, 8);
 
   return (
-    <div 
-      style={{ 
-        '--x': '50%', 
-        '--y': '50%' 
+    <div
+      style={{
+        '--x': '50%',
+        '--y': '50%'
       } as React.CSSProperties}
       className="min-h-screen bg-[#030303] text-white selection:bg-[#D90429] selection:text-white bg-radial overflow-x-hidden"
     >
@@ -200,9 +268,13 @@ export default function Welcome() {
       <div className="noise-overlay" />
 
       {/* 1. HERO SECTION */}
-      <section 
-        className="relative min-h-screen flex flex-col justify-between pt-0 mt-0 pb-8 px-6 md:px-16 overflow-hidden bg-cover bg-center bg-no-repeat bg-[#030303]"
-        style={{ backgroundImage: "url('/images/hero_theme.png')" }}
+      <section
+        className="relative min-h-screen flex flex-col justify-between pt-0 mt-0 pb-8 px-6 md:px-16 overflow-hidden bg-cover bg-[position:35%_center] lg:bg-center bg-no-repeat bg-[#030303]"
+        style={{
+          backgroundImage: isMobile
+            ? "url('/images/trophy_hero.webp')"
+            : "url('/images/hero_theme.webp')"
+        }}
       >
         {/* Left Side indicators */}
         <div className="hidden lg:flex flex-col items-center gap-2 absolute left-12 top-1/2 -translate-y-1/2 z-20">
@@ -210,30 +282,30 @@ export default function Welcome() {
             <span className={`text-[10px] font-black transition-all duration-300 ${activeStep === 1 ? 'text-[#D90429] scale-110' : 'text-white/30'}`}>01</span>
             <div className="h-6 w-px bg-white/10 relative flex justify-center items-center">
               {activeStep === 1 && (
-                <motion.div 
+                <motion.div
                   layoutId="activeDot"
-                  className="absolute w-1.5 h-1.5 rounded-full bg-[#D90429] shadow-[0_0_8px_#D90429]" 
+                  className="absolute w-1.5 h-1.5 rounded-full bg-[#D90429] shadow-[0_0_8px_#D90429]"
                 />
               )}
             </div>
             <span className={`text-[10px] font-black transition-all duration-300 ${activeStep === 2 ? 'text-[#D90429] scale-110' : 'text-white/30'}`}>02</span>
             <div className="h-6 w-px bg-white/10 relative flex justify-center items-center">
               {activeStep === 2 && (
-                <motion.div 
+                <motion.div
                   layoutId="activeDot"
-                  className="absolute w-1.5 h-1.5 rounded-full bg-[#D90429] shadow-[0_0_8px_#D90429]" 
+                  className="absolute w-1.5 h-1.5 rounded-full bg-[#D90429] shadow-[0_0_8px_#D90429]"
                 />
               )}
             </div>
             <span className={`text-[10px] font-black transition-all duration-300 ${activeStep === 3 ? 'text-[#D90429] scale-110' : 'text-white/30'}`}>03</span>
-            
-            <div 
-              className="flex flex-col items-center gap-1 mt-4 cursor-pointer text-white/40 hover:text-[#D90429] transition-colors" 
+
+            <div
+              className="flex flex-col items-center gap-1 mt-4 cursor-pointer text-white/40 hover:text-[#D90429] transition-colors"
               onClick={() => scrollToSection('story-excellence')}
             >
               <div className="w-4 h-7 border border-white/20 rounded-full flex justify-center p-1 bg-transparent backdrop-blur-md">
-                <motion.div 
-                  className="w-1 h-1.5 rounded-full bg-[#D90429]" 
+                <motion.div
+                  className="w-1 h-1.5 rounded-full bg-[#D90429]"
                   animate={{ y: [0, 6, 0] }}
                   transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
                 />
@@ -248,64 +320,63 @@ export default function Welcome() {
             <div className="space-y-3">
               <div className="relative inline-block">
                 <h2 className="text-[12px] md:text-sm font-black text-[#D90429] uppercase tracking-widest font-outfit">
-                  Tanzania People's Health Excellence
+                  Tanzania People's Health <span className="text-white">Excellence</span>
                 </h2>
                 <div className="absolute -bottom-1 left-0 w-[42%] h-0.5 bg-[#D90429]" />
               </div>
-              <h1 className="text-7xl md:text-8xl lg:text-[105px] font-outfit font-black tracking-tight leading-none text-white text-shadow-glow">
+              <h1 className="text-[48px] md:text-8xl lg:text-[105px] font-outfit font-black tracking-tight leading-none text-white text-shadow-glow">
                 Awards
               </h1>
             </div>
 
-            <p className="text-xs md:text-sm text-white/55 leading-relaxed font-light font-inter max-w-md">
+            <p className="max-w-[150px] sm:max-w-[230px] md:max-w-md text-xs md:text-sm text-white/55 leading-relaxed font-light font-inter">
               Celebrating individuals and organizations making a difference in health across Tanzania.
             </p>
 
-            <div className="flex flex-wrap gap-4 pt-1">
-              <button 
+            <div className="flex flex-wrap items-center gap-4 pt-16 md:pt-1">
+              <button
                 onClick={() => scrollToSection('voting-arena')}
                 className="px-6 py-2.5 bg-black/60 hover:bg-[#D90429]/10 border border-[#D90429]/40 hover:border-[#D90429] text-white text-[10px] font-black tracking-widest uppercase rounded-full flex items-center gap-3 transition-all duration-300 group shadow-[0_0_15px_rgba(219,4,41,0.05)] hover:shadow-[0_0_25px_rgba(219,4,41,0.2)]"
               >
                 <span>Nominate Now</span>
-                <div className="w-5.5 h-5.5 rounded-full bg-[#D90429] flex items-center justify-center text-white group-hover:scale-105 transition-transform duration-300">
+                <div className="w-6 h-6 rounded-full bg-[#D90429] flex items-center justify-center text-white group-hover:scale-105 transition-transform duration-300">
                   <ArrowRight className="w-3.5 h-3.5" />
                 </div>
               </button>
-            </div>
-          </div>
 
-          <div className="lg:hidden flex justify-center items-center py-4 w-full z-10">
-            <div className="relative">
-              <div className="absolute w-[200px] h-[200px] bg-[#D90429]/10 rounded-full blur-[80px] pointer-events-none" />
-              <img 
-                src="/images/trophy_hero.png" 
-                alt="TAPHE Trophy" 
-                className="h-[280px] w-auto object-contain drop-shadow-[0_15px_35px_rgba(217,4,41,0.2)] animate-float"
-              />
+              <Link
+                to="/categories"
+                className="px-6 py-2.5 bg-gradient-to-r from-[#D90429] to-[#FF3D57] hover:from-[#B00020] hover:to-[#D90429] text-white text-[10px] font-black uppercase tracking-widest rounded-full flex items-center gap-3 border border-[#D90429]/20 shadow-[0_4px_25px_rgba(217,4,41,0.25)] hover:shadow-[0_0_35px_rgba(255,51,51,0.5)] transition-all duration-300 group"
+              >
+                <span>Explore Categories</span>
+                <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center text-[#D90429] group-hover:scale-105 transition-transform duration-300">
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </div>
+              </Link>
             </div>
           </div>
 
           <div className="lg:col-span-6 hidden lg:block h-0" />
         </div>
 
-        <div className="w-full z-20 relative mt-6 lg:mt-8 lg:pl-12">
+        <div className="w-full z-20 relative mt-48 sm:mt-24 lg:mt-8 lg:pl-12">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <GalleryCard 
-              title={"Individual\nAwards"} 
-              icon={<Users className="w-5 h-5" />} 
-              imageSrc="/images/ind_awards.png"
+            <GalleryCard
+              title={"Individual\nAwards"}
+              icon={<Users className="w-5 h-5" />}
+              imageSrc="/images/ind_awards.webp"
               onClick={() => handleCategoryCardClick('practitioner')}
             />
-            <GalleryCard 
-              title={"Organization\nAwards"} 
-              icon={<Building className="w-5 h-5" />} 
-              imageSrc="/images/org_awards.png"
+            <GalleryCard
+              title={"Organization\nAwards"}
+              icon={<Building className="w-5 h-5" />}
+              imageSrc="/images/org_awards.webp"
               onClick={() => handleCategoryCardClick('hospital')}
             />
-            <GalleryCard 
-              title={"Special\nRecognitions"} 
-              icon={<Heart className="w-5 h-5" />} 
-              imageSrc="/images/special_awards.png"
+            <GalleryCard
+              title={"Special\nRecognitions"}
+              icon={<Heart className="w-5 h-5" />}
+              imageSrc="/images/special_awards.webp"
               onClick={() => handleCategoryCardClick('special')}
             />
           </div>
@@ -319,29 +390,37 @@ export default function Welcome() {
       </section>
 
       {/* 2. DYNAMIC COUNTDOWN TIMER SECTION */}
-      <section className="py-14 bg-[#070707] border-t border-white/5 relative z-10">
-        <div className="max-w-7xl mx-auto px-6 md:px-16 flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="text-left space-y-2">
-            <span className="text-[9px] font-black text-[#D90429] uppercase tracking-widest font-outfit">Urgency standing</span>
-            <h2 className="text-2xl font-outfit font-black tracking-tight text-white uppercase">Online Voting Closes In</h2>
-            <p className="text-xs text-white/45 font-light">Cast your secure choice before the audit locks database submissions.</p>
-          </div>
+      {settings?.countdown_enabled && (
+        <section className="py-14 bg-[#070707] border-t border-white/5 relative z-10">
+          <div className="max-w-7xl mx-auto px-6 md:px-16 flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="text-left space-y-2">
+              <span className="text-[9px] font-black text-[#D90429] uppercase tracking-widest font-outfit">Urgency standing</span>
+              <h2 className="text-2xl font-outfit font-black tracking-tight text-white uppercase">
+                {currentLabel}
+              </h2>
+              <p className="text-xs text-white/45 font-light">
+                {countdownState === 'upcoming' && "Online voting hasn't started yet. Pre-fill your registration and get ready!"}
+                {countdownState === 'active' && "Cast your secure choice before the audit locks database submissions."}
+                {countdownState === 'ended' && "Secure choices submission has been completed and database is now audited."}
+              </p>
+            </div>
 
-          <div className="flex gap-4">
-            {[
-              { val: timeLeft.days, label: 'Days' },
-              { val: timeLeft.hours, label: 'Hrs' },
-              { val: timeLeft.minutes, label: 'Min' },
-              { val: timeLeft.seconds, label: 'Sec' }
-            ].map((unit, idx) => (
-              <div key={idx} className="w-20 py-4 rounded-2xl glass-panel bg-white/[0.02] border border-white/5 flex flex-col items-center shadow-lg shadow-black/20">
-                <span className="text-2xl font-black text-[#D90429] font-outfit">{str_pad(unit.val)}</span>
-                <span className="text-[8px] uppercase tracking-widest text-white/40 font-bold mt-1">{unit.label}</span>
-              </div>
-            ))}
+            <div className="flex gap-4">
+              {[
+                { val: timeLeft.days, label: 'Days' },
+                { val: timeLeft.hours, label: 'Hrs' },
+                { val: timeLeft.minutes, label: 'Min' },
+                { val: timeLeft.seconds, label: 'Sec' }
+              ].map((unit, idx) => (
+                <div key={idx} className="w-20 py-4 rounded-2xl glass-panel bg-white/[0.02] border border-white/5 flex flex-col items-center shadow-lg shadow-black/20">
+                  <span className="text-2xl font-black text-[#D90429] font-outfit">{str_pad(unit.val)}</span>
+                  <span className="text-[8px] uppercase tracking-widest text-white/40 font-bold mt-1">{unit.label}</span>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* 2.5. STORY & STATS SECTION */}
       <section id="story-excellence" className="py-24 bg-[#030303] border-t border-white/5 relative z-10">
@@ -393,18 +472,19 @@ export default function Welcome() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {categories.slice(0, 3).map((cat, idx) => (
-              <div 
-                key={cat.id} 
+              <div
+                key={cat.id}
                 onClick={() => handleSelectCategory(cat)}
                 className="group relative h-72 rounded-3xl overflow-hidden glass-panel border border-white/5 flex flex-col justify-end p-6 cursor-pointer transition-all duration-500 hover:border-[#D90429]/30"
               >
-                <div className="absolute inset-0 bg-red-gradient opacity-0 group-hover:opacity-10 transition-opacity duration-500" />
+                <div className="absolute inset-0 bg-red-glow opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="absolute inset-0 z-0">
                   <div className="absolute inset-0 bg-black/60 z-10 transition-colors group-hover:bg-black/50" />
-                  <img 
-                    src={idx === 0 ? '/images/ind_awards.png' : idx === 1 ? '/images/org_awards.png' : '/images/special_awards.png'} 
-                    alt="Category Backdrop" 
-                    className="w-full h-full object-cover transition-transform duration-700 scale-100 group-hover:scale-105" 
+                  <img
+                    loading="lazy"
+                    src={idx === 0 ? '/images/ind_awards.webp' : idx === 1 ? '/images/org_awards.webp' : '/images/special_awards.webp'}
+                    alt="Category Backdrop"
+                    className="w-full h-full object-cover transition-transform duration-700 scale-100 group-hover:scale-105"
                   />
                 </div>
 
@@ -443,16 +523,14 @@ export default function Welcome() {
                   <button
                     key={cat.id}
                     onClick={() => handleSelectCategory(cat)}
-                    className={`text-left px-5 py-3.5 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all duration-300 flex items-center justify-between gap-3 border ${
-                      selectedCategory?.id === cat.id
-                        ? 'bg-[#D90429] border-[#D90429]/20 text-white shadow-lg shadow-[#D90429]/10 translate-x-1 lg:translate-x-2'
-                        : 'bg-white/[0.02] border-white/5 text-white/60 hover:text-white hover:bg-white/[0.04]'
-                    }`}
+                    className={`text-left px-5 py-3.5 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all duration-300 flex items-center justify-between gap-3 border ${selectedCategory?.id === cat.id
+                      ? 'bg-[#D90429] border-[#D90429]/20 text-white shadow-lg shadow-[#D90429]/10 translate-x-1 lg:translate-x-2'
+                      : 'bg-white/[0.02] border-white/5 text-white/60 hover:text-white hover:bg-white/[0.04]'
+                      }`}
                   >
                     <span className="truncate pr-2">{cat.name}</span>
-                    <ChevronRight className={`w-3.5 h-3.5 shrink-0 ${
-                      selectedCategory?.id === cat.id ? 'text-white translate-x-0.5' : 'text-white/30'
-                    } transition-transform`} />
+                    <ChevronRight className={`w-3.5 h-3.5 shrink-0 ${selectedCategory?.id === cat.id ? 'text-white translate-x-0.5' : 'text-white/30'
+                      } transition-transform`} />
                   </button>
                 ))}
 
@@ -472,12 +550,36 @@ export default function Welcome() {
             <div className="lg:col-span-8 hidden lg:block">
               {selectedCategory ? (
                 <div className="space-y-6">
-                  <div className="flex justify-between items-center mb-6 pl-2">
-                    <div className="text-left">
+                  <div className="flex justify-between items-start mb-6 pl-2">
+                    <div className="text-left flex-1 min-w-0 pr-4">
                       <span className="text-[9px] font-bold text-[#D90429] uppercase tracking-widest font-outfit">Active Selection</span>
-                      <h2 className="text-lg font-black text-white uppercase mt-0.5">{selectedCategory.name}</h2>
+                      <h2 className="text-lg font-black text-white uppercase mt-0.5 truncate">{selectedCategory.name}</h2>
+                      {/* Category Share controls */}
+                      <div className="flex items-center gap-1.5 mt-2">
+                        <button 
+                          onClick={() => handleCopyLink(selectedCategory)}
+                          title="Copy Category Link"
+                          className="p-1.5 bg-white/5 hover:bg-white/10 hover:text-[#D90429] border border-white/10 rounded-lg transition-all text-white/60"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                        </button>
+                        <button 
+                          onClick={() => handleNativeShare(selectedCategory)}
+                          title="Share Category"
+                          className="p-1.5 bg-white/5 hover:bg-white/10 hover:text-[#D90429] border border-white/10 rounded-lg transition-all text-white/60"
+                        >
+                          <Share2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button 
+                          onClick={() => handleShowQrCode(selectedCategory)}
+                          title="Show Category QR Code"
+                          className="p-1.5 bg-white/5 hover:bg-white/10 hover:text-[#D90429] border border-white/10 rounded-lg transition-all text-white/60"
+                        >
+                          <QrCode className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
-                    <span className="px-3.5 py-1.5 bg-white/5 border border-white/10 text-white/65 rounded-full text-[9px] font-bold uppercase tracking-wider">
+                    <span className="px-3.5 py-1.5 bg-white/5 border border-white/10 text-white/65 rounded-full text-[9px] font-bold uppercase tracking-wider shrink-0">
                       Nominees: {selectedCategory.nominees?.length || 0}
                     </span>
                   </div>
@@ -485,17 +587,21 @@ export default function Welcome() {
                   {selectedCategory.nominees && selectedCategory.nominees.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       {selectedCategory.nominees.map((nominee) => (
-                        <div 
+                        <div
                           key={nominee.id}
                           className="bg-[#0b0b0b] border border-white/5 hover:border-[#D90429]/20 rounded-3xl shadow-md hover:shadow-xl transition-all duration-500 overflow-hidden flex flex-col justify-between group"
                         >
                           <div>
                             <div className="relative h-48 bg-gradient-to-br from-white/5 to-white/10 overflow-hidden">
                               {nominee.image_url ? (
-                                <img 
-                                  src={nominee.image_url} 
-                                  alt={nominee.name} 
-                                  className="w-full h-full object-cover filter brightness-[0.7] group-hover:scale-105 transition-transform duration-500"
+                                <img
+                                  src={nominee.image_url}
+                                  alt={nominee.name}
+                                  onError={(e) => {
+                                    e.currentTarget.onerror = null;
+                                    e.currentTarget.src = '/images/logo.webp';
+                                  }}
+                                  className="w-full h-full object-cover filter brightness-[0.9] hover:brightness-100 group-hover:scale-105 transition-all duration-500 bg-[#0b0b0b]"
                                 />
                               ) : (
                                 <div className="w-full h-full flex flex-col items-center justify-center text-white/20 bg-[#121212] border-b border-white/5">
@@ -531,8 +637,8 @@ export default function Welcome() {
                           <div className="p-5 bg-[#0e0e0e] border-t border-white/5 flex items-center justify-between gap-4">
                             <span className="text-[10px] text-[#D90429] font-black uppercase tracking-wider">Secure Vote</span>
                             <button
-                              onClick={() => dispatch(setActiveNominee(nominee))}
-                              className="px-5 py-2.5 bg-[#D90429] hover:bg-[#B00020] text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all duration-300 flex items-center gap-2 active:scale-95 shadow-[0_4px_15px_rgba(217,4,41,0.15)]"
+                              onClick={() => dispatch(setActiveNominee({ ...nominee, category_name: selectedCategory?.name }))}
+                              className="inline-flex items-center gap-2 px-[18px] py-2.5 bg-[#D90429] hover:bg-[#B00020] text-white text-[10px] font-black uppercase tracking-widest rounded-full transition-all duration-300 active:scale-95 shadow-[0_4px_15px_rgba(217,4,41,0.15)] whitespace-nowrap shrink-0"
                             >
                               <span>Vote</span>
                               <ArrowRight className="w-3.5 h-3.5" />
@@ -591,8 +697,8 @@ export default function Welcome() {
                 icon: <Award className="w-4 h-4" />
               }
             ].map((event, idx) => (
-              <motion.div 
-                key={idx} 
+              <motion.div
+                key={idx}
                 initial={{ opacity: 0, x: -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true, margin: '-100px' }}
@@ -619,7 +725,7 @@ export default function Welcome() {
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-black/75 z-10" />
           <AnimatePresence mode="wait">
-            <motion.img 
+            <motion.img
               key={currentWinnerIndex}
               src={pastWinners[currentWinnerIndex].image}
               alt="Past Winner Presentation"
@@ -634,7 +740,7 @@ export default function Welcome() {
 
         <div className="max-w-7xl mx-auto px-6 md:px-16 relative z-20 h-full flex flex-col justify-center items-start text-left">
           <span className="text-[10px] font-black text-[#D90429] uppercase tracking-widest font-outfit">Past Laureates</span>
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center w-full mt-6">
             <div className="lg:col-span-7 space-y-6">
               <AnimatePresence mode="wait">
@@ -663,16 +769,15 @@ export default function Welcome() {
                   <button
                     key={idx}
                     onClick={() => setCurrentWinnerIndex(idx)}
-                    className={`h-1.5 transition-all duration-300 rounded-full ${
-                      currentWinnerIndex === idx ? 'w-8 bg-[#D90429]' : 'w-2 bg-white/20'
-                    }`}
+                    className={`h-1.5 transition-all duration-300 rounded-full ${currentWinnerIndex === idx ? 'w-8 bg-[#D90429]' : 'w-2 bg-white/20'
+                      }`}
                   />
                 ))}
               </div>
             </div>
 
             <div className="lg:col-span-5 flex justify-center lg:justify-end">
-              <Link 
+              <Link
                 to="/about"
                 className="px-6 py-3 border border-white/10 hover:border-white/20 hover:bg-white/5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all"
               >
@@ -700,7 +805,7 @@ export default function Welcome() {
               </p>
               <div className="flex items-center gap-4 pt-4 border-t border-white/5">
                 <div className="w-12 h-12 rounded-full overflow-hidden border border-white/10 bg-slate-800">
-                  <img src="/images/testimonials/saad-mtambule.jpg" alt="Hon. Saad Mtambule" className="w-full h-full object-cover" onError={(e: any) => e.target.src = '/images/placeholder.png'} />
+                  <img loading="lazy" src="/images/testimonials/saad-mtambule.webp" alt="Hon. Saad Mtambule" className="w-full h-full object-cover" onError={(e: any) => e.target.src = '/images/placeholder.webp'} />
                 </div>
                 <div>
                   <h4 className="text-xs font-black uppercase text-white font-outfit">Hon. Saad Mtambule</h4>
@@ -715,7 +820,7 @@ export default function Welcome() {
               </p>
               <div className="flex items-center gap-4 pt-4 border-t border-white/5">
                 <div className="w-12 h-12 rounded-full overflow-hidden border border-white/10 bg-slate-800">
-                  <img src="/images/testimonials/karim-haji.jpg" alt="Mr. Karim S. Haji" className="w-full h-full object-cover" onError={(e: any) => e.target.src = '/images/placeholder.png'} />
+                  <img loading="lazy" src="/images/testimonials/karim-haji.webp" alt="Mr. Karim S. Haji" className="w-full h-full object-cover" onError={(e: any) => e.target.src = '/images/placeholder.webp'} />
                 </div>
                 <div>
                   <h4 className="text-xs font-black uppercase text-white font-outfit">Mr. Karim S. Haji</h4>
@@ -733,7 +838,7 @@ export default function Welcome() {
           <div className="lg:col-span-5 space-y-6 text-left">
             <span className="text-[10px] font-black text-[#D90429] uppercase tracking-widest font-outfit">Venue Location</span>
             <h2 className="text-3xl md:text-5xl font-outfit font-black tracking-tight uppercase text-white">Gala Venue</h2>
-            
+
             <div className="space-y-4">
               <div className="flex gap-4">
                 <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[#D90429] shrink-0">
@@ -759,13 +864,13 @@ export default function Welcome() {
 
           <div className="lg:col-span-7">
             <div className="rounded-[32px] overflow-hidden border border-white/5 glass-panel bg-white/[0.01] p-2 shadow-2xl">
-              <iframe 
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d253840.48512134567!2d39.1171804!3d-6.8140417!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x185c4bbf573d8435%3A0xe54e6097d74f7626!2sDar%20es%20Salaam!5e0!3m2!1sen!2stz!4v1700000000000!5m2!1sen!2stz" 
-                width="100%" 
-                height="320" 
-                style={{ border: 0, borderRadius: '24px' }} 
-                allowFullScreen={true} 
-                loading="lazy" 
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d253840.48512134567!2d39.1171804!3d-6.8140417!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x185c4bbf573d8435%3A0xe54e6097d74f7626!2sDar%20es%20Salaam!5e0!3m2!1sen!2stz!4v1700000000000!5m2!1sen!2stz"
+                width="100%"
+                height="320"
+                style={{ border: 0, borderRadius: '24px' }}
+                allowFullScreen={true}
+                loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
               ></iframe>
             </div>
@@ -786,26 +891,26 @@ export default function Welcome() {
 
           <div className="animate-marquee flex gap-8 whitespace-nowrap">
             {sponsorLogos.map((logo, idx) => (
-              <div 
-                key={`sponsor-1-${idx}`} 
+              <div
+                key={`sponsor-1-${idx}`}
                 className="inline-flex items-center justify-center h-20 w-36 px-4 py-2 bg-white/[0.01] hover:bg-white/[0.04] border border-white/5 hover:border-white/10 rounded-2xl transition-all duration-300 select-none group/logo"
               >
-                <img 
-                  src={logo} 
-                  alt="Sponsor Logo" 
+                <img
+                  src={logo}
+                  alt="Sponsor Logo"
                   className="max-h-full max-w-full object-contain opacity-80 group-hover/logo:opacity-100 group-hover/logo:scale-105 transition-all duration-300"
                   loading="lazy"
                 />
               </div>
             ))}
             {sponsorLogos.map((logo, idx) => (
-              <div 
-                key={`sponsor-2-${idx}`} 
+              <div
+                key={`sponsor-2-${idx}`}
                 className="inline-flex items-center justify-center h-20 w-36 px-4 py-2 bg-white/[0.01] hover:bg-white/[0.04] border border-white/5 hover:border-white/10 rounded-2xl transition-all duration-300 select-none group/logo"
               >
-                <img 
-                  src={logo} 
-                  alt="Sponsor Logo" 
+                <img
+                  src={logo}
+                  alt="Sponsor Logo"
                   className="max-h-full max-w-full object-contain opacity-80 group-hover/logo:opacity-100 group-hover/logo:scale-105 transition-all duration-300"
                   loading="lazy"
                 />
@@ -834,14 +939,26 @@ export default function Welcome() {
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 flex items-center justify-center">
                   <span className="text-[10px] font-black uppercase text-white tracking-widest border border-white/20 px-4 py-2 rounded-full bg-black/40">Zoom Photo</span>
                 </div>
-                <img 
-                  src={item.image} 
-                  alt={item.title} 
+                <img
+                  src={item.image}
+                  alt={item.title}
                   className="w-full h-auto object-cover rounded-3xl transition-transform duration-500 scale-100 group-hover:scale-105"
                   loading="lazy"
                 />
               </div>
             ))}
+          </div>
+
+          <div className="flex justify-center pt-8">
+            <Link
+              to="/gallery"
+              className="inline-flex items-center gap-3 px-6 py-2.5 bg-black/60 hover:bg-[#D90429]/10 border border-[#D90429]/40 hover:border-[#D90429] text-white text-[10px] font-black uppercase tracking-widest rounded-full transition-all duration-300 group shadow-[0_0_15px_rgba(219,4,41,0.05)] hover:shadow-[0_0_25px_rgba(219,4,41,0.2)]"
+            >
+              <span>View More</span>
+              <div className="w-6 h-6 rounded-full bg-[#D90429] flex items-center justify-center text-white group-hover:scale-105 transition-transform duration-300">
+                <ArrowRight className="w-3.5 h-3.5" />
+              </div>
+            </Link>
           </div>
         </div>
       </section>
@@ -862,7 +979,7 @@ export default function Welcome() {
             </div>
 
             <div className="relative z-10 shrink-0">
-              <Link 
+              <Link
                 to="/tickets"
                 className="px-6 py-3.5 bg-black/60 hover:bg-[#D90429]/10 border border-[#D90429]/40 hover:border-[#D90429] text-white text-[10px] font-black uppercase tracking-widest rounded-full transition-all duration-300"
               >
@@ -887,7 +1004,7 @@ export default function Welcome() {
           </p>
 
           <div className="pt-4 flex justify-center">
-            <Link 
+            <Link
               to="/tickets"
               className="px-8 py-4 bg-gradient-to-r from-[#D90429] to-[#FF3D57] hover:from-[#B00020] hover:to-[#D90429] text-white text-[10px] font-black uppercase tracking-widest rounded-full flex items-center gap-2 border border-[#D90429]/20 shadow-[0_4px_25px_rgba(217,4,41,0.25)] hover:shadow-[0_0_35px_rgba(255,51,51,0.5)] transition-all duration-300"
             >
@@ -900,12 +1017,8 @@ export default function Welcome() {
 
       {/* 9. MINIMAL LUXURY FOOTER */}
 
-      {/* ACTIVE VOTE MODAL OVERLAY */}
-      <AnimatePresence>
-        {activeNominee && (
-          <VoteModal />
-        )}
-      </AnimatePresence>
+
+
 
       {/* MOBILE NOMINEES DRAWER OVERLAY */}
       <AnimatePresence>
@@ -926,13 +1039,37 @@ export default function Welcome() {
               className="relative z-10 w-full max-h-[85vh] bg-[#0c0c0c] border-t border-white/10 rounded-t-[32px] p-6 overflow-y-auto space-y-6 select-none scrollbar-none"
             >
               <div className="flex justify-between items-start">
-                <div className="text-left">
+                <div className="text-left flex-1 min-w-0 pr-4">
                   <span className="text-[9px] font-bold text-[#D90429] uppercase tracking-widest font-outfit">Category Nominees</span>
-                  <h3 className="text-base font-black text-white uppercase mt-0.5 max-w-[85%]">{selectedCategory.name}</h3>
+                  <h3 className="text-base font-black text-white uppercase mt-0.5 truncate">{selectedCategory.name}</h3>
+                  {/* Share controls */}
+                  <div className="flex items-center gap-1.5 mt-2">
+                    <button 
+                      onClick={() => handleCopyLink(selectedCategory)}
+                      title="Copy Category Link"
+                      className="p-1.5 bg-white/5 hover:bg-white/10 hover:text-[#D90429] border border-white/10 rounded-lg transition-all text-white/60"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                    </button>
+                    <button 
+                      onClick={() => handleNativeShare(selectedCategory)}
+                      title="Share Category"
+                      className="p-1.5 bg-white/5 hover:bg-white/10 hover:text-[#D90429] border border-white/10 rounded-lg transition-all text-white/60"
+                    >
+                      <Share2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button 
+                      onClick={() => handleShowQrCode(selectedCategory)}
+                      title="Show Category QR Code"
+                      className="p-1.5 bg-white/5 hover:bg-white/10 hover:text-[#D90429] border border-white/10 rounded-lg transition-all text-white/60"
+                    >
+                      <QrCode className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
                 <button
                   onClick={() => { setMobileDrawerOpen(false); dispatch(setSelectedCategory(null)); }}
-                  className="p-1.5 hover:bg-white/5 border border-white/10 rounded-full transition-all"
+                  className="p-1.5 hover:bg-white/5 border border-white/10 rounded-full transition-all shrink-0"
                 >
                   <X className="w-4 h-4 text-white/60 hover:text-white" />
                 </button>
@@ -941,16 +1078,20 @@ export default function Welcome() {
               {selectedCategory.nominees && selectedCategory.nominees.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {selectedCategory.nominees.map((nominee) => (
-                    <div 
+                    <div
                       key={nominee.id}
                       className="bg-[#121212] border border-white/5 rounded-3xl overflow-hidden flex flex-col justify-between"
                     >
                       <div className="relative h-40 bg-gradient-to-br from-white/5 to-white/10 overflow-hidden">
                         {nominee.image_url ? (
-                          <img 
-                            src={nominee.image_url} 
-                            alt={nominee.name} 
-                            className="w-full h-full object-cover filter brightness-[0.7]"
+                          <img
+                            src={nominee.image_url}
+                            alt={nominee.name}
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = '/images/logo.webp';
+                            }}
+                            className="w-full h-full object-cover filter brightness-[0.9] hover:brightness-100 bg-[#121212]"
                           />
                         ) : (
                           <div className="w-full h-full flex flex-col items-center justify-center text-white/20 bg-[#151515]">
@@ -974,11 +1115,11 @@ export default function Welcome() {
                         <span className="text-[9px] text-[#D90429] font-black uppercase tracking-wider">Secure Vote</span>
                         <button
                           onClick={() => {
-                            dispatch(setActiveNominee(nominee));
+                            dispatch(setActiveNominee({ ...nominee, category_name: selectedCategory?.name }));
                             setMobileDrawerOpen(false);
                             dispatch(setSelectedCategory(null));
                           }}
-                          className="px-4 py-2 bg-[#D90429] hover:bg-[#B00020] text-white text-[9px] font-black uppercase tracking-widest rounded-xl transition-all"
+                          className="inline-flex items-center justify-center px-4 py-2 bg-[#D90429] hover:bg-[#B00020] text-white text-[9px] font-black uppercase tracking-widest rounded-full transition-all whitespace-nowrap shrink-0"
                         >
                           Vote
                         </button>
@@ -1001,28 +1142,104 @@ export default function Welcome() {
       {/* GALLERY LIGHTBOX OVERLAY */}
       <AnimatePresence>
         {lightboxImage && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setLightboxImage(null)}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md cursor-zoom-out"
           >
-            <button 
+            <button
               onClick={() => setLightboxImage(null)}
               className="absolute top-6 right-6 p-2 rounded-full bg-white/10 border border-white/10 text-white hover:bg-white/20 transition-all z-50"
             >
               <X className="w-5 h-5" />
             </button>
-            <motion.img 
+            <motion.img
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               transition={{ type: 'spring', duration: 0.5 }}
-              src={lightboxImage} 
-              alt="High resolution gallery highlight" 
+              src={lightboxImage}
+              alt="High resolution gallery highlight"
               className="max-w-full max-h-[85vh] rounded-3xl object-contain shadow-2xl border border-white/10"
             />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* QR Code Modal */}
+      <AnimatePresence>
+        {qrCodeData && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+          >
+            <div className="absolute inset-0" onClick={() => setQrCodeData(null)} />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative z-10 w-full max-w-sm bg-[#0c0c0c] border border-white/10 p-6 rounded-3xl text-center space-y-4 shadow-2xl"
+            >
+              <button
+                onClick={() => setQrCodeData(null)}
+                className="absolute top-4 right-4 p-1.5 hover:bg-white/5 border border-white/10 rounded-full transition-all text-white/60 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              <span className="text-[9px] font-black text-[#D90429] uppercase tracking-widest font-outfit">Scan to Vote</span>
+              <h3 className="text-sm font-black text-white uppercase leading-snug px-4">{qrCodeData.name}</h3>
+              
+              <div className="bg-white p-4 rounded-2xl inline-block shadow-lg mx-auto">
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrCodeData.url)}`}
+                  alt="Category QR Code"
+                  className="w-44 h-44"
+                />
+              </div>
+              
+              <p className="text-[10px] text-white/50 leading-relaxed max-w-xs mx-auto">
+                Scan this QR code with your phone camera or QR scanner to open this category directly and cast your votes.
+              </p>
+              
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(qrCodeData.url);
+                    setShowCopyToast(true);
+                    setTimeout(() => setShowCopyToast(false), 2000);
+                    setQrCodeData(null);
+                  }}
+                  className="flex-1 py-3 bg-[#D90429] hover:bg-[#B00020] text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all"
+                >
+                  Copy Link
+                </button>
+                <button
+                  onClick={() => setQrCodeData(null)}
+                  className="flex-1 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Copy Success Toast */}
+      <AnimatePresence>
+        {showCopyToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] px-4 py-3 bg-[#111111] border border-white/10 rounded-2xl flex items-center gap-2 shadow-2xl"
+          >
+            <CheckCircle className="w-4 h-4 text-green-500" />
+            <span className="text-[10px] font-bold text-white uppercase tracking-wider">Link copied to clipboard!</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -1034,3 +1251,11 @@ export default function Welcome() {
 function str_pad(val: number): string {
   return String(val).padStart(2, '0');
 }
+
+
+
+
+
+
+
+

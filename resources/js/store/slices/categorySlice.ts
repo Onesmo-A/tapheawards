@@ -10,6 +10,7 @@ export interface Nominee {
   instagram_url?: string;
   facebook_url?: string;
   tiktok_url?: string;
+  category_name?: string;
 }
 
 export interface Category {
@@ -27,6 +28,13 @@ export interface WelcomeSettings {
   nomination_open_title?: string;
   nomination_open_dates?: string;
   timeline?: Array<{ title: string; date: string }>;
+  countdown_enabled?: boolean;
+  countdown_start_date?: string;
+  countdown_start_label?: string;
+  countdown_target_date?: string;
+  countdown_label?: string;
+  otp_sms_enabled?: boolean;
+  otp_whatsapp_enabled?: boolean;
 }
 
 export interface WelcomeData {

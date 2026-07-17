@@ -72,7 +72,7 @@ export default function GalleryCard({ title, icon, imageSrc, onClick, className 
             <img 
               src={imageSrc} 
               alt={title} 
-              className="w-full h-full object-cover filter brightness-[0.38] contrast-[1.1] group-hover:brightness-[0.55] transition-all duration-300" 
+              className="w-full h-full object-cover filter brightness-[0.75] contrast-[1.05] group-hover:brightness-95 transition-all duration-300" 
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-black via-[#0c0c0c] to-[#3a0808]" />
@@ -80,15 +80,15 @@ export default function GalleryCard({ title, icon, imageSrc, onClick, className 
         </motion.div>
         
         {/* Shadow & Red Ambient Glow Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90" />
-        <div className="absolute inset-0 bg-gradient-to-tr from-[#A81C1C]/15 via-transparent to-[#ff3333]/5 opacity-30 group-hover:opacity-50 transition-opacity duration-300" />
-        <div className="absolute -inset-px rounded-3xl border border-white/5 group-hover:border-[#A81C1C]/30 transition-colors duration-300" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent opacity-65" />
+        <div className="absolute inset-0 bg-red-glow opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div className="absolute inset-0 rounded-3xl ring-1 ring-inset ring-white/5 group-hover:ring-[#A81C1C]/25 transition-colors duration-300" />
       </div>
 
       {/* Card Foreground Content */}
       <div className="relative z-10 flex flex-col justify-between h-full w-full pointer-events-none" style={{ transform: 'translateZ(30px)' }}>
         {/* Top left corner: Icon box */}
-        <div className="w-10 h-10 rounded-xl bg-black/50 border border-white/10 flex items-center justify-center text-[#ff3333] shadow-md group-hover:bg-[#A81C1C]/25 group-hover:border-[#ff3333]/30 transition-all duration-300">
+        <div className="w-10 h-10 rounded-full bg-black/50 border border-white/10 flex items-center justify-center text-[#ff3333] shadow-md group-hover:bg-[#A81C1C]/25 group-hover:border-[#ff3333]/30 transition-all duration-300">
           {icon}
         </div>
 
@@ -105,3 +105,4 @@ export default function GalleryCard({ title, icon, imageSrc, onClick, className 
     </motion.div>
   );
 }
+

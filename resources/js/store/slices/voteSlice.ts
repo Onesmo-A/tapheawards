@@ -18,7 +18,24 @@ export const VOTE_PACKAGES: VotePackage[] = [
   { votes: 55, price: 40000, label: '55 Votes', sub: 'Diamond Package' },
 ];
 
-type Step = 'phone' | 'otp' | 'packages' | 'pending' | 'success' | 'failed';
+export const PENDING_VOTE_STORAGE_KEY = 'taphe_pending_vote_flow';
+
+export interface VoteFlowSnapshot {
+  activeNominee: Nominee;
+  step: Step;
+  phone: string;
+  channel: 'sms' | 'whatsapp';
+  otpCode: string;
+  voterToken: string;
+  selectedPackage: VotePackage;
+  phoneProvider: '' | 'mpesa' | 'tigopesa' | 'airtelmoney' | 'halopesa';
+  paymentPhone: string;
+  orderId: string | null;
+  transactionOrderId: string | null;
+  savedAt: string;
+}
+
+type Step = 'phone' | 'otp' | 'packages' | 'provider' | 'pending' | 'confirmed' | 'success' | 'failed';
 
 interface VoteState {
   activeNominee: Nominee | null;
@@ -28,9 +45,11 @@ interface VoteState {
   otpCode: string;
   voterToken: string;
   selectedPackage: VotePackage;
-  phoneProvider: 'mpesa' | 'tigopesa' | 'airtelmoney' | 'halopesa';
+  phoneProvider: '' | 'mpesa' | 'tigopesa' | 'airtelmoney' | 'halopesa';
   paymentPhone: string;
   orderId: string | null;
+  transactionOrderId: string | null;
+  packages: VotePackage[];
   loading: boolean;
   errorMsg: string;
 }
@@ -43,19 +62,52 @@ const initialState: VoteState = {
   otpCode: '',
   voterToken: '',
   selectedPackage: VOTE_PACKAGES[0],
-  phoneProvider: 'mpesa',
+  phoneProvider: '',
   paymentPhone: '',
   orderId: null,
+  transactionOrderId: null,
+  packages: VOTE_PACKAGES,
   loading: false,
   errorMsg: '',
 };
+
+// Proof of Work solver using Web Crypto API
+async function solvePoW(challenge: string, difficulty: number): Promise<string> {
+  let nonce = 0;
+  const target = '0'.repeat(difficulty);
+  const encoder = new TextEncoder();
+  while (true) {
+    const data = challenge + nonce;
+    const msgBuffer = encoder.encode(data);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    if (hashHex.startsWith(target)) {
+      return String(nonce);
+    }
+    nonce++;
+  }
+}
 
 // Async thunks for the voting workflow
 export const requestOtp = createAsyncThunk(
   'voting/requestOtp',
   async ({ phone, channel }: { phone: string; channel: 'sms' | 'whatsapp' }, { rejectWithValue }) => {
     try {
-      await axios.post('/api/v1/vote/otp/request', { phone, channel });
+      // 1. Get PoW challenge from server
+      const challengeRes = await axios.get('/api/v1/vote/otp/challenge');
+      const { challenge, difficulty } = challengeRes.data;
+
+      // 2. Solve PoW challenge
+      const powNonce = await solvePoW(challenge, difficulty);
+
+      // 3. Post request with challenge response
+      await axios.post('/api/v1/vote/otp/request', { 
+        phone, 
+        channel,
+        challenge,
+        pow_nonce: powNonce
+      });
       return { phone, channel };
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || 'Failed to send verification code. Try again.');
@@ -101,9 +153,25 @@ export const initiatePaidVote = createAsyncThunk(
         payment_phone: paymentPhone,
         voter_token: voterToken,
       });
-      return response.data.order_id;
+      return {
+        orderId: response.data.order_id,
+        transactionOrderId: response.data.transaction_order_id || null,
+        transactionId: response.data.transaction_id || null,
+      };
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || 'Payment checkout initialization failed. Try again.');
+    }
+  }
+);
+
+export const fetchVotePackages = createAsyncThunk(
+  'voting/fetchPackages',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.get('/api/v1/vote/packages');
+      return response.data.packages as VotePackage[];
+    } catch (err: any) {
+      return rejectWithValue(err.response?.data?.message || 'Failed to load voting packages.');
     }
   }
 );
@@ -120,12 +188,34 @@ const voteSlice = createSlice({
         state.errorMsg = '';
         state.otpCode = '';
         state.orderId = null;
+        state.transactionOrderId = null;
+        state.phoneProvider = '';
       }
+    },
+    restoreVoteFlow: (state, action: PayloadAction<Pick<VoteFlowSnapshot, 'activeNominee' | 'step' | 'phone' | 'channel' | 'otpCode' | 'voterToken' | 'selectedPackage' | 'phoneProvider' | 'paymentPhone' | 'orderId' | 'transactionOrderId'>>) => {
+      const payload = action.payload;
+      state.activeNominee = payload.activeNominee;
+      state.step = payload.step;
+      state.phone = payload.phone;
+      state.channel = payload.channel;
+      state.otpCode = payload.otpCode;
+      state.voterToken = payload.voterToken;
+      state.selectedPackage = payload.selectedPackage;
+      state.phoneProvider = payload.phoneProvider;
+      state.paymentPhone = payload.paymentPhone;
+      state.orderId = payload.orderId;
+      state.transactionOrderId = payload.transactionOrderId;
+      state.loading = false;
+      state.errorMsg = '';
     },
     setStep: (state, action: PayloadAction<Step>) => {
       state.step = action.payload;
     },
     setPhone: (state, action: PayloadAction<string>) => {
+      if (state.phone !== action.payload) {
+        state.voterToken = '';
+        state.otpCode = '';
+      }
       state.phone = action.payload;
       if (!state.paymentPhone) {
         state.paymentPhone = action.payload;
@@ -143,7 +233,7 @@ const voteSlice = createSlice({
     setSelectedPackage: (state, action: PayloadAction<VotePackage>) => {
       state.selectedPackage = action.payload;
     },
-    setPhoneProvider: (state, action: PayloadAction<'mpesa' | 'tigopesa' | 'airtelmoney' | 'halopesa'>) => {
+    setPhoneProvider: (state, action: PayloadAction<'' | 'mpesa' | 'tigopesa' | 'airtelmoney' | 'halopesa'>) => {
       state.phoneProvider = action.payload;
     },
     setErrorMsg: (state, action: PayloadAction<string>) => {
@@ -154,9 +244,11 @@ const voteSlice = createSlice({
       state.step = 'phone';
       state.phone = '';
       state.paymentPhone = '';
+      state.phoneProvider = '';
       state.otpCode = '';
       state.voterToken = '';
       state.orderId = null;
+      state.transactionOrderId = null;
       state.errorMsg = '';
     },
   },
@@ -198,18 +290,30 @@ const voteSlice = createSlice({
       })
       .addCase(initiatePaidVote.fulfilled, (state, action) => {
         state.loading = false;
-        state.orderId = action.payload;
+        state.orderId = action.payload.orderId;
+        state.transactionOrderId = action.payload.transactionOrderId;
         state.step = 'pending';
       })
       .addCase(initiatePaidVote.rejected, (state, action) => {
         state.loading = false;
         state.errorMsg = action.payload as string;
+      })
+      // Fetch Packages
+      .addCase(fetchVotePackages.fulfilled, (state, action) => {
+        state.packages = action.payload;
+        if (state.packages.length > 0) {
+          const exists = state.packages.some(p => p.votes === state.selectedPackage.votes);
+          if (!exists) {
+            state.selectedPackage = state.packages[0];
+          }
+        }
       });
   },
 });
 
 export const {
   setActiveNominee,
+  restoreVoteFlow,
   setStep,
   setPhone,
   setPaymentPhone,
@@ -222,3 +326,10 @@ export const {
 } = voteSlice.actions;
 
 export default voteSlice.reducer;
+
+
+
+
+
+
+

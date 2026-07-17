@@ -25,7 +25,7 @@ class Category extends Model
         'name',
         'slug',
         'description',
-        'parent_id',
+        'category_group_id',
         'image_path',
         'status',
         'voting_enabled',
@@ -37,20 +37,11 @@ class Category extends Model
     ];
 
     /**
-     * Get the parent category.
+     * Get the category group this category belongs to.
      */
-    public function parent(): BelongsTo
+    public function group(): BelongsTo
     {
-        return $this->belongsTo(Category::class, 'parent_id');
-    }
-
-    /**
-     * Get the child categories (sub-categories/awards).
-     * Hii ndiyo relationship muhimu kwa tatizo lako.
-     */
-    public function children(): HasMany
-    {
-        return $this->hasMany(Category::class, 'parent_id');
+        return $this->belongsTo(CategoryGroup::class, 'category_group_id');
     }
 
     /**

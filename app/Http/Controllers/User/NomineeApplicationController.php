@@ -5,6 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Category;
+use App\Models\CategoryGroup;
 use App\Models\NomineeApplication; // BORESHO: Ongeza notisi mpya
 use App\Notifications\NewNomineeApplication;
 use App\Jobs\InitiateZenoPayPayment;
@@ -42,17 +43,12 @@ class NomineeApplicationController extends Controller
         // Hii inazuia maombi mengi kwa wakati mmoja.
         Gate::authorize('create', NomineeApplication::class);
 
-        // 2. Pata makundi makuu ya tuzo (yale hayana parent_id).
-        // Kisha, kwa kila kundi, pakia 'children' (tuzo zenyewe) ambazo
-        // zinaruhusu maombi (`status` = 'active').
-        $categoryGroups = Category::query()
-            ->whereNull('parent_id')
-            ->with(['children' => function ($query) {
-                // Chuja watoto (tuzo) ili zibaki zile tu zinazopokea maombi
+        $categoryGroups = CategoryGroup::query()
+            ->where('status', 'active')
+            ->with(['categories' => function ($query) {
                 $query->where('status', 'active')->orderBy('name');
             }])
-            // Chuja makundi makuu ili yabaki yale tu yenye tuzo zinazopokea maombi
-            ->whereHas('children', function ($query) {
+            ->whereHas('categories', function ($query) {
                 $query->where('status', 'active');
             })
             ->orderBy('name')
@@ -120,7 +116,7 @@ class NomineeApplicationController extends Controller
 
         try {
             $application = DB::transaction(function () use ($request, $validated, $normalizedPhone, $applicationFee, $category) {
-                $photoPath = $request->hasFile('photo') ? $request->file('photo')->store('nominee_photos', 'public') : null;
+                $photoPath = $request->hasFile('photo') ? \App\Services\ImageOptimizer::optimizeAndStore($request->file('photo'), 'nominee_photos') : null;
 
                 $application = NomineeApplication::create([
                     'user_id' => $request->user()->id,

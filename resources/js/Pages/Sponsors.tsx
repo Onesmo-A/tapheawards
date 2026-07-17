@@ -1,34 +1,165 @@
-import React from 'react';
-import { Award, ShieldCheck, Heart, Sparkles, Building, Mail, Phone, MapPin } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { Award, ShieldCheck, Heart, Sparkles, Building, Mail, Phone, MapPin, CheckCircle2, RefreshCw, AlertTriangle, Sparkle } from 'lucide-react';
 
 const sponsorLogos = [
-  '/images/sponsors/GANZI.png',
-  '/images/sponsors/jeziOriginal.png',
-  '/images/sponsors/MAGARI.png',
-  '/images/sponsors/main-sponsor.png',
-  '/images/sponsors/MAKUNDUCHI.png',
-  '/images/sponsors/mama-viwanja.png',
-  '/images/sponsors/MQ.png',
-  '/images/sponsors/NIVES_TRENDS.png',
-  '/images/sponsors/PRO-SHARE.png',
-  '/images/sponsors/PWEZA-BEACH.png',
-  '/images/sponsors/PWEZA.png',
-  '/images/sponsors/RAMA.png',
-  '/images/sponsors/simuhadhiYako.png',
-  '/images/sponsors/sponsor2.png',
-  '/images/sponsors/SPONSORS-BAR.png',
-  '/images/sponsors/SPONSORS-CROWN-MEDIA.png',
-  '/images/sponsors/SPONSORS-DOLLY.png',
-  '/images/sponsors/SPONSORS-GAZEM.png',
-  '/images/sponsors/SPONSORS-jay.png',
-  '/images/sponsors/SPONSORS-STOCK.png',
-  '/images/sponsors/SPONSORS1.png',
-  '/images/sponsors/SPONSORSkim.png'
+  '/images/sponsors/GANZI.webp',
+  '/images/sponsors/jeziOriginal.webp',
+  '/images/sponsors/MAGARI.webp',
+  '/images/sponsors/main-sponsor.webp',
+  '/images/sponsors/MAKUNDUCHI.webp',
+  '/images/sponsors/mama-viwanja.webp',
+  '/images/sponsors/MQ.webp',
+  '/images/sponsors/NIVES_TRENDS.webp',
+  '/images/sponsors/PRO-SHARE.webp',
+  '/images/sponsors/PWEZA-BEACH.webp',
+  '/images/sponsors/PWEZA.webp',
+  '/images/sponsors/RAMA.webp',
+  '/images/sponsors/simuhadhiYako.webp',
+  '/images/sponsors/sponsor2.webp',
+  '/images/sponsors/SPONSORS-BAR.webp',
+  '/images/sponsors/SPONSORS-CROWN-MEDIA.webp',
+  '/images/sponsors/SPONSORS-DOLLY.webp',
+  '/images/sponsors/SPONSORS-GAZEM.webp',
+  '/images/sponsors/SPONSORS-jay.webp',
+  '/images/sponsors/SPONSORS-STOCK.webp',
+  '/images/sponsors/SPONSORS1.webp',
+  '/images/sponsors/SPONSORSkim.webp'
 ];
 
+interface PkgItem {
+  id: string;
+  name: string;
+  slug: string;
+  price: string;
+  price_formatted: string;
+  description: string;
+  benefits: string[];
+  is_popular: boolean;
+}
+
 export default function Sponsors() {
+  const [packages, setPackages] = useState<PkgItem[]>([]);
+  const [loadingPackages, setLoadingPackages] = useState(true);
+
+  const [companyName, setCompanyName] = useState('');
+  const [contactName, setContactName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [tier, setTier] = useState('');
+  const [messageText, setMessageText] = useState('');
+  
+  const [loading, setLoading] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Fetch Packages
+  useEffect(() => {
+    const fetchPackages = async () => {
+      try {
+        const res = await axios.get('/api/v1/sponsorship-packages');
+        const list = res.data.packages || [];
+        setPackages(list);
+        if (list.length > 0) {
+          setTier(list[0].slug); // Set default selected tier
+        }
+      } catch (err) {
+        console.error('Failed to load packages', err);
+      } finally {
+        setLoadingPackages(false);
+      }
+    };
+    fetchPackages();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setFeedback(null);
+
+    try {
+      const response = await axios.post('/api/v1/sponsorship-inquiries', {
+        company_name: companyName,
+        contact_name: contactName,
+        email: email,
+        phone: phone,
+        tier: tier,
+        message: messageText
+      });
+
+      setFeedback({ type: 'success', text: response.data.message });
+      
+      // Clear inputs
+      setCompanyName('');
+      setContactName('');
+      setEmail('');
+      setPhone('');
+      setMessageText('');
+    } catch (err: any) {
+      console.error(err);
+      setFeedback({
+        type: 'error',
+        text: err.response?.data?.message || 'Failed to submit inquiry. Please check your connection.'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getPackageStyling = (slug: string) => {
+    const s = slug.toLowerCase();
+    if (s.includes('title')) {
+      return {
+        icon: Sparkles,
+        iconColor: 'text-[#D90429]',
+        border: 'border-[#D90429]/30 hover:border-[#D90429]/60',
+        badge: 'bg-[#D90429]/10 border-[#D90429]/30 text-[#D90429]',
+        bgGlow: 'bg-[#D90429]/10'
+      };
+    } else if (s.includes('platinum')) {
+      return {
+        icon: Award,
+        iconColor: 'text-[#C0C0C0]',
+        border: 'border-[#C0C0C0]/20 hover:border-[#C0C0C0]/50',
+        badge: 'bg-white/10 border-white/20 text-white',
+        bgGlow: 'bg-white/5'
+      };
+    } else if (s.includes('gold')) {
+      return {
+        icon: Award,
+        iconColor: 'text-yellow-500',
+        border: 'border-yellow-500/20 hover:border-yellow-500/50',
+        badge: 'bg-yellow-500/10 border-yellow-500/20 text-yellow-500',
+        bgGlow: 'bg-yellow-500/5'
+      };
+    } else if (s.includes('silver')) {
+      return {
+        icon: Building,
+        iconColor: 'text-slate-300',
+        border: 'border-slate-300/20 hover:border-slate-300/50',
+        badge: 'bg-slate-300/10 border-slate-300/20 text-slate-300',
+        bgGlow: 'bg-slate-300/5'
+      };
+    } else if (s.includes('category')) {
+      return {
+        icon: ShieldCheck,
+        iconColor: 'text-green-500',
+        border: 'border-green-500/20 hover:border-green-500/50',
+        badge: 'bg-green-500/10 border-green-500/20 text-green-500',
+        bgGlow: 'bg-green-500/5'
+      };
+    } else {
+      return {
+        icon: Heart,
+        iconColor: 'text-purple-400',
+        border: 'border-purple-400/20 hover:border-purple-400/50',
+        badge: 'bg-purple-400/10 border-purple-400/20 text-purple-400',
+        bgGlow: 'bg-purple-400/5'
+      };
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[#030303] text-white selection:bg-[#D90429] selection:text-white bg-mesh pt-24 pb-20 select-none">
+    <div className="min-h-screen bg-[#030303] text-white selection:bg-[#D90429] selection:text-white bg-mesh pt-24 pb-20">
       
       {/* Background ambient spotlight */}
       <div className="absolute top-10 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#D90429]/10 rounded-full blur-[100px] pointer-events-none z-0" />
@@ -61,7 +192,7 @@ export default function Sponsors() {
                 <img 
                   src={logo} 
                   alt="Sponsor Logo" 
-                  className="max-h-full max-w-full object-contain opacity-80 group-hover/logo:opacity-100 group-hover/logo:scale-105 transition-all duration-300"
+                  className="max-h-full max-w-full object-contain opacity-85 group-hover/logo:opacity-100 group-hover/logo:scale-105 transition-all duration-300"
                   loading="lazy"
                 />
               </div>
@@ -69,112 +200,137 @@ export default function Sponsors() {
           </div>
         </div>
 
+        {/* 1.5. EXQUISITE TITLE SPONSOR SHOWCASE */}
+        <div className="rounded-[2.5rem] border border-[#D90429]/20 bg-gradient-to-b from-[#160b0d] via-[#0a0809] to-[#030303] p-8 md:p-12 relative overflow-hidden shadow-3xl text-left group">
+          {/* Ambient glowing highlights */}
+          <div className="absolute top-0 right-0 w-96 h-96 bg-[#D90429]/10 rounded-full blur-[80px] pointer-events-none z-0" />
+          <div className="absolute -left-16 -bottom-16 w-64 h-64 bg-[#D90429]/5 rounded-full blur-[60px] pointer-events-none z-0" />
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+            {/* Sponsor Text & Info */}
+            <div className="lg:col-span-7 space-y-6">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#D90429]/10 border border-[#D90429]/30 rounded-full">
+                <Sparkles className="w-3.5 h-3.5 text-[#D90429] animate-pulse" />
+                <span className="text-[9px] font-black text-[#D90429] uppercase tracking-widest font-outfit">Official Title Sponsor</span>
+              </div>
+              
+              <div className="space-y-3">
+                <h2 className="text-3xl md:text-5xl font-outfit font-black tracking-tight uppercase leading-none text-white">
+                  Official Title <br />
+                  <span className="text-red-gradient">Partner</span>
+                </h2>
+                <p className="text-xs md:text-sm text-white/70 leading-relaxed font-light font-inter max-w-xl">
+                  We are proud to partner with our official Title Sponsor leading the healthcare revolution in Tanzania. This strategic collaboration enables deep recognition of the healthcare practitioners who dedicate themselves daily to saving lives and serving local communities.
+                </p>
+              </div>
+
+              <div className="h-px bg-white/5 w-full" />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-[#D90429]/10 transition-colors">
+                  <h4 className="text-xs font-black uppercase text-[#D90429] tracking-wider font-outfit mb-1">Core Mission</h4>
+                  <p className="text-[10px] text-white/50 leading-relaxed font-inter">Elevating care quality and inspiring the adoption of advanced healthcare technologies.</p>
+                </div>
+                <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-[#D90429]/10 transition-colors">
+                  <h4 className="text-xs font-black uppercase text-[#D90429] tracking-wider font-outfit mb-1">Healthcare Impact</h4>
+                  <p className="text-[10px] text-white/50 leading-relaxed font-inter">Supporting community clinics, upgrading diagnostic facilities, and empowering healthcare practitioners.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Premium Logo Showcase Box */}
+            <div className="lg:col-span-5 flex justify-center lg:justify-end">
+              <div className="relative w-full max-w-[420px] aspect-[4/3] rounded-[2.5rem] p-6 bg-gradient-to-br from-white/[0.02] to-white/[0.005] border border-white/5 hover:border-[#D90429]/40 shadow-2xl transition-all duration-500 flex flex-col items-center justify-center group/card overflow-hidden">
+                {/* Background glow on hover */}
+                <div className="absolute inset-0 bg-[#D90429]/5 opacity-0 group-hover/card:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-[#D90429]/10 rounded-full blur-[50px] opacity-0 group-hover/card:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+                {/* Elevated Logo frame */}
+                <div className="w-full h-56 rounded-2xl bg-black/60 border border-white/10 flex items-center justify-center p-8 relative z-10 transition-transform duration-500 group-hover/card:scale-[1.03] shadow-inner">
+                  <img 
+                    loading="lazy"
+                    src="/images/sponsors/main-sponsor.webp" 
+                    alt="Official Title Sponsor Logo" 
+                    className="max-h-full max-w-full object-contain filter drop-shadow-[0_0_12px_rgba(219,4,41,0.25)]"
+                  />
+                </div>
+
+                <div className="mt-4 text-center z-10">
+                  <span className="text-[8px] uppercase tracking-widest font-black text-white/40 block mb-0.5">Official Partnership</span>
+                  <h4 className="text-xs font-bold text-white uppercase font-outfit tracking-wider">TAPHE Title Partner</h4>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Structured Sponsor Tiers Grid */}
         <div className="space-y-12">
           <div className="text-left space-y-2">
             <span className="text-[10px] font-black text-[#D90429] uppercase tracking-widest font-outfit">Recognition Tiers</span>
-            <h2 className="text-xl md:text-2xl font-outfit font-black tracking-tight uppercase text-white">Sponsorship Categories</h2>
+            <h2 className="text-xl md:text-2xl font-outfit font-black tracking-tight uppercase text-white">Sponsorship Categories & Packages</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            
-            {/* Platinum tier */}
-            <div className="p-8 rounded-[32px] glass-panel bg-white/[0.01] border border-[#D90429]/20 space-y-6 hover:border-[#D90429]/40 transition-all text-left relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#D90429]/5 rounded-full blur-[30px] pointer-events-none" />
-              <div className="space-y-2">
-                <span className="px-3.5 py-1.5 bg-[#D90429]/10 border border-[#D90429]/20 text-[#D90429] rounded-full text-[9px] font-bold uppercase tracking-wider">
-                  Platinum Level
-                </span>
-                <h3 className="text-lg font-black font-outfit uppercase tracking-wide text-white mt-4">Corporate Pillars</h3>
-              </div>
-              <p className="text-xs text-white/50 leading-relaxed font-light">
-                Highest level of brand integration, prime VIP presentation seating, corporate stage recognition, and custom award naming opportunities.
-              </p>
-              <div className="h-px bg-white/5 w-full" />
-              <div className="space-y-2 text-xs text-white/70">
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#D90429]" />
-                  <span>Main Stage Logo Backdrop</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#D90429]" />
-                  <span>VIP Gala Dinner Table</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#D90429]" />
-                  <span>Interactive App Ad Banners</span>
-                </div>
-              </div>
+          {loadingPackages ? (
+            <div className="py-20 flex justify-center"><RefreshCw className="w-8 h-8 animate-spin text-[#D90429]" /></div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {packages.map(pkg => {
+                const style = getPackageStyling(pkg.slug);
+                const Icon = style.icon;
+                return (
+                  <div 
+                    key={pkg.id} 
+                    className={`p-8 rounded-[2.5rem] bg-gradient-to-b from-[#1c1c1c]/90 to-[#0c0809] border ${style.border} space-y-6 hover:shadow-2xl transition-all duration-500 text-left relative overflow-hidden group`}
+                  >
+                    <div className={`absolute top-0 right-0 w-32 h-32 ${style.bgGlow} rounded-full blur-[30px] pointer-events-none`} />
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <span className={`px-3.5 py-1.5 border rounded-full text-[9px] font-black uppercase tracking-wider ${style.badge}`}>
+                          {pkg.name}
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          {pkg.is_popular && (
+                            <span className="px-2 py-0.5 bg-yellow-500 text-black text-[7px] font-black uppercase tracking-wider rounded-md animate-pulse">
+                              Popular
+                            </span>
+                          )}
+                          <Icon className={`w-5 h-5 ${style.iconColor}`} />
+                        </div>
+                      </div>
+                      <h3 className="text-2xl font-black font-outfit uppercase tracking-wide text-white">{pkg.name}</h3>
+                      <div className="text-2xl font-black text-white font-outfit leading-none">
+                        {pkg.price_formatted}
+                      </div>
+                    </div>
+                    <p className="text-xs text-white/60 leading-relaxed font-light font-inter">
+                      {pkg.description}
+                    </p>
+                    <div className="h-px bg-white/5 w-full" />
+                    <div className="space-y-3 text-xs text-white/70 font-inter font-light">
+                      {(pkg.benefits || []).map((benefit, bIdx) => (
+                        <div key={bIdx} className="flex items-start gap-2.5">
+                          <Sparkle className={`w-3.5 h-3.5 ${style.iconColor} mt-0.5 shrink-0`} />
+                          <span className="text-[11px] text-white/75 leading-relaxed">{benefit}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-
-            {/* Gold tier */}
-            <div className="p-8 rounded-[32px] glass-panel bg-white/[0.01] border border-white/5 space-y-6 hover:border-[#D90429]/20 transition-all text-left relative overflow-hidden">
-              <div className="space-y-2">
-                <span className="px-3.5 py-1.5 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 rounded-full text-[9px] font-bold uppercase tracking-wider">
-                  Gold Level
-                </span>
-                <h3 className="text-lg font-black font-outfit uppercase tracking-wide text-white mt-4">Excellence Partners</h3>
-              </div>
-              <p className="text-xs text-white/50 leading-relaxed font-light">
-                Premium media alignment, prominent logo placements on web/print media, and presentation of selected sub-category honors.
-              </p>
-              <div className="h-px bg-white/5 w-full" />
-              <div className="space-y-2 text-xs text-white/70">
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-yellow-500" />
-                  <span>Featured Web & App Logos</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-yellow-500" />
-                  <span>Shared Gala Dinner Seating</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-yellow-500" />
-                  <span>Secretariat Press Mentions</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Silver tier */}
-            <div className="p-8 rounded-[32px] glass-panel bg-white/[0.01] border border-white/5 space-y-6 hover:border-[#D90429]/20 transition-all text-left relative overflow-hidden">
-              <div className="space-y-2">
-                <span className="px-3.5 py-1.5 bg-slate-400/10 border border-slate-400/20 text-slate-300 rounded-full text-[9px] font-bold uppercase tracking-wider">
-                  Silver Level
-                </span>
-                <h3 className="text-lg font-black font-outfit uppercase tracking-wide text-white mt-4">Supporting Members</h3>
-              </div>
-              <p className="text-xs text-white/50 leading-relaxed font-light">
-                Standard branding validation, shared directory catalog listing, and promotional materials distributions in runner marathon packs.
-              </p>
-              <div className="h-px bg-white/5 w-full" />
-              <div className="space-y-2 text-xs text-white/70">
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-slate-400" />
-                  <span>Directory Catalog Profile</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-slate-400" />
-                  <span>Exhibition Booth Slots</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-slate-400" />
-                  <span>Social Media Logo Blurbs</span>
-                </div>
-              </div>
-            </div>
-
-          </div>
+          )}
         </div>
 
         {/* Corporate Sponsorship Inquiry Form */}
-        <div className="rounded-[32px] glass-panel bg-white/[0.01] border border-white/5 p-8 md:p-12 text-left relative overflow-hidden grid grid-cols-1 lg:grid-cols-12 gap-12">
+        <div className="rounded-[2.5rem] border border-white/5 bg-gradient-to-r from-[#0c0809] to-[#12080a] p-8 md:p-12 text-left relative overflow-hidden grid grid-cols-1 lg:grid-cols-12 gap-12 shadow-2xl">
           <div className="lg:col-span-5 space-y-6">
             <span className="text-[10px] font-black text-[#D90429] uppercase tracking-widest font-outfit">Sponsor Inquiry</span>
-            <h2 className="text-3xl font-outfit font-black tracking-tight uppercase text-white">Join the Council</h2>
-            <p className="text-xs text-white/55 leading-relaxed font-light">
+            <h2 className="text-3xl font-outfit font-black tracking-tight uppercase text-white leading-none">Join the <br />Council</h2>
+            <p className="text-xs text-white/55 leading-relaxed font-light font-inter">
               Elevate your corporate brand footprint across the East African healthcare sector. Partner with TAPHE Awards to promote quality service delivery.
             </p>
-            <div className="space-y-3 pt-4 text-xs text-white/50">
+            <div className="space-y-3 pt-4 text-xs text-white/50 font-inter font-light">
               <div className="flex items-center gap-3">
                 <MapPin className="w-4 h-4 text-[#D90429]" />
                 <span>TAPHE secretariat Office, Dar es Salaam</span>
@@ -191,63 +347,101 @@ export default function Sponsors() {
           </div>
 
           <div className="lg:col-span-7">
-            <form onSubmit={(e) => { e.preventDefault(); alert('Sponsorship inquiry sent successfully!'); }} className="space-y-4">
+            {feedback && (
+              <div className={`mb-6 p-4 rounded-2xl border text-xs font-semibold leading-relaxed flex items-start gap-3 ${
+                feedback.type === 'success' ? 'bg-green-600/10 border-green-500/20 text-green-400' : 'bg-red-600/10 border-red-500/20 text-red-400'
+              }`}>
+                <div className="mt-0.5 shrink-0">
+                  {feedback.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
+                </div>
+                <span>{feedback.text}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[9px] uppercase tracking-widest font-bold text-white/40">Company Name</label>
+                <div className="space-y-1.5">
+                  <label className="text-[9px] uppercase tracking-widest font-black text-white/40">Company Name</label>
                   <input 
                     type="text" 
                     required 
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
                     placeholder="Enter corporate name" 
-                    className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-2xl text-xs text-white focus:border-[#D90429] focus:ring-1 focus:ring-[#D90429] outline-none"
+                    className="w-full px-4 py-3 bg-white/[0.02] border border-white/10 rounded-2xl text-xs text-white focus:border-[#D90429] focus:bg-white/[0.04] outline-none transition-colors"
                   />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[9px] uppercase tracking-widest font-bold text-white/40">Contact Person</label>
+                <div className="space-y-1.5">
+                  <label className="text-[9px] uppercase tracking-widest font-black text-white/40">Contact Person</label>
                   <input 
                     type="text" 
                     required 
+                    value={contactName}
+                    onChange={(e) => setContactName(e.target.value)}
                     placeholder="Enter full name" 
-                    className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-2xl text-xs text-white focus:border-[#D90429] focus:ring-1 focus:ring-[#D90429] outline-none"
+                    className="w-full px-4 py-3 bg-white/[0.02] border border-white/10 rounded-2xl text-xs text-white focus:border-[#D90429] focus:bg-white/[0.04] outline-none transition-colors"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[9px] uppercase tracking-widest font-bold text-white/40">Email Address</label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-1.5 sm:col-span-1">
+                  <label className="text-[9px] uppercase tracking-widest font-black text-white/40">Email Address</label>
                   <input 
                     type="email" 
                     required 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     placeholder="company@domain.com" 
-                    className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-2xl text-xs text-white focus:border-[#D90429] focus:ring-1 focus:ring-[#D90429] outline-none"
+                    className="w-full px-4 py-3 bg-white/[0.02] border border-white/10 rounded-2xl text-xs text-white focus:border-[#D90429] focus:bg-white/[0.04] outline-none transition-colors"
                   />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[9px] uppercase tracking-widest font-bold text-white/40">Sponsorship Tier Interest</label>
-                  <select className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-2xl text-xs text-white focus:border-[#D90429] focus:ring-1 focus:ring-[#D90429] outline-none">
-                    <option value="platinum" className="bg-[#030303]">Platinum Corporate Pillar</option>
-                    <option value="gold" className="bg-[#030303]">Gold Excellence Partner</option>
-                    <option value="silver" className="bg-[#030303]">Silver Supporting Member</option>
+                <div className="space-y-1.5 sm:col-span-1">
+                  <label className="text-[9px] uppercase tracking-widest font-black text-white/40">Phone Number</label>
+                  <input 
+                    type="text" 
+                    required 
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="E.g. 0712345678" 
+                    className="w-full px-4 py-3 bg-white/[0.02] border border-white/10 rounded-2xl text-xs text-white focus:border-[#D90429] focus:bg-white/[0.04] outline-none transition-colors"
+                  />
+                </div>
+                <div className="space-y-1.5 sm:col-span-1">
+                  <label className="text-[9px] uppercase tracking-widest font-black text-white/40">Sponsorship Tier Interest</label>
+                  <select 
+                    value={tier}
+                    onChange={(e) => setTier(e.target.value)}
+                    className="w-full px-4 py-3 bg-white/[0.02] border border-white/10 rounded-2xl text-xs text-white focus:border-[#D90429] focus:bg-white/[0.04] outline-none transition-colors"
+                  >
+                    {packages.map(pkg => (
+                      <option key={pkg.id} value={pkg.slug} className="bg-[#030303]">
+                        {pkg.name} ({pkg.price_formatted})
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[9px] uppercase tracking-widest font-bold text-white/40">Inquiry details</label>
+              <div className="space-y-1.5">
+                <label className="text-[9px] uppercase tracking-widest font-black text-white/40">Inquiry details</label>
                 <textarea 
                   rows={4} 
                   required 
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
                   placeholder="Outline your partnership objectives..." 
-                  className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-2xl text-xs text-white focus:border-[#D90429] focus:ring-1 focus:ring-[#D90429] outline-none resize-none"
+                  className="w-full px-4 py-3 bg-white/[0.02] border border-white/10 rounded-2xl text-xs text-white focus:border-[#D90429] focus:bg-white/[0.04] outline-none resize-none transition-colors"
                 />
               </div>
 
               <button 
                 type="submit" 
-                className="w-full py-3 bg-gradient-to-r from-[#D90429] to-[#FF3D57] hover:from-[#B00020] hover:to-[#D90429] text-white text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all duration-300"
+                disabled={loading}
+                className="w-full py-3.5 bg-gradient-to-r from-[#D90429] to-[#FF3D57] hover:from-[#B00020] hover:to-[#D90429] disabled:opacity-60 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-[0_4px_25px_rgba(217,4,41,0.25)]"
               >
-                Submit Corporate Inquiry
+                {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : null}
+                <span>Submit Corporate Inquiry</span>
               </button>
             </form>
           </div>
